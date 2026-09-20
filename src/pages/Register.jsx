@@ -56,6 +56,11 @@ export default function Register() {
       toast.error("Password must be at least 6 characters");
       return;
     }
+    const cleanEmail = form.email.toLowerCase().trim();
+    if (!cleanEmail.endsWith("@mitsgwalior.in") && !cleanEmail.endsWith("@mitsgwl.ac.in")) {
+      toast.error("Only @mitsgwalior.in and @mitsgwl.ac.in institutional emails are allowed");
+      return;
+    }
     setLoading(true);
     try {
       const { data } = await axios.post("/api/auth/register", form);
@@ -198,13 +203,14 @@ export default function Register() {
                     id="reg-email"
                     type="email"
                     autoComplete="email"
-                    placeholder="your@email.com"
+                    placeholder="name@mitsgwalior.in or name@mitsgwl.ac.in"
                     value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
                     required
                     className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                   />
                 </div>
+                <p className="text-[11px] text-slate-400 mt-1">Allowed domains: <span className="text-violet-400 font-medium">@mitsgwalior.in</span> or <span className="text-violet-400 font-medium">@mitsgwl.ac.in</span></p>
               </div>
 
               {/* Password */}
