@@ -1,0 +1,37 @@
+{
+  "name": "faculty-feedback-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:main": "vite --config vite.main.config.js",
+    "dev:hod": "vite --config vite.hod.config.js",
+    "dev:vc": "vite --config vite.vc.config.js",
+    "dev:faculty": "vite --config vite.faculty.config.js",
+    "dev:admin": "vite --config vite.admin.config.js",
+    "build": "vite build",
+    "build:main": "vite build --config vite.main.config.js",
+    "build:hod": "vite build --config vite.hod.config.js",
+    "build:vc": "vite build --config vite.vc.config.js",
+    "build:faculty": "vite build --config vite.faculty.config.js",
+    "build:admin": "vite build --config vite.admin.config.js",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.20.0",
+    "recharts": "^2.10.0",
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "vite": "^5.0.0"
+  }
+}
