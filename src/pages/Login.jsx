@@ -39,6 +39,66 @@ export default function Login() {
     if (user) go(user.activeWorkspace || user.role);
   }, [user]);
 
+  // Google Identity Services Sign-In
+  useEffect(() => {
+    const clientId =
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      "32902780570-ltgii8ds5cf6pp8elj3uapsao7a78u88.apps.googleusercontent.com";
+
+    function initializeGoogle() {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleSuccess,
+          auto_select: false,
+        });
+
+        const btnContainer = document.getElementById("google-login-btn");
+        if (btnContainer) {
+          btnContainer.innerHTML = "";
+          window.google.accounts.id.renderButton(btnContainer, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            text: "signin_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: 320,
+          });
+        }
+        return true;
+      }
+      return false;
+    }
+
+    if (!initializeGoogle()) {
+      const interval = setInterval(() => {
+        if (initializeGoogle()) clearInterval(interval);
+      }, 300);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  async function handleGoogleSuccess(response) {
+    if (!response?.credential) return;
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/api/auth/google", {
+        credential: response.credential,
+      });
+      login(data.user, data.token);
+      toast.success(`Welcome back, ${data.user.name || "User"}! 🎉`);
+      go(data.user.activeWorkspace || data.user.role);
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error ||
+          "Google Sign-In failed. Please use your @mitsgwalior.in or @mitsgwl.ac.in account."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function go(role) {
     const dest =
       role === "vc"
@@ -199,6 +259,27 @@ export default function Login() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Google Sign-In Button */}
+            <div className="mb-5 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3.5">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-sm">🔐</span> Institute Google Sign-In
+                </span>
+                <span className="text-[10px] text-violet-400 font-normal">@mitsgwalior.in / @mitsgwl.ac.in</span>
+              </div>
+              <div className="flex justify-center w-full min-h-[44px]">
+                <div id="google-login-btn" className="w-full flex justify-center" />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="relative mb-5 flex items-center justify-center">
+              <div className="border-t border-white/10 w-full" />
+              <span className="bg-[#0a0f1e] px-3 text-[11px] text-slate-500 uppercase tracking-wider">
+                or sign in with password
+              </span>
             </div>
 
             {/* Manual Login Form */}
