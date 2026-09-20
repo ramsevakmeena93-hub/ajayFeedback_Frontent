@@ -75,7 +75,7 @@ export default function Login() {
     } catch (err) {
       toast.error(
         err.response?.data?.error ||
-          "Google Sign-In failed. Please use your @mitsgwalior.in or @mitsgwl.ac.in account."
+          "Google Sign-In failed. Please use your @mitsgwalior.in institutional account."
       );
     } finally {
       setLoading(false);
@@ -222,14 +222,11 @@ export default function Login() {
               <div className="mt-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-slate-400 space-y-1.5">
                 <p className="font-semibold text-slate-300 flex items-center gap-1.5">
                   <CheckCircle size={13} className="text-emerald-400" />
-                  Authorized Institutional Domains:
+                  Authorized Institutional Domain:
                 </p>
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300 font-mono text-[10px]">
+                  <span className="px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300 font-mono text-xs font-semibold">
                     @mitsgwalior.in
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 font-mono text-[10px]">
-                    @mitsgwl.ac.in
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 pt-1">
