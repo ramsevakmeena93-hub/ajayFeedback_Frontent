@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, FileText, User, BarChart3, CheckCircle2, Clock, AlertCircle, ExternalLink, ThumbsUp, AlertTriangle, Zap, ChevronDown } from "lucide-react";
+import { getPdfUrl } from "../api";
 
 const STATUS_CFG = {
   processed:        { color:"bg-emerald-100 text-emerald-700 border-emerald-200", icon:CheckCircle2, label:"Processed" },
@@ -130,7 +131,7 @@ export default function ReportDetailModal({ report, onClose, onApprove, onSendTo
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">PDF</p>
               </div>
               {(report._id || report.driveLink) ? (
-                <a href={report._id ? `/api/reports/${report._id}/pdf` : report.driveLink} target="_blank" rel="noopener noreferrer"
+                <a href={getPdfUrl(report)} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-semibold transition-colors">
                   <ExternalLink size={13}/> View Feedback PDF
                 </a>

@@ -12,7 +12,7 @@ import mitsLogo from "../assets/mits-logo.png";
 const ROLES = [
   { value: "faculty",  label: "Faculty Member",     icon: "👨‍🏫", desc: "Submit & track feedback forms"    },
   { value: "hod",      label: "Head of Department",  icon: "🏛️",  desc: "Review and approve HOD reports"  },
-  { value: "vc",       label: "Vice Chancellor",     icon: "🎓",  desc: "View final VC-level reports"     },
+  { value: "vc",       label: "Pro Vice-Chancellor",     icon: "🎓",  desc: "View final VC-level reports"     },
   { value: "admin",    label: "Administrator",       icon: "🛡️",  desc: "Manage users and system config"  },
 ];
 

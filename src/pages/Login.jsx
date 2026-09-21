@@ -230,7 +230,7 @@ export default function Login() {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 pt-1">
-                  Applicable for all Faculty, HODs, Administration & Vice Chancellor.
+                  Applicable for all Faculty, HODs, Administration & Pro Vice-Chancellor.
                 </p>
               </div>
             </div>
