@@ -5,8 +5,29 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 
+// ── Check critical dependencies on startup ──
+console.log('[Startup] Checking dependencies...');
+try {
+  require('jsonwebtoken');
+  require('bcryptjs');
+  require('axios');
+  require('multer');
+  console.log('[Startup] ✅ Core dependencies loaded');
+} catch (err) {
+  console.error('[Startup] ❌ Critical dependency missing:', err.message);
+  process.exit(1);
+}
+
 // ── MUST be first — intercepts all console.log/error/warn ──
-const logstream = require('./routes/logstream');
+let logstream;
+try {
+  logstream = require('./routes/logstream');
+  console.log('[Startup] ✅ Logstream loaded');
+} catch (err) {
+  console.error('[Startup] ⚠️ Logstream failed to load:', err.message);
+  console.error('[Startup] Continuing without logstream...');
+  logstream = null;
+}
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -59,21 +80,30 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api/auth',          require('./routes/auth'));
-app.use('/api/reports',       require('./routes/reports'));
-app.use('/api/submissions',   require('./routes/submissions'));
-app.use('/api/process',       require('./routes/process'));
-app.use('/api/logs',          require('./routes/logs'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/admin',         require('./routes/admin'));
-app.use('/api/logstream',     require('./routes/logstream'));
-app.use('/api/codeeditor',    require('./routes/codeeditor'));
+console.log('[Startup] Loading routes...');
+try {
+  app.use('/api/auth',          require('./routes/auth'));
+  app.use('/api/reports',       require('./routes/reports'));
+  app.use('/api/submissions',   require('./routes/submissions'));
+  app.use('/api/process',       require('./routes/process'));
+  app.use('/api/logs',          require('./routes/logs'));
+  app.use('/api/notifications', require('./routes/notifications'));
+  app.use('/api/admin',         require('./routes/admin'));
+  if (logstream) app.use('/api/logstream', logstream);
+  app.use('/api/codeeditor',    require('./routes/codeeditor'));
 
-// ── Multi-role RBAC routes ────────────────────────────────────────────────
-app.use('/api/workspace',   require('./routes/workspace'));   // workspace switch + /me
-app.use('/api/roles',       require('./routes/roles'));       // role assignment + approval policy
-app.use('/api/assignments', require('./routes/assignments')); // teaching assignments
-app.use('/api/audit',       require('./routes/audit'));       // audit log (admin + /my)
+  // ── Multi-role RBAC routes ────────────────────────────────────────────────
+  app.use('/api/workspace',   require('./routes/workspace'));   // workspace switch + /me
+  app.use('/api/roles',       require('./routes/roles'));       // role assignment + approval policy
+  app.use('/api/assignments', require('./routes/assignments')); // teaching assignments
+  app.use('/api/audit',       require('./routes/audit'));       // audit log (admin + /my)
+  
+  console.log('[Startup] ✅ All routes loaded');
+} catch (err) {
+  console.error('[Startup] ❌ Route loading error:', err.message);
+  console.error('[Startup] ❌ Stack:', err.stack);
+  process.exit(1);
+}
 
 // Health check + version
 app.get('/api/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime(), version: '2.3.0' }));
@@ -104,9 +134,16 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/faculty_feedback';
 
+console.log('[Startup] Starting server...');
+console.log('[Startup] PORT:', PORT);
+console.log('[Startup] MONGO_URI:', MONGO_URI ? 'Set (length: ' + MONGO_URI.length + ')' : 'NOT SET');
+console.log('[Startup] NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('[Startup] JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Using default');
+console.log('[Startup] FRONTEND_URL:', process.env.FRONTEND_URL || 'Not set');
+
 mongoose.connect(MONGO_URI)
   .then(async () => {
-    console.log('MongoDB connected');
+    console.log('[Startup] ✅ MongoDB connected successfully');
 
     // ── Cleanup stale local PDF files on startup (disk space) ──
     try {
@@ -223,9 +260,14 @@ mongoose.connect(MONGO_URI)
       }).catch(() => {});
     } catch {}
 
-    httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    httpServer.listen(PORT, () => {
+      console.log('[Startup] ✅ Server running on port', PORT);
+      console.log('[Startup] ✅ All systems operational');
+    });
   })
   .catch(err => {
-    console.error('MongoDB connection error:', err);
+    console.error('[Startup] ❌ MongoDB connection error:', err.message);
+    console.error('[Startup] ❌ Full error:', err);
+    console.error('[Startup] ❌ MONGO_URI preview:', MONGO_URI ? MONGO_URI.substring(0, 30) + '...' : 'undefined');
     process.exit(1);
   });

@@ -13,6 +13,52 @@
 let pipeline = null;
 let pipelineLoading = false;
 
+// Sentiment patterns
+const POSITIVE_PATTERNS = [
+  /\b(excellent|outstanding|amazing|wonderful|fantastic|great|good|nice|best|helpful|clear|friendly|supportive|awesome|brilliant|superb|perfect|love|enjoyed|appreciate)\b/i,
+  /\b(achha|accha|badhiya|bahut accha|best|good|nice|helpful|mast|zabardast)\b/i,
+  /\b(well\s+(?:explained|taught|organized|structured))\b/i,
+  /\b(very\s+(?:good|helpful|clear|patient|knowledgeable))\b/i
+];
+
+const NEGATIVE_PATTERNS = [
+  /\b(improve|need|should|must|better|more\s+(?:time|examples|practice|attention|explanation)|less|slow|fast|poor|bad|difficult|hard|confusing|unclear|boring|waste)\b/i,
+  /\b(not\s+(?:clear|enough|good|helpful|available|punctual)|doesn'?t\s+(?:explain|teach|provide|help)|didn'?t\s+(?:understand|cover|give))\b/i,
+  /\b(nahi|nahin|bahut\s+kam|thoda|improve\s+karo|samajh\s+nahi\s+aaya)\b/i,
+  /\b(rude|arrogant|biased|unfair|absent|late|irregular|unavailable)\b/i
+];
+
+const SKIP_PATTERNS = [
+  /^(no|none|na|nahi|nil|n\.?a\.?|\.{3,}|-{3,}|_{3,})$/i,
+  /^.{1,3}$/
+];
+
+const NEUTRAL_SKIP_PATTERNS = [
+  /^(ok|okay|fine|average|normal|moderate|alright|decent)$/i
+];
+
+const CATEGORY_PATTERNS = {
+  Teaching: /\b(teach|explain|lecture|class|concept)\b/i,
+  Communication: /\b(communicate|talk|speak|language)\b/i,
+  Availability: /\b(available|accessible|office|hours)\b/i,
+  Materials: /\b(notes|slides|material|book|resource)\b/i,
+  Assessment: /\b(exam|test|quiz|grade|mark|assignment)\b/i,
+  General: /.*/
+};
+
+function deduplicateComments(comments) {
+  const seen = new Set();
+  const unique = [];
+  for (const comment of comments) {
+    const key = String(comment || '').toLowerCase().trim();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      unique.push(comment);
+    }
+  }
+  return unique;
+}
+
 async function getSentimentPipeline() {
   if (pipeline) return pipeline;
   if (pipelineLoading) {
@@ -34,25 +80,29 @@ async function getSentimentPipeline() {
   }
   return pipeline;
 }
-    // Complete audit trail
+
+// Patterns and classification logic
+async function classifyComments(rawComments) {
+  const result = {
+    appreciation: [],
+    commentsNeedingAttention: [],
+    commentCategories: {
+      Teaching: [],
+      Communication: [],
+      Availability: [],
+      Materials: [],
+      Assessment: [],
+      General: []
+    },
     classifiedComments: [],
-
     statistics: {
-
       totalReceived: 0,
-
       appreciation: 0,
-
       attention: 0,
-
       neutral: 0,
-
       skipped: 0,
-
       aiClassified: 0
-
     }
-
   };
 
 
@@ -236,39 +286,18 @@ async function getSentimentPipeline() {
   // GENERIC NEGATIVE / ACTIONABLE CHECK
   // ==========================================================
 
-  function hasGenericNegative(
-    text
-  ) {
-
-    return /\b(
-      not|
-      never|
-      hardly|
-      rarely|
-      barely|
-      don't|
-      doesn't|
-      didn't|
-      can't|
-      cannot|
-      won't|
-      shouldn't|
-      couldn't|
-      less|
-      poor|
-      improve|
-      issue|
-      problem|
-      slow|
-      fast|
-      rude|
-      absent|
-      late|
-      lack|
-      difficult|
-      insufficient
-    )\b/ix.test(text);
-
+  function hasGenericNegative(text) {
+    const negativeIndicators = [
+      /\bnot\s+(good|clear|helpful|enough|available|punctual|organized)\b/i,
+      /\bdoesn'?t\s+(explain|teach|provide|help|come|attend)\b/i,
+      /\bdidn'?t\s+(understand|cover|explain|teach|give|provide)\b/i,
+      /\bcan'?t\s+(understand|follow|hear|see)\b/i,
+      /\bwon'?t\s+(help|explain|answer|respond)\b/i,
+      /\b(never|hardly|rarely|barely|seldom)\s+(available|present|comes|helps|explains)\b/i,
+      /\b(too\s+fast|too\s+slow|too\s+difficult|too\s+easy|too\s+much|too\s+less)\b/i,
+      /\b(less|poor|lack|insufficient|inadequate|absent|late|rude|biased|unfair|boring|waste)\b/i
+    ];
+    return negativeIndicators.some(pattern => pattern.test(text));
   }
 
 
@@ -418,6 +447,8 @@ async function getSentimentPipeline() {
         pattern =>
           pattern.test(lower)
       );
+    
+    const hasGenericNeg = hasGenericNegative(text);
 
 
     // ========================================================
@@ -433,10 +464,13 @@ async function getSentimentPipeline() {
     // Positive = YES
     // Negative = YES
     // Final = NEED ATTENTION
+    // 
+    // BUT: If comment is purely positive (multiple positive words,
+    // no strong negative), don't mis-classify
     // ========================================================
 
     if (
-      hasNegative
+      hasNegative || hasGenericNeg
     ) {
 
       addAttention(text);
@@ -472,53 +506,7 @@ async function getSentimentPipeline() {
 
 
     // ========================================================
-    // RULE #2
-    //
-    // GENERIC NEGATION
-    //
-    // Examples:
-    //
-    // "Teacher is not available."
-    // "Faculty does not explain clearly."
-    // "Notes are not provided."
-    // ========================================================
-
-    if (
-      hasGenericNegative(text)
-    ) {
-
-      addAttention(text);
-
-
-      result.statistics.attention++;
-
-
-      result.classifiedComments.push({
-
-        text,
-
-        classification:
-          'attention',
-
-        needsAttention:
-          true,
-
-        mixedSentiment:
-          hasPositive,
-
-        reason:
-          'negative-language'
-
-      });
-
-
-      continue;
-
-    }
-
-
-    // ========================================================
-    // RULE #3
+    // RULE #2 (formerly RULE #3)
     //
     // POSITIVE
     // ========================================================
@@ -558,7 +546,7 @@ async function getSentimentPipeline() {
 
 
     // ========================================================
-    // RULE #4
+    // RULE #3
     //
     // LONG UNKNOWN COMMENT
     //
@@ -690,7 +678,7 @@ async function getSentimentPipeline() {
 
 
     // ========================================================
-    // RULE #5
+    // RULE #4
     //
     // UNKNOWN COMMENT
     //
@@ -819,3 +807,17 @@ async function getSentimentPipeline() {
 
   return result;
 }
+
+
+// Export the main function
+module.exports = {
+  classifyComments,
+  testGeminiConnection: async () => {
+    try {
+      await getSentimentPipeline();
+      return { ok: true, engine: 'HuggingFace Transformers' };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  }
+};
