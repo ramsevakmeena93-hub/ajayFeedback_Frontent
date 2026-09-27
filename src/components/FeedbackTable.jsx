@@ -370,20 +370,6 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
         </div>
       </div>
 
-      {totalPages > 1 && (
-        <div className="px-5 py-3 border-t bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
-          <span>Showing {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE,filtered.length)} of {filtered.length}</span>
-          <div className="flex gap-1">
-            {Array.from({length:Math.min(totalPages,7)},(_,i)=>i+1).map(p=>(
-              <button key={p} onClick={()=>setPage(p)}
-                className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${p===page?"bg-indigo-600 text-white shadow-sm":"hover:bg-slate-200 text-slate-600"}`}>
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Report Detail Modal */}
       {viewReport && (
         <ReportDetailModal
