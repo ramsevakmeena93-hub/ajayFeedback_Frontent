@@ -118,7 +118,7 @@ export default function SubmissionDetail() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar title="Submission Detail" subtitle="VC Review" />
+      <Navbar title="Submission Detail" subtitle="Pro-VC Review" />
       <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
 
         {/* Back & Actions */}

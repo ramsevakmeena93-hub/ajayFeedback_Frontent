@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import {
   GraduationCap,
-  Users,
+  Shield,
   CheckCircle,
   ArrowLeft,
-  Shield
+  Sparkles,
+  Brain,
+  Zap,
+  Lock
 } from "lucide-react";
 import mitsLogo from "../assets/mits-logo.png";
 
@@ -40,13 +43,13 @@ export default function Login() {
         if (btnContainer) {
           btnContainer.innerHTML = "";
           window.google.accounts.id.renderButton(btnContainer, {
-            theme: "outline",
+            theme: "filled_blue",
             size: "large",
             type: "standard",
             text: "signin_with",
-            shape: "rectangular",
+            shape: "pill",
             logo_alignment: "left",
-            width: 320,
+            width: 340,
           });
         }
         return true;
@@ -70,12 +73,12 @@ export default function Login() {
         credential: response.credential,
       });
       login(data.user, data.token);
-      toast.success(`Welcome back, ${data.user.name || "User"}! 🎉`);
+      toast.success(`Welcome, ${data.user.name || "User"}! 🎉`);
       go(data.user.activeWorkspace || data.user.role);
     } catch (err) {
       toast.error(
         err.response?.data?.error ||
-          "Google Sign-In failed. Please use your @mitsgwalior.in institutional account."
+          "Sign-in failed. Please try again or contact support."
       );
     } finally {
       setLoading(false);
@@ -95,144 +98,171 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0f1e]">
-      {/* ── Left Branding Panel ── */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 opacity-90" />
-        <div className="absolute inset-0 bg-[#0a0f1e]/30" />
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-full blur-3xl animate-float-slow" />
+    <div className="min-h-screen flex bg-[#0a0f1e] relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-float" />
+        <div className="absolute bottom-1/3 left-1/3 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] animate-float-slow" />
+      </div>
 
-        <div className="relative flex flex-col h-full p-10">
+      {/* ── Left Branding Panel ── */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col relative overflow-hidden border-r border-slate-800">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-indigo-600/20 to-violet-600/20" />
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-[100px] animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-violet-500/20 rounded-full blur-[100px] animate-float-slow" />
+
+        <div className="relative flex flex-col h-full p-12 justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/20 shrink-0 shadow-lg p-1">
+            <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/10 backdrop-blur-sm border border-white/10 shrink-0 shadow-xl p-1">
               <img src={mitsLogo} alt="MITS" className="w-full h-full object-contain" />
             </div>
             <div>
-              <p className="text-white font-bold leading-tight">MITS Gwalior</p>
-              <p className="text-white/60 text-xs">Faculty Feedback System</p>
+              <p className="text-white font-bold text-base leading-tight">MITS Gwalior</p>
+              <p className="text-blue-300 text-xs leading-tight">Faculty Feedback System</p>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
-              <GraduationCap size={36} className="text-white" />
+          {/* Center Content */}
+          <div className="flex-1 flex flex-col justify-center py-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-bold mb-8 w-fit">
+              <Sparkles size={14} className="text-blue-400 animate-pulse" />
+              AI-Powered Academic Platform
             </div>
-            <h2 className="text-4xl font-extrabold text-white mb-3">Welcome Back</h2>
-            <p className="text-white/70 text-base mb-8">
-              Manual portal login for HODs, Faculties, VC, and Administrators.
+
+            <h2 className="text-5xl font-black text-white mb-4 leading-tight">
+              Welcome to<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400">
+                Smart Feedback
+              </span>
+            </h2>
+            
+            <p className="text-white/70 text-lg leading-relaxed mb-10 max-w-md">
+              Secure institutional access for faculty evaluation and academic excellence tracking.
             </p>
 
-            <div className="space-y-3 mb-8">
+            {/* Features */}
+            <div className="space-y-4">
               {[
-                "Instant manual email and password authentication",
-                "Automated Google Drive batch PDF processing",
-                "AI-powered sentiment analysis and feedback metrics",
-              ].map((t, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                    <CheckCircle size={12} className="text-white" />
+                { icon: Brain, title: "AI-Powered Analysis", desc: "Advanced sentiment detection & insights" },
+                { icon: Shield, title: "Secure Access", desc: "Google OAuth institutional authentication" },
+                { icon: Zap, title: "Real-Time Reports", desc: "Instant PDF generation & processing" },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <Icon size={20} className="text-blue-300" />
                   </div>
-                  <span className="text-white/80 text-sm">{t}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Role Cards */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { icon: Users, label: "HOD", desc: "Batch upload & send" },
-                { icon: GraduationCap, label: "Faculty", desc: "View PDF feedback" },
-                { icon: Shield, label: "VC", desc: "Final report approval" },
-                { icon: Shield, label: "Admin", desc: "System management" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="p-3 bg-white/10 rounded-xl border border-white/10 backdrop-blur-sm">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <Icon size={12} className="text-blue-200" />
-                    <span className="text-white text-xs font-bold">{label}</span>
+                  <div className="flex-1">
+                    <h3 className="text-white font-bold text-base mb-1">{title}</h3>
+                    <p className="text-white/60 text-sm leading-relaxed">{desc}</p>
                   </div>
-                  <p className="text-white/50 text-[10px]">{desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="text-white/30 text-xs">
-            Faculty Feedback Analysis System · MITS Gwalior
-          </p>
+          {/* Footer */}
+          <div className="flex items-center justify-between text-white/40 text-xs">
+            <span>© 2025 MITS Gwalior</span>
+            <span>Deemed University</span>
+          </div>
         </div>
       </div>
 
       {/* ── Right Login Form Panel ── */}
-      <div className="flex-1 flex flex-col">
-        <div className="px-6 lg:px-10 py-5 flex items-center justify-between">
+      <div className="flex-1 flex flex-col relative">
+        {/* Top Navigation */}
+        <div className="px-6 lg:px-10 py-6 flex items-center justify-between relative z-10">
           <button
             onClick={() => navigate("/landing")}
-            className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-all duration-200 hover:-translate-x-1"
           >
             <ArrowLeft size={16} /> Back to Home
           </button>
-          <Link
-            to="/register"
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition"
-          >
-            Create an Account →
-          </Link>
+          <div className="flex items-center gap-2 text-slate-500 text-xs">
+            <Lock size={12} className="text-emerald-400" />
+            <span>Secure Login</span>
+          </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-4 pb-10">
-          <div className="w-full max-w-sm">
-            {/* Header */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl p-2">
-                <img src={mitsLogo} alt="MITS" className="w-12 h-12 object-contain" />
+        {/* Login Form Container */}
+        <div className="flex-1 flex items-center justify-center px-4 pb-16">
+          <div className="w-full max-w-md">
+            {/* Mobile Logo */}
+            <div className="lg:hidden flex justify-center mb-8">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/5 border border-white/10 p-2">
+                <img src={mitsLogo} alt="MITS" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-2xl font-bold text-white">Sign In</h1>
-              <p className="text-slate-400 text-xs mt-1">
-                Enter your registered institutional credentials
+            </div>
+
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black text-white mb-2">Sign In</h1>
+              <p className="text-slate-400 text-sm">
+                Access your dashboard with institutional credentials
               </p>
             </div>
 
-            {/* Google Sign-In Card */}
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <div className="text-center mb-5">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-violet-300 text-xs font-medium mb-3">
-                  <Shield size={12} /> Google OAuth 2.0
+            {/* Main Login Card */}
+            <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
+              {/* Badge */}
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-violet-500/10 border border-blue-500/20 rounded-full text-blue-300 text-xs font-bold mb-4">
+                  <Shield size={14} className="text-blue-400" />
+                  Google OAuth 2.0 Secured
                 </div>
-                <h2 className="text-white text-base font-semibold">Institute Single Sign-On</h2>
-                <p className="text-slate-400 text-xs mt-1">
-                  Sign in using your authorized MITS institutional Google account
+                <h2 className="text-white text-lg font-bold mb-1">Institute Single Sign-On</h2>
+                <p className="text-slate-400 text-xs">
+                  Use your MITS Google Workspace account
                 </p>
               </div>
 
               {/* Google Button Container */}
-              <div className="flex justify-center w-full min-h-[44px] my-3">
+              <div className="flex justify-center w-full min-h-[48px] mb-6">
                 <div id="google-login-btn" className="w-full flex justify-center" />
               </div>
 
               {loading && (
-                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-blue-400">
+                <div className="flex items-center justify-center gap-2 py-3 text-sm text-blue-400 bg-blue-500/5 rounded-xl border border-blue-500/10">
                   <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Authenticating with Google...</span>
+                  <span>Authenticating...</span>
                 </div>
               )}
 
-              {/* Allowed Domains Info Box */}
-              <div className="mt-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-slate-400 space-y-1.5">
-                <p className="font-semibold text-slate-300 flex items-center gap-1.5">
-                  <CheckCircle size={13} className="text-emerald-400" />
-                  Authorized Institutional Domain:
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300 font-mono text-xs font-semibold">
-                    @mitsgwalior.in
-                  </span>
+              {/* Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-800"></div>
                 </div>
-                <p className="text-[10px] text-slate-500 pt-1">
-                  Applicable for all Faculty, HODs, Administration & Pro Vice-Chancellor.
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-3 bg-slate-900 text-slate-500 font-medium">Authorized Domain</span>
+                </div>
+              </div>
+
+              {/* Domain Badge */}
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                  <CheckCircle size={16} className="text-emerald-400" />
+                  <span className="text-blue-300 font-mono text-sm font-bold">Google Account</span>
+                </div>
+                <p className="text-slate-500 text-xs mt-3">
+                  Sign in with any Google Workspace account
                 </p>
               </div>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="flex items-center justify-center gap-6 mt-8">
+              {[
+                { icon: Shield, label: "Encrypted" },
+                { icon: GraduationCap, label: "Institutional" },
+                { icon: CheckCircle, label: "Verified" },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex flex-col items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                  <Icon size={16} className="text-slate-400" />
+                  <span className="text-slate-500 text-xs font-medium">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

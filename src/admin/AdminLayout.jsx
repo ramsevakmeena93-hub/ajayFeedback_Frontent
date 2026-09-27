@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import Footer from '../components/Footer';
 import { 
   LayoutDashboard, BarChart3, Users, GraduationCap, UserCog, 
   Crown, Building2, Shield, MessageSquare, FileText, PenTool, 
@@ -232,6 +233,9 @@ export default function AdminLayout() {
         <main className="flex-1 p-6 md:p-8 overflow-y-auto">
           {renderSection()}
         </main>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );

@@ -24,9 +24,9 @@ import {
 
 const STATUS_CFG = {
   submitted: { bg:"bg-amber-50",   text:"text-amber-700",   border:"border-amber-200",  dot:"bg-amber-400",   label:"Pending Review" },
-  escalated: { bg:"bg-orange-50",  text:"text-orange-700",  border:"border-orange-200", dot:"bg-orange-500",  label:"Pending VC Review" },
+  escalated: { bg:"bg-orange-50",  text:"text-orange-700",  border:"border-orange-200", dot:"bg-orange-500",  label:"Pending Pro-VC Review" },
   conflict:  { bg:"bg-purple-50",  text:"text-purple-700",  border:"border-purple-200", dot:"bg-purple-500",  label:"Conflict / Review" },
-  approved:  { bg:"bg-teal-50",    text:"text-teal-700",    border:"border-teal-200",   dot:"bg-teal-500",    label:"VC Approved" },
+  approved:  { bg:"bg-teal-50",    text:"text-teal-700",    border:"border-teal-200",   dot:"bg-teal-500",    label:"Pro-VC Approved" },
   rejected:  { bg:"bg-rose-50",    text:"text-rose-700",    border:"border-rose-200",   dot:"bg-rose-500",    label:"Rejected" },
   reviewed:  { bg:"bg-slate-50",   text:"text-slate-600",   border:"border-slate-200",  dot:"bg-slate-400",   label:"Reviewed" },
   sent_back: { bg:"bg-yellow-50",  text:"text-yellow-700",  border:"border-yellow-200", dot:"bg-yellow-400",  label:"Sent Back" },
@@ -97,7 +97,7 @@ export default function VCDashboard() {
         status: "approved",
         vcComment: approveComment || "",
       });
-      toast.success("Submission VC Approved ✓");
+      toast.success("Submission Pro-VC Approved ✓");
       setApproveModal(null);
       setApproveComment("");
       fetchSubmissions();
@@ -222,7 +222,7 @@ export default function VCDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fc] dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
-      <Navbar title="VC Dashboard" subtitle="MITS Gwalior" />
+      <Navbar title="Pro-VC Dashboard" subtitle="MITS Gwalior" />
 
       <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-7">
 
@@ -239,7 +239,7 @@ export default function VCDashboard() {
               <div className="flex gap-3">
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-white text-xl font-black">{approvedCount}</p>
-                  <p className="text-blue-200 text-xs mt-0.5">VC Approved</p>
+                  <p className="text-blue-200 text-xs mt-0.5">Pro-VC Approved</p>
                 </div>
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-amber-300 text-xl font-black">{pendingCount}</p>
@@ -357,7 +357,7 @@ export default function VCDashboard() {
                     if (!latest) {
                       badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>Not Submitted</span>;
                     } else if (status === "approved") {
-                      badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200"><span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block"></span>VC Approved</span>;
+                      badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200"><span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block"></span>Pro-VC Approved</span>;
                     } else if (status === "submitted" || status === "conflict" || status === "escalated") {
                       badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>Pending Review</span>;
                     } else if (status === "rejected") {
@@ -556,7 +556,7 @@ export default function VCDashboard() {
                   className="px-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-36">
                   <option value="">All Status</option>
                   <option value="submitted">Pending</option>
-                  <option value="approved">VC Approved</option>
+                  <option value="approved">Pro-VC Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
                 {(search||filterStatus) && (
@@ -681,7 +681,7 @@ export default function VCDashboard() {
                               {/* Already approved badge */}
                               {isApproved && (
                                 <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-lg border border-teal-200">
-                                  <CheckCircle size={11}/> VC Approved
+                                  <CheckCircle size={11}/> Pro-VC Approved
                                 </span>
                               )}
 
