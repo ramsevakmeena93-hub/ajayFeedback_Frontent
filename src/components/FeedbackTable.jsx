@@ -13,30 +13,46 @@ const STATUS_CFG = {
 
 function CommentList({ items, color, commentPercentages }) {
   const isApp = color === "red";
+  const isAtt = color === "yellow";
+  
   if (isApp) {
     const pcts = commentPercentages || {};
     const entries = Object.entries(pcts).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
     const longComments = (items || []).filter(c => c.trim().split(/\s+/).length > 4);
     if (entries.length === 0 && longComments.length === 0) return <span className="text-xs text-slate-300 italic">None</span>;
     return (
-      <div className="space-y-1 max-w-[200px]">
-        {entries.map(([label, pct]) => (
-          <span key={label} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg px-2 py-0.5 font-semibold inline-block mr-1">
+      <div className="space-y-1 max-w-xs">
+        {entries.slice(0, 3).map(([label, pct]) => (
+          <span key={label} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded px-1.5 py-0.5 font-medium inline-block mr-1">
             {label} {pct}%
           </span>
         ))}
-        {longComments.slice(0,2).map((t,i) => (
-          <div key={i} className="text-xs bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-lg px-2 py-1 leading-snug">{t}</div>
-        ))}
+        {longComments.length > 0 && (
+          <span className="text-xs text-emerald-600 font-medium">{longComments.length} comment{longComments.length !== 1 ? 's' : ''}</span>
+        )}
       </div>
     );
   }
+  
   if (!items || items.length === 0) return <span className="text-xs text-slate-300 italic">None</span>;
+  
+  // For attention: just show count
+  if (isAtt) {
+    return (
+      <span className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded px-2 py-0.5 font-medium">
+        {items.length} comment{items.length !== 1 ? 's' : ''}
+      </span>
+    );
+  }
+  
   return (
-    <div className="space-y-1 max-w-[200px]">
-      {items.map((t,i) => (
-        <div key={i} className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded-lg px-2 py-1 leading-snug">{t}</div>
+    <div className="space-y-1 max-w-xs">
+      {items.slice(0,2).map((t,i) => (
+        <div key={i} className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded px-2 py-1 leading-snug truncate">{t}</div>
       ))}
+      {items.length > 2 && (
+        <span className="text-xs text-amber-600 font-medium">+{items.length - 2} more</span>
+      )}
     </div>
   );
 }
