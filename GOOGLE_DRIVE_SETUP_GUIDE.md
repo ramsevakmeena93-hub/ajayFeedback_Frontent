@@ -6,7 +6,7 @@ This guide explains how to set up Google Drive folder sharing so that any MITS f
 
 ## 📋 **Overview**
 
-**Goal:** Allow any `@mitsgwl.ac.in` email to access the feedback folder and enable automatic Excel file fetching.
+**Goal:** Allow any `@mitsgwl.ac.in` OR `@mitsgwalior.in` email to access the feedback folder and enable automatic Excel file fetching.
 
 **Setup Type:** Organization-wide sharing with domain restriction
 
@@ -67,8 +67,11 @@ The sharing should now show:
 
 This means:
 - ✅ Any `@mitsgwl.ac.in` email can access
+- ✅ Any `@mitsgwalior.in` email can access
 - ✅ External emails CANNOT access
 - ✅ Public access is BLOCKED
+
+**Note:** Both MITS email domains are supported since the Google Workspace organization includes both.
 
 ---
 
@@ -188,6 +191,7 @@ Share these instructions with MITS faculty members:
 
 1. **Access the folder:**
    - Use the shared link or find "MITS Faculty Feedback - 2025-26" in "Shared with me"
+   - **Important:** Sign in with your MITS email (`@mitsgwl.ac.in` OR `@mitsgwalior.in`)
 
 2. **Upload Excel file:**
    - Click **"New"** → **"File upload"**
@@ -213,6 +217,7 @@ Share these instructions with MITS faculty members:
 | Email Domain | Can Access | Can Upload | Can Edit |
 |--------------|-----------|-----------|----------|
 | @mitsgwl.ac.in | ✅ Yes | ✅ Yes | ✅ Yes |
+| @mitsgwalior.in | ✅ Yes | ✅ Yes | ✅ Yes |
 | @gmail.com | ❌ No | ❌ No | ❌ No |
 | Others | ❌ No | ❌ No | ❌ No |
 
@@ -251,7 +256,7 @@ General Access:
 ### **7.1 Test Manual Access**
 
 1. Open an incognito window
-2. Sign in with a different `@mitsgwl.ac.in` account
+2. Sign in with a different MITS account (`@mitsgwl.ac.in` OR `@mitsgwalior.in`)
 3. Access the shared link
 4. Try uploading a test file
 5. Verify you can see and download it
@@ -331,8 +336,9 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 
 **Solution:**
 1. Check General Access is set to "Madhav Institute of Technology & Science"
-2. Verify user is signed in with `@mitsgwl.ac.in` account
+2. Verify user is signed in with MITS account (`@mitsgwl.ac.in` OR `@mitsgwalior.in`)
 3. Ask user to check "Shared with me" in Google Drive
+4. If still failing, verify both domains are part of the same Google Workspace organization
 
 ### **Problem: Service Account can't access files**
 
