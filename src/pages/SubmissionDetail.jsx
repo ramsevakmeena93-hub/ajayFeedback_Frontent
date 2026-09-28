@@ -211,7 +211,6 @@ export default function SubmissionDetail() {
                     <th className="px-4 py-3 text-center">Resp. %</th>
                     <th className="px-4 py-3 text-left">Appreciation</th>
                     <th className="px-4 py-3 text-left">Needs Attention</th>
-                    <th className="px-4 py-3 text-left">HOD Remarks</th>
                     <th className="px-4 py-3 text-left">Action Taken</th>
                   </tr>
                 </thead>
@@ -260,7 +259,6 @@ export default function SubmissionDetail() {
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <CommentCell items={attList} color="amber"/>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">{r.hodRemarks||<span className="text-slate-300">—</span>}</td>
                         <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">{r.actionTaken||<span className="text-slate-300">—</span>}</td>
                       </tr>
                     );
