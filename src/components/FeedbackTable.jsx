@@ -173,7 +173,7 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
   );
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 40;
 
 export default function FeedbackTable({ reports, selected, onSelect, okReviewed, onInlineOk, onSendToFaculty, onHODApprove, onFieldEdit, onDeleteReport, hodUser, vcUser, submittedIds }) {
   const reviewed = okReviewed || new Set();

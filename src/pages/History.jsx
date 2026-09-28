@@ -334,29 +334,38 @@ export default function History() {
     submissions.flatMap(s => (s.reports || []).map(r => r.facultyName)).filter(Boolean)
   )].sort();
 
-  // ── Filtering logic ──
+  // ── Filtering logic ── (INDEPENDENT: each filter works alone OR together)
   const filtered = submissions.filter(s => {
+    const checks = [];
+    
     // Year filter: match academicYear exactly or by start year
     if (filterYear) {
       const ay = s.academicYear || "";
       // filterYear is like "2025-2026" — match exact or if user typed just "2025"
-      if (ay !== filterYear && !ay.startsWith(filterYear.split("-")[0])) return false;
+      checks.push(ay === filterYear || ay.startsWith(filterYear.split("-")[0]));
     }
+    
     // Session filter
-    if (filterSession && s.session !== filterSession) return false;
+    if (filterSession) {
+      checks.push(s.session === filterSession);
+    }
+    
     // Department filter — check both hodId.department and submission.department
     if (filterDept) {
       const subDept = (s.hodId?.department || s.department || "").toLowerCase();
-      if (!subDept.includes(filterDept.toLowerCase())) return false;
+      checks.push(subDept.includes(filterDept.toLowerCase()));
     }
+    
     // Faculty filter — partial match anywhere in faculty names
     if (filterFaculty) {
       const hasMatch = (s.reports || []).some(r =>
         r.facultyName && r.facultyName.toLowerCase().includes(filterFaculty.toLowerCase())
       );
-      if (!hasMatch) return false;
+      checks.push(hasMatch);
     }
-    return true;
+    
+    // If no filters selected, show all; otherwise, ANY check must pass
+    return checks.length === 0 || checks.some(check => check);
   });
 
   const totalReports = filtered.reduce((s, sub) => s + (sub.reports?.length || 0), 0);
