@@ -172,6 +172,7 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(value || "");
   function save() { onEdit && onEdit(reportId, field, val); setEditing(false); }
+  
   if (editing) return (
     <div className="flex gap-1 items-center">
       <input autoFocus className="input text-xs w-28 py-1" value={val}
@@ -181,6 +182,22 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
       <button onClick={() => setEditing(false)} className="text-red-400 text-xs hover:text-red-600">✕</button>
     </div>
   );
+  
+  // For programme field, display with line breaks
+  if (field === 'programme' && value) {
+    const lines = value.split('\n').filter(Boolean);
+    if (lines.length > 1) {
+      return (
+        <span className={"cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 rounded-lg px-1.5 py-0.5 transition-colors text-xs " + (cls || "")}
+          title="Click to edit" onClick={() => { setVal(value || ""); setEditing(true); }}>
+          {lines.map((line, i) => (
+            <div key={i}>{line}</div>
+          ))}
+        </span>
+      );
+    }
+  }
+  
   return (
     <span className={"cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 rounded-lg px-1.5 py-0.5 transition-colors text-sm " + (cls || "")}
       title="Click to edit" onClick={() => { setVal(value || ""); setEditing(true); }}>
@@ -279,7 +296,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                   <td className="px-3 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">
                     <EditableCell reportId={report._id} field="subjectCode" value={report.subjectCode} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">
+                  <td className="px-3 py-3 text-xs text-slate-600">
                     <EditableCell reportId={report._id} field="programme" value={report.programme} onEdit={onFieldEdit} />
                   </td>
                   <td className="px-3 py-3 text-center text-xs">
