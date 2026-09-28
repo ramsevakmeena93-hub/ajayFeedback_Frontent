@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Upload, X, Check } from 'lucide-react';
@@ -65,7 +65,7 @@ export default function SignatureUpload({ token, onSaved, onSkip }) {
           </div>
 
           <p className="text-xs text-gray-400 text-center">
-            Your signature will appear on all feedback reports sent to VC
+            Your signature will appear on all feedback reports Sent to Pro-VC
           </p>
         </div>
 

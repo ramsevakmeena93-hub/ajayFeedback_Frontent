@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Search, Eye, Trash2, Pencil, X as XIcon, Check } from "lucide-react";
 import ReportDetailModal from "./ReportDetailModal";
@@ -371,7 +371,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
               )}
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-slate-700">{vcUser?.name || "Pro Vice-Chancellor"}</p>
+              <p className="text-sm font-semibold text-slate-700">{vcUser?.name || "Dr. Manjuree Pandit"}</p>
               <p className="text-xs text-slate-400 mt-0.5">VC</p>
             </div>
           </div>

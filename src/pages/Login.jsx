@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -230,7 +230,7 @@ export default function Login() {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 pt-1">
-                  Applicable for all Faculty, HODs, Administration & Pro Vice-Chancellor.
+                  Applicable for all Faculty, HODs, Administration & Dr. Manjuree Pandit.
                 </p>
               </div>
             </div>

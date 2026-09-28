@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -89,7 +89,7 @@ export default function HODDashboard() {
     const notApproved = reports.filter(r => selected.includes(r._id) && r.status !== "faculty_approved");
     if (notApproved.length > 0) {
       const names = notApproved.map(r => r.facultyName || "Unknown").join(", ");
-      return toast.error(`Cannot send to VC: The following report(s) must be approved by faculty first:\n${names}`);
+      return toast.error(`Cannot Send to Pro-VC: The following report(s) must be approved by faculty first:\n${names}`);
     }
     try {
       await api.post("/api/submissions/send", {
@@ -100,7 +100,7 @@ export default function HODDashboard() {
         feedbackFormNo: currentSession?.feedbackFormNo || "I",
         submissionDate: new Date().toISOString()
       });
-      toast.success("Reports sent to VC successfully"); setSelected([]);
+      toast.success("Reports Sent to Pro-VC successfully"); setSelected([]);
       fetchSubmissions();
     } catch (err) { toast.error(err.response?.data?.error || "Failed to send"); }
   }
@@ -332,20 +332,20 @@ export default function HODDashboard() {
                 <div className="px-6 py-5 space-y-4">
                   <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
                     {isApproved && <>
-                      The Pro Vice-Chancellor has <strong className="text-emerald-600">approved</strong> your feedback
+                      The Dr. Manjuree Pandit has <strong className="text-emerald-600">approved</strong> your feedback
                       submission for the <strong>{sub.department || "your department"}</strong> department,
                       Academic Year <strong>{sub.academicYear || "2026"}</strong>
                       {sub.session ? `, ${sub.session === "jan-may" ? "Jan – May" : "Jul – Dec"} session` : ""}.
                       The final PDF report is now available.
                     </>}
                     {isRejected && <>
-                      The Pro Vice-Chancellor has <strong className="text-red-600">rejected</strong> your feedback
+                      The Dr. Manjuree Pandit has <strong className="text-red-600">rejected</strong> your feedback
                       submission for <strong>{sub.department || "your department"}</strong>,
                       Academic Year <strong>{sub.academicYear || "2026"}</strong>.
                       Please review the comments and resubmit.
                     </>}
                     {isSentBack && <>
-                      The Pro Vice-Chancellor has <strong className="text-amber-600">sent back</strong> your
+                      The Dr. Manjuree Pandit has <strong className="text-amber-600">sent back</strong> your
                       submission for <strong>{sub.department || "your department"}</strong> for revision.
                     </>}
                   </p>
@@ -356,7 +356,7 @@ export default function HODDashboard() {
                       : isRejected ? "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800"
                       : "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
                     }`}>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">VC Comment</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Pro-VC Comment</p>
                       <p className="text-sm text-slate-800 dark:text-slate-200 italic">"{sub.vcComment}"</p>
                     </div>
                   )}
@@ -436,7 +436,7 @@ export default function HODDashboard() {
                       </button>
                   )}
                   <button onClick={handleSendToVC} disabled={selected.length === 0} className="btn btn-success btn-sm">
-                    <Send size={14} /> Send to VC {selected.length > 0 && `(${selected.length})`}
+                    <Send size={14} /> Send to Pro-VC {selected.length > 0 && `(${selected.length})`}
                   </button>
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function HODDashboard() {
                 <input ref={sigRef} type="file" accept="image/*" className="hidden" onChange={handleSigFile} />
               </div>
               <p className="text-xs text-slate-400 text-center">
-                Your signature will appear on all feedback reports sent to VC
+                Your signature will appear on all feedback reports Sent to Pro-VC
               </p>
             </div>
             <div className="px-6 py-4 border-t bg-slate-50 flex gap-3 justify-end">

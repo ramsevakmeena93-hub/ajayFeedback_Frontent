@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { Building2, Users, GraduationCap, Shield, Upload, Brain, CheckCircle, Download, ArrowLeft } from "lucide-react";
 import mitsLogo from "../assets/mits-logo.png";
 
@@ -27,8 +27,8 @@ const STEPS = [
   {
     icon: GraduationCap,
     color: "bg-amber-600",
-    title: "Pro Vice-Chancellor Approves",
-    desc: "The Pro Vice-Chancellor reviews all HOD submissions, approves or rejects with comments, triggering the final report generation.",
+    title: "Dr. Manjuree Pandit Approves",
+    desc: "The Dr. Manjuree Pandit reviews all HOD submissions, approves or rejects with comments, triggering the final report generation.",
     step: "04"
   },
   {
@@ -41,9 +41,9 @@ const STEPS = [
 ];
 
 const PORTALS = [
-  { icon: Building2, label: "HOD Portal",     color: "border-blue-500   text-blue-600   bg-blue-50",   desc: "Upload CSV, manage feedback pipeline, send to VC."  },
+  { icon: Building2, label: "HOD Portal",     color: "border-blue-500   text-blue-600   bg-blue-50",   desc: "Upload CSV, manage feedback pipeline, Send to Pro-VC."  },
   { icon: Users,     label: "Faculty Portal",  color: "border-emerald-500 text-emerald-600 bg-emerald-50", desc: "View reports, acknowledge and sign off results."  },
-  { icon: GraduationCap, label: "VC Portal",  color: "border-violet-500  text-violet-600 bg-violet-50", desc: "Review submissions, approve or reject with comments." },
+  { icon: GraduationCap, label: "Pro-VC Portal",  color: "border-violet-500  text-violet-600 bg-violet-50", desc: "Review submissions, approve or reject with comments." },
   { icon: Shield,    label: "Admin Portal",    color: "border-rose-500    text-rose-600   bg-rose-50",   desc: "Manage users, monitor logs, push code to GitHub."   },
 ];
 

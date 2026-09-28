@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getPdfUrl } from "../api";
@@ -118,7 +118,7 @@ export default function SubmissionDetail() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar title="Submission Detail" subtitle="VC Review" />
+      <Navbar title="Submission Detail" subtitle="Pro-VC Review" />
       <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
 
         {/* Back & Actions */}
@@ -156,7 +156,7 @@ export default function SubmissionDetail() {
           </div>
           {submission.vcComment && (
             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-sm text-amber-800">
-              <span className="font-semibold">VC Comment:</span>
+              <span className="font-semibold">Pro-VC Comment:</span>
               <div className="mt-1 space-y-1">
                 {autoNumber(submission.vcComment).split("\n").map((line, i) => (
                   <p key={i}>{line}</p>

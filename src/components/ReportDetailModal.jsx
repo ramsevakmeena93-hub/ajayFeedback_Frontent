@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, FileText, User, BarChart3, CheckCircle2, Clock, AlertCircle, ExternalLink, ThumbsUp, AlertTriangle, Zap, ChevronDown, Pencil } from "lucide-react";
 import { getPdfUrl, API_BASE } from "../api";
@@ -403,7 +403,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
               <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
                 <AlertTriangle size={16} /> Enter Action Taken / Approval Reason
               </div>
-              <p className="text-xs text-amber-600">Please provide a valid action taken explanation. This will be stored on the report and visible to the VC and the Faculty member.</p>
+              <p className="text-xs text-amber-600">Please provide a valid action taken explanation. This will be stored on the report and visible to the Pro-VC and the Faculty member.</p>
               <textarea
                 className="w-full border border-amber-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
                 placeholder="Describe action taken / reason for HOD approval..."

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -24,9 +24,9 @@ import {
 
 const STATUS_CFG = {
   submitted: { bg:"bg-amber-50",   text:"text-amber-700",   border:"border-amber-200",  dot:"bg-amber-400",   label:"Pending Review" },
-  escalated: { bg:"bg-orange-50",  text:"text-orange-700",  border:"border-orange-200", dot:"bg-orange-500",  label:"Pending VC Review" },
+  escalated: { bg:"bg-orange-50",  text:"text-orange-700",  border:"border-orange-200", dot:"bg-orange-500",  label:"Pending Pro-VC Review" },
   conflict:  { bg:"bg-purple-50",  text:"text-purple-700",  border:"border-purple-200", dot:"bg-purple-500",  label:"Conflict / Review" },
-  approved:  { bg:"bg-teal-50",    text:"text-teal-700",    border:"border-teal-200",   dot:"bg-teal-500",    label:"VC Approved" },
+  approved:  { bg:"bg-teal-50",    text:"text-teal-700",    border:"border-teal-200",   dot:"bg-teal-500",    label:"Pro-Pro-VC Approved" },
   rejected:  { bg:"bg-rose-50",    text:"text-rose-700",    border:"border-rose-200",   dot:"bg-rose-500",    label:"Rejected" },
   reviewed:  { bg:"bg-slate-50",   text:"text-slate-600",   border:"border-slate-200",  dot:"bg-slate-400",   label:"Reviewed" },
   sent_back: { bg:"bg-yellow-50",  text:"text-yellow-700",  border:"border-yellow-200", dot:"bg-yellow-400",  label:"Sent Back" },
@@ -97,7 +97,7 @@ export default function VCDashboard() {
         status: "approved",
         vcComment: approveComment || "",
       });
-      toast.success("Submission VC Approved ✓");
+      toast.success("Submission Pro-Pro-VC Approved ✓");
       setApproveModal(null);
       setApproveComment("");
       fetchSubmissions();
@@ -137,7 +137,7 @@ export default function VCDashboard() {
     } catch { toast.error("Failed to reject"); }
   }
 
-  // ── Action Taken (VC comment) ───────────────────────────────────
+  // ── Action Taken (Pro-VC Comment) ───────────────────────────────────
   async function handleActionTakenSave() {
     if (!actionModal) return;
     if (!actionComment.trim()) return toast.error("Please enter an action comment");
@@ -222,7 +222,7 @@ export default function VCDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fc] dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
-      <Navbar title="VC Dashboard" subtitle="MITS Gwalior" />
+      <Navbar title="Pro-VC Dashboard" subtitle="MITS Gwalior" />
 
       <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-7">
 
@@ -232,14 +232,14 @@ export default function VCDashboard() {
             {/* Title row */}
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-blue-200 text-sm font-medium">Pro Vice-Chancellor Portal</p>
-                <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Pro Vice-Chancellor"}</h1>
+                <p className="text-blue-200 text-sm font-medium">Dr. Manjuree Pandit Portal</p>
+                <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Dr. Manjuree Pandit"}</h1>
                 <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science · 2025–26</p>
               </div>
               <div className="flex gap-3">
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-white text-xl font-black">{approvedCount}</p>
-                  <p className="text-blue-200 text-xs mt-0.5">VC Approved</p>
+                  <p className="text-blue-200 text-xs mt-0.5">Pro-Pro-VC Approved</p>
                 </div>
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-amber-300 text-xl font-black">{pendingCount}</p>
@@ -357,7 +357,7 @@ export default function VCDashboard() {
                     if (!latest) {
                       badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>Not Submitted</span>;
                     } else if (status === "approved") {
-                      badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200"><span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block"></span>VC Approved</span>;
+                      badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200"><span className="w-1.5 h-1.5 rounded-full bg-teal-500 inline-block"></span>Pro-Pro-VC Approved</span>;
                     } else if (status === "submitted" || status === "conflict" || status === "escalated") {
                       badge = <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>Pending Review</span>;
                     } else if (status === "rejected") {
@@ -556,7 +556,7 @@ export default function VCDashboard() {
                   className="px-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-36">
                   <option value="">All Status</option>
                   <option value="submitted">Pending</option>
-                  <option value="approved">VC Approved</option>
+                  <option value="approved">Pro-Pro-VC Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
                 {(search||filterStatus) && (
@@ -582,7 +582,7 @@ export default function VCDashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/40">
-                      {["HOD","Department","Session","Reports","Avg FFI","Submitted","Status","VC Comment","Actions"].map(h => (
+                      {["HOD","Department","Session","Reports","Avg FFI","Submitted","Status","Pro-VC Comment","Actions"].map(h => (
                         <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
                       ))}
                     </tr>
@@ -653,7 +653,7 @@ export default function VCDashboard() {
                             </span>
                           </td>
 
-                          {/* VC Comment */}
+                          {/* Pro-VC Comment */}
                           <td className="px-5 py-4 text-xs text-slate-500 max-w-[130px]">
                             {sub.vcComment
                               ? <span className="italic">"{sub.vcComment}"</span>
@@ -670,18 +670,18 @@ export default function VCDashboard() {
                                 <Eye size={11}/> View
                               </button>
 
-                              {/* VC Approve — only if pending */}
+                              {/* Pro-VC Approve — only if pending */}
                               {isPending && (
                                 <button onClick={() => { setApproveModal(sub._id); setApproveComment(""); }}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                                  <BadgeCheck size={11}/> VC Approve
+                                  <BadgeCheck size={11}/> Pro-VC Approve
                                 </button>
                               )}
 
                               {/* Already approved badge */}
                               {isApproved && (
                                 <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-lg border border-teal-200">
-                                  <CheckCircle size={11}/> VC Approved
+                                  <CheckCircle size={11}/> Pro-Pro-VC Approved
                                 </span>
                               )}
 
@@ -720,7 +720,7 @@ export default function VCDashboard() {
         <SignatureUpload token={token} onSaved={handleSignatureSaved} onSkip={() => setShowSignatureModal(false)} />
       )}
 
-      {/* ── VC Approve Modal (with optional comment) ── */}
+      {/* ── Pro-VC Approve Modal (with optional comment) ── */}
       {approveModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-5 animate-scale-in">
@@ -729,13 +729,13 @@ export default function VCDashboard() {
                 <BadgeCheck size={20} className="text-teal-600"/>
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-800">VC Approve Submission</h2>
+                <h2 className="text-base font-bold text-slate-800">Pro-VC Approve Submission</h2>
                 <p className="text-xs text-slate-400">Optionally add a comment before approving</p>
               </div>
             </div>
             <textarea rows={3}
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-300"
-              placeholder="Optional VC comment..."
+              placeholder="Optional Pro-VC Comment..."
               value={approveComment} onChange={e => setApproveComment(e.target.value)} />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setApproveModal(null)}
@@ -744,7 +744,7 @@ export default function VCDashboard() {
               </button>
               <button onClick={handleApproveConfirm}
                 className="px-5 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-colors flex items-center gap-2">
-                <BadgeCheck size={14}/> Confirm VC Approve
+                <BadgeCheck size={14}/> Confirm Pro-VC Approve
               </button>
             </div>
           </div>

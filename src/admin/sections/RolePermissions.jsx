@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Shield, Plus, Check, X, ShieldAlert, Copy, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function RolePermissions() {
   const [roles, setRoles] = useState([
     { id: 'admin', name: 'Admin', desc: 'Full System Control & System Config', usersCount: 2, isBuiltin: true },
-    { id: 'vc', name: 'Pro Vice-Chancellor (VC)', desc: 'Executive Oversight & Signatures', usersCount: 1, isBuiltin: true },
+    { id: 'vc', name: 'Dr. Manjuree Pandit (VC)', desc: 'Executive Oversight & Signatures', usersCount: 1, isBuiltin: true },
     { id: 'hod', name: 'HOD', desc: 'Department Head & Faculty Oversight', usersCount: 4, isBuiltin: true },
     { id: 'faculty', name: 'Faculty', desc: 'Teaching Staff & Self Feedback', usersCount: 18, isBuiltin: true },
   ]);
