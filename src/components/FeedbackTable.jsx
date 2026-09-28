@@ -99,7 +99,7 @@ function EditableComments({ reportId, field, items, color, commentPercentages, o
             </div>
 
             <div className="p-5 space-y-3">
-              {/* Edit area only */}
+              {/* Edit area */}
               <div className="space-y-1.5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">One comment per line</p>
                 <textarea
@@ -112,6 +112,21 @@ function EditableComments({ reportId, field, items, color, commentPercentages, o
                 />
                 <p className="text-xs text-slate-400">Each line = one bullet point. Blank lines are ignored.</p>
               </div>
+
+              {/* Live Preview with Bullets */}
+              {val.trim() && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preview</p>
+                  <div className={`border rounded-xl px-4 py-3 space-y-2 max-h-[200px] overflow-y-auto ${isAtt ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                    {val.split('\n').filter(line => line.trim()).map((line, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs leading-snug">
+                        <span className={`mt-0.5 font-bold shrink-0 ${isAtt ? 'text-amber-600' : 'text-emerald-600'}`}>•</span>
+                        <span className="text-slate-700">{line.trim()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
