@@ -359,12 +359,12 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
             </div>
           </div>
 
-          {/* VC Signature */}
+          {/* Pro-VC Signature */}
           <div className="flex-1 flex flex-col items-center justify-between px-10 py-6 gap-3">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">VC Signature</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pro-VC Signature</p>
             <div className="w-full flex items-center justify-center min-h-[56px]">
               {vcUser?.signatureImage ? (
-                <img src={vcUser.signatureImage} alt="VC Signature"
+                <img src={vcUser.signatureImage} alt="Pro-VC Signature"
                   className="max-h-14 max-w-[180px] object-contain" />
               ) : (
                 <div className="w-48 border-b-2 border-slate-400"></div>
@@ -372,7 +372,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
             </div>
             <div className="text-center">
               <p className="text-sm font-semibold text-slate-700">{vcUser?.name || "Dr. Manjuree Pandit"}</p>
-              <p className="text-xs text-slate-400 mt-0.5">VC</p>
+              <p className="text-xs text-slate-400 mt-0.5">Pro-VC</p>
             </div>
           </div>
 
