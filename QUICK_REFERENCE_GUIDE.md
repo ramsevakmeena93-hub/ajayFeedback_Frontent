@@ -1,6 +1,6 @@
 # Quick Reference Guide - PDF Extraction System
 
-## 🎯 WHAT THIS SYSTEM DOES
+## ≡ƒÄ» WHAT THIS SYSTEM DOES
 
 This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOLOGY & SCIENCE. It allows:
 1. **HODs** to upload Excel files containing PDF feedback links
@@ -11,7 +11,7 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 
 ---
 
-## 📂 FILES YOU NEED TO KNOW
+## ≡ƒôé FILES YOU NEED TO KNOW
 
 ### Core Models (Database)
 | File | Purpose |
@@ -25,7 +25,7 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 |------|---------|
 | `backend/routes/process.js` | CSV upload & PDF processing |
 | `backend/routes/reports.js` | Report CRUD operations |
-| `backend/routes/submissions.js` | HOD → VC workflow |
+| `backend/routes/submissions.js` | HOD ΓåÆ VC workflow |
 | `backend/routes/middleware.js` | Authentication & authorization |
 
 ### Core Services (Business Logic)
@@ -38,11 +38,11 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 
 ---
 
-## 🔄 TYPICAL USER FLOW
+## ≡ƒöä TYPICAL USER FLOW
 
 ### For HOD:
 ```
-1. Login → Switch to HOD Workspace
+1. Login ΓåÆ Switch to HOD Workspace
 2. Upload Excel file (containing PDF links)
 3. System parses file and shows preview
 4. Confirm processing
@@ -56,7 +56,7 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 
 ### For Faculty:
 ```
-1. Login → Switch to Faculty Workspace
+1. Login ΓåÆ Switch to Faculty Workspace
 2. Receive notification about new feedback
 3. View feedback report
 4. Read AI-analyzed comments
@@ -66,7 +66,7 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 
 ### For VC:
 ```
-1. Login → VC Workspace
+1. Login ΓåÆ VC Workspace
 2. View submissions from HODs
 3. Review department reports
 4. Approve or Reject with comments
@@ -75,7 +75,7 @@ This is a **Faculty Feedback Management System** for MADHAV INSTITUTE OF TECHNOL
 
 ---
 
-## 🌐 KEY API ENDPOINTS
+## ≡ƒîÉ KEY API ENDPOINTS
 
 ### CSV/Excel Upload
 ```
@@ -125,7 +125,7 @@ Returns: PDF file download
 
 ---
 
-## 📊 DATABASE MODELS - QUICK VIEW
+## ≡ƒôè DATABASE MODELS - QUICK VIEW
 
 ### FacultyReport
 ```javascript
@@ -169,7 +169,7 @@ Returns: PDF file download
 
 ---
 
-## 🎨 AI ANALYSIS OUTPUT
+## ≡ƒÄ¿ AI ANALYSIS OUTPUT
 
 ### What AI Extracts:
 ```javascript
@@ -197,7 +197,7 @@ Returns: PDF file download
 
 ---
 
-## 📄 PDF GENERATION
+## ≡ƒôä PDF GENERATION
 
 ### What Gets Generated:
 
@@ -231,7 +231,7 @@ Returns: PDF file download
 
 ---
 
-## 🔐 AUTHENTICATION & ROLES
+## ≡ƒöÉ AUTHENTICATION & ROLES
 
 ### Roles:
 - `admin` - Full system access
@@ -253,7 +253,7 @@ requireWorkspace('hod')         // Check active workspace
 
 ---
 
-## 🚨 ERROR HANDLING
+## ≡ƒÜ¿ ERROR HANDLING
 
 ### Common Issues:
 
@@ -278,7 +278,7 @@ requireWorkspace('hod')         // Check active workspace
 
 ---
 
-## ⚙️ CONFIGURATION
+## ΓÜÖ∩╕Å CONFIGURATION
 
 ### File Size Limits:
 ```javascript
@@ -303,7 +303,7 @@ Processing limit:        5
 
 ---
 
-## 🔧 SETUP INSTRUCTIONS
+## ≡ƒöº SETUP INSTRUCTIONS
 
 ### 1. Install Dependencies
 ```bash
@@ -333,7 +333,7 @@ http://localhost:5000/api/
 
 ---
 
-## 📝 TESTING
+## ≡ƒô¥ TESTING
 
 ### Test CSV Parser
 ```bash
@@ -354,7 +354,7 @@ curl http://localhost:5000/api/health
 
 ---
 
-## 📚 COMMON TASKS
+## ≡ƒôÜ COMMON TASKS
 
 ### Add New Report Manually
 ```javascript
@@ -388,7 +388,7 @@ GET /api/reports/my/preview-pdf
 
 ---
 
-## 🐛 DEBUGGING TIPS
+## ≡ƒÉ¢ DEBUGGING TIPS
 
 ### Enable Verbose Logging
 ```javascript
@@ -417,7 +417,7 @@ db.auditlogs.find({ actorId: ObjectId("...") }).sort({ createdAt: -1 })
 
 ---
 
-## 📞 SUPPORT & RESOURCES
+## ≡ƒô₧ SUPPORT & RESOURCES
 
 ### Documentation Files:
 1. `PDF_EXTRACTION_AND_REPORT_FLOW.md` - System overview
@@ -433,22 +433,22 @@ db.auditlogs.find({ actorId: ObjectId("...") }).sort({ createdAt: -1 })
 
 ---
 
-## 🎯 SUCCESS CRITERIA
+## ≡ƒÄ» SUCCESS CRITERIA
 
 ### For HOD:
-- ✅ Upload Excel with 100+ links
-- ✅ AI processes within 5 minutes
-- ✅ Edit and customize reports
-- ✅ Send to faculty successfully
-- ✅ Submit to VC without conflicts
-- ✅ Generate final PDF with signatures
+- Γ£à Upload Excel with 100+ links
+- Γ£à AI processes within 5 minutes
+- Γ£à Edit and customize reports
+- Γ£à Send to faculty successfully
+- Γ£à Submit to VC without conflicts
+- Γ£à Generate final PDF with signatures
 
 ### For System:
-- ✅ 95%+ PDF extraction success rate
-- ✅ Zero data loss during processing
-- ✅ Proper conflict detection
-- ✅ PDF generation under 60 seconds
-- ✅ All signatures embedded correctly
+- Γ£à 95%+ PDF extraction success rate
+- Γ£à Zero data loss during processing
+- Γ£à Proper conflict detection
+- Γ£à PDF generation under 60 seconds
+- Γ£à All signatures embedded correctly
 
 ---
 

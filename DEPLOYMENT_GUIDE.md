@@ -1,10 +1,10 @@
-# 🚀 Deployment Guide - Faculty Feedback System
+# ≡ƒÜÇ Deployment Guide - Faculty Feedback System
 
 This guide will help you deploy the Faculty Feedback System to Render (Backend) and Vercel (Frontend).
 
 ---
 
-## 📦 **Backend Deployment on Render**
+## ≡ƒôª **Backend Deployment on Render**
 
 ### **Step 1: Create Render Account**
 1. Go to https://render.com
@@ -12,7 +12,7 @@ This guide will help you deploy the Faculty Feedback System to Render (Backend) 
 3. Authorize Render to access your repositories
 
 ### **Step 2: Deploy Backend**
-1. Click **"New +"** → **"Web Service"**
+1. Click **"New +"** ΓåÆ **"Web Service"**
 2. Connect your GitHub repository: `ajayFeedback_Backend`
 3. Configure the service:
    - **Name**: `faculty-feedback-backend`
@@ -50,7 +50,7 @@ GOOGLE_DRIVE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY
 
 **MONGODB_URI:**
 1. Go to https://www.mongodb.com/cloud/atlas
-2. Create free cluster → Get connection string
+2. Create free cluster ΓåÆ Get connection string
 3. Replace `<password>` with your password
 4. Format: `mongodb+srv://username:password@cluster.mongodb.net/faculty-feedback`
 
@@ -90,7 +90,7 @@ GOOGLE_DRIVE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY
 
 ---
 
-## 🌐 **Frontend Deployment on Vercel**
+## ≡ƒîÉ **Frontend Deployment on Vercel**
 
 ### **Step 1: Create Vercel Account**
 1. Go to https://vercel.com
@@ -98,7 +98,7 @@ GOOGLE_DRIVE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY
 3. Authorize Vercel to access your repositories
 
 ### **Step 2: Deploy Frontend**
-1. Click **"Add New..."** → **"Project"**
+1. Click **"Add New..."** ΓåÆ **"Project"**
 2. Import your repository: `ajayFeedback_Frontent`
 3. Configure project:
    - **Framework Preset**: Vite
@@ -133,13 +133,13 @@ VITE_GOOGLE_CLIENT_ID=same_as_backend_google_client_id
 
 ---
 
-## 🔄 **Auto-Deployment Setup**
+## ≡ƒöä **Auto-Deployment Setup**
 
 ### **Backend (Render):**
-✅ **Already configured!** Every push to `master` branch will auto-deploy.
+Γ£à **Already configured!** Every push to `master` branch will auto-deploy.
 
 ### **Frontend (Vercel):**
-✅ **Already configured!** Every push to `master` branch will auto-deploy.
+Γ£à **Already configured!** Every push to `master` branch will auto-deploy.
 
 **How it works:**
 1. You push code to GitHub
@@ -149,7 +149,7 @@ VITE_GOOGLE_CLIENT_ID=same_as_backend_google_client_id
 
 ---
 
-## 🧪 **Testing Your Deployment**
+## ≡ƒº¬ **Testing Your Deployment**
 
 ### **Backend Health Check:**
 ```bash
@@ -164,12 +164,12 @@ Should return: `{"error": "No token"}` (means it's working!)
 
 ---
 
-## 🐛 **Troubleshooting**
+## ≡ƒÉ¢ **Troubleshooting**
 
 ### **Backend Issues:**
 
 **Problem:** "Application failed to respond"
-- Check Render logs: Dashboard → Logs
+- Check Render logs: Dashboard ΓåÆ Logs
 - Verify all environment variables are set
 - Check MongoDB connection string
 
@@ -197,7 +197,7 @@ Should return: `{"error": "No token"}` (means it's working!)
 
 ---
 
-## 📊 **Monitoring**
+## ≡ƒôè **Monitoring**
 
 ### **Render Dashboard:**
 - View logs in real-time
@@ -211,7 +211,7 @@ Should return: `{"error": "No token"}` (means it's working!)
 
 ---
 
-## 🔐 **Security Checklist**
+## ≡ƒöÉ **Security Checklist**
 
 - [ ] All environment variables set
 - [ ] JWT_SECRET is strong (32+ chars)
@@ -222,7 +222,7 @@ Should return: `{"error": "No token"}` (means it's working!)
 
 ---
 
-## 📝 **Post-Deployment Steps**
+## ≡ƒô¥ **Post-Deployment Steps**
 
 1. **Test all features:**
    - Google Sign-In
@@ -242,35 +242,35 @@ Should return: `{"error": "No token"}` (means it's working!)
 
 ---
 
-## 💰 **Costs**
+## ≡ƒÆ░ **Costs**
 
 **Free Tier Limits:**
 
 **Render:**
-- ✅ Free for 1 web service
-- ⚠️ Sleeps after 15 min inactivity
-- ⚠️ 750 hours/month
-- ⚠️ Limited bandwidth
+- Γ£à Free for 1 web service
+- ΓÜá∩╕Å Sleeps after 15 min inactivity
+- ΓÜá∩╕Å 750 hours/month
+- ΓÜá∩╕Å Limited bandwidth
 
 **Vercel:**
-- ✅ Free for hobby projects
-- ✅ Unlimited deployments
-- ✅ 100 GB bandwidth/month
-- ✅ Instant wake-up (no sleep)
+- Γ£à Free for hobby projects
+- Γ£à Unlimited deployments
+- Γ£à 100 GB bandwidth/month
+- Γ£à Instant wake-up (no sleep)
 
 **MongoDB Atlas:**
-- ✅ Free tier: 512 MB storage
-- ✅ Shared cluster
-- ✅ Enough for development
+- Γ£à Free tier: 512 MB storage
+- Γ£à Shared cluster
+- Γ£à Enough for development
 
 **Upgrade when:**
-- Backend needs to stay awake 24/7 → Render Starter ($7/mo)
-- Need more bandwidth → Vercel Pro ($20/mo)
-- Need more DB storage → MongoDB M10 ($57/mo)
+- Backend needs to stay awake 24/7 ΓåÆ Render Starter ($7/mo)
+- Need more bandwidth ΓåÆ Vercel Pro ($20/mo)
+- Need more DB storage ΓåÆ MongoDB M10 ($57/mo)
 
 ---
 
-## 🎉 **Success!**
+## ≡ƒÄë **Success!**
 
 Your Faculty Feedback System is now live!
 
@@ -288,7 +288,7 @@ Your Faculty Feedback System is now live!
 
 ---
 
-## 📞 **Support**
+## ≡ƒô₧ **Support**
 
 - Render Docs: https://render.com/docs
 - Vercel Docs: https://vercel.com/docs

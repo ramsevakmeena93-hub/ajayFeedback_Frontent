@@ -13,46 +13,30 @@ const STATUS_CFG = {
 
 function CommentList({ items, color, commentPercentages }) {
   const isApp = color === "red";
-  const isAtt = color === "yellow";
-  
   if (isApp) {
     const pcts = commentPercentages || {};
     const entries = Object.entries(pcts).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
     const longComments = (items || []).filter(c => c.trim().split(/\s+/).length > 4);
     if (entries.length === 0 && longComments.length === 0) return <span className="text-xs text-slate-300 italic">None</span>;
     return (
-      <div className="space-y-1 w-full">
-        {entries.slice(0, 3).map(([label, pct]) => (
-          <span key={label} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded px-1.5 py-0.5 font-medium inline-block mr-1">
+      <div className="space-y-1">
+        {entries.map(([label, pct]) => (
+          <span key={label} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg px-2 py-0.5 font-semibold inline-block mr-1">
             {label} {pct}%
           </span>
         ))}
-        {longComments.length > 0 && (
-          <span className="text-xs text-emerald-600 font-medium">{longComments.length} comment{longComments.length !== 1 ? 's' : ''}</span>
-        )}
+        {longComments.slice(0,2).map((t,i) => (
+          <div key={i} className="text-xs bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-lg px-2 py-1 leading-snug">{t}</div>
+        ))}
       </div>
     );
   }
-  
   if (!items || items.length === 0) return <span className="text-xs text-slate-300 italic">None</span>;
-  
-  // For attention: just show count
-  if (isAtt) {
-    return (
-      <span className="text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded px-2 py-0.5 font-medium">
-        {items.length} comment{items.length !== 1 ? 's' : ''}
-      </span>
-    );
-  }
-  
   return (
-    <div className="space-y-1 w-full">
-      {items.slice(0,2).map((t,i) => (
-        <div key={i} className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded px-2 py-1 leading-snug truncate">{t}</div>
+    <div className="space-y-1">
+      {items.map((t,i) => (
+        <div key={i} className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded-lg px-2 py-1 leading-snug">{t}</div>
       ))}
-      {items.length > 2 && (
-        <span className="text-xs text-amber-600 font-medium">+{items.length - 2} more</span>
-      )}
     </div>
   );
 }
@@ -172,7 +156,6 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(value || "");
   function save() { onEdit && onEdit(reportId, field, val); setEditing(false); }
-  
   if (editing) return (
     <div className="flex gap-1 items-center">
       <input autoFocus className="input text-xs w-28 py-1" value={val}
@@ -182,38 +165,27 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
       <button onClick={() => setEditing(false)} className="text-red-400 text-xs hover:text-red-600">✕</button>
     </div>
   );
-  
-  // For programme field, display with line breaks
-  if (field === 'programme' && value) {
-    const lines = value.split('\n').filter(Boolean);
-    if (lines.length > 1) {
-      return (
-        <span className={"cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 rounded-lg px-1.5 py-0.5 transition-colors text-xs " + (cls || "")}
-          title="Click to edit" onClick={() => { setVal(value || ""); setEditing(true); }}>
-          {lines.map((line, i) => (
-            <div key={i}>{line}</div>
-          ))}
-        </span>
-      );
-    }
-  }
-  
   return (
-    <span className={"cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 rounded-lg px-1.5 py-0.5 transition-colors text-sm " + (cls || "")}
+    <span className={"cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 rounded-lg px-1.5 py-0.5 transition-colors text-xs leading-snug break-words inline-block " + (cls || "")}
       title="Click to edit" onClick={() => { setVal(value || ""); setEditing(true); }}>
       {value || <span className="text-slate-300 italic text-xs">—</span>}
     </span>
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function FeedbackTable({ reports, selected, onSelect, okReviewed, onInlineOk, onSendToFaculty, onHODApprove, onFieldEdit, onDeleteReport, hodUser, vcUser, submittedIds }) {
   const reviewed = okReviewed || new Set();
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [viewReport, setViewReport] = useState(null);
 
   const filtered = reports.filter(r =>
     !search || r.facultyName?.toLowerCase().includes(search.toLowerCase()) || r.subjectCode?.toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated  = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
   const isSubmitted = (reportId) => submittedIds && submittedIds.has(String(reportId));
   const selectableIds = reports.filter(r => (r.status === "processed" || r.status === "faculty_approved") && !isSubmitted(r._id)).map(r => r._id);
 
@@ -250,16 +222,20 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
 
   return (
     <div className="card overflow-hidden animate-slide-up">
-      {/* Search header */}
+      {/* Search + pagination header */}
       <div className="px-5 py-3.5 border-b bg-slate-50/80 flex flex-wrap gap-3 items-center justify-between">
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input type="text" placeholder="Search faculty or subject..."
             className="input input-search max-w-xs text-xs py-2 pl-9"
-            value={search} onChange={e => setSearch(e.target.value)} />
+            value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span className="font-medium">{filtered.length} records</span>
+          <span className="text-slate-300">·</span>
+          <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page===1} className="btn-icon btn-ghost p-1 disabled:opacity-30"><ChevronLeft size={14}/></button>
+          <span>Page {page} / {totalPages}</span>
+          <button onClick={() => setPage(p => Math.min(totalPages,p+1))} disabled={page===totalPages} className="btn-icon btn-ghost p-1 disabled:opacity-30"><ChevronRight size={14}/></button>
         </div>
       </div>
 
@@ -267,54 +243,54 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
         <table className="w-full text-sm">
           <thead className="table-header">
             <tr>
-              <th className="px-2 py-3 w-8"><input type="checkbox" checked={selected.length===selectableIds.length && selectableIds.length>0} onChange={toggleAll} className="rounded accent-indigo-600" /></th>
-              <th className="px-2 py-3 text-left w-10">S.No</th>
-              <th className="px-2 py-3 text-left w-28">Faculty Name</th>
-              <th className="px-2 py-3 text-left w-20">Subject Code</th>
-              <th className="px-2 py-3 text-left w-24">Course Name</th>
-              <th className="px-2 py-3 text-center w-10">Sem</th>
-              <th className="px-2 py-3 text-center w-12">FFI</th>
-              <th className="px-2 py-3 text-center w-16">Resp. %</th>
-              <th className="px-3 py-3 text-left" style={{minWidth: '320px', width: '320px'}}>Needs Attention</th>
-              <th className="px-3 py-3 text-left" style={{minWidth: '320px', width: '320px'}}>Appreciation</th>
-              <th className="px-2 py-3 text-left w-32">Action Taken</th>
-              <th className="px-2 py-3 text-center w-16">View</th>
-              {onDeleteReport && <th className="px-2 py-3 text-center w-12">Del</th>}
+              <th className="px-3 py-3 w-8"><input type="checkbox" checked={selected.length===selectableIds.length && selectableIds.length>0} onChange={toggleAll} className="rounded accent-indigo-600" /></th>
+              <th className="px-3 py-3 text-left w-12">S.No</th>
+              <th className="px-3 py-3 text-left min-w-[120px]">Faculty Name</th>
+              <th className="px-3 py-3 text-left min-w-[110px]">Subject Code</th>
+              <th className="px-3 py-3 text-left w-36 min-w-[130px]">Course Name</th>
+              <th className="px-3 py-3 text-center w-12">Sem</th>
+              <th className="px-3 py-3 text-center w-14">FFI</th>
+              <th className="px-3 py-3 text-center w-16">Resp. %</th>
+              <th className="px-3 py-3 text-left min-w-[200px]">Needs Attention</th>
+              <th className="px-3 py-3 text-left min-w-[200px]">Appreciation</th>
+              <th className="px-3 py-3 text-left min-w-[120px]">Action Taken</th>
+              <th className="px-3 py-3 text-center w-16">View</th>
+              {onDeleteReport && <th className="px-3 py-3 text-center w-12">Del</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtered.map((report, idx) => {
+            {paginated.map((report, idx) => {
               const { code, batch } = parseCodeBatch(report.subjectCode);
               const deletable = canDelete(report);
               return (
                 <tr key={report._id} className={`table-row align-top ${selected.includes(report._id) ? "bg-indigo-50/60" : ""}`}>
-                  <td className="px-2 py-3 w-8"><input type="checkbox" checked={selected.includes(report._id)} onChange={() => toggleSelect(report._id)} disabled={(report.status!=="processed" && report.status!=="faculty_approved") || isSubmitted(report._id)} className="rounded accent-indigo-600" /></td>
-                  <td className="px-2 py-3 text-slate-400 text-xs font-medium w-10">{idx+1}</td>
-                  <td className="px-2 py-3 font-semibold text-slate-800 text-xs w-28">
+                  <td className="px-3 py-3 w-8"><input type="checkbox" checked={selected.includes(report._id)} onChange={() => toggleSelect(report._id)} disabled={(report.status!=="processed" && report.status!=="faculty_approved") || isSubmitted(report._id)} className="rounded accent-indigo-600" /></td>
+                  <td className="px-3 py-3 text-slate-400 text-xs font-medium w-12">{(page-1)*PAGE_SIZE+idx+1}</td>
+                  <td className="px-3 py-3 font-semibold text-slate-800 text-xs min-w-[120px] whitespace-normal">
                     <EditableCell reportId={report._id} field="facultyName" value={report.facultyName} onEdit={onFieldEdit} cls="font-semibold" />
                   </td>
-                  <td className="px-2 py-3 text-xs font-mono text-slate-600 w-20">
+                  <td className="px-3 py-3 text-xs font-mono text-slate-600 min-w-[110px] whitespace-normal">
                     <EditableCell reportId={report._id} field="subjectCode" value={report.subjectCode} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-2 py-3 text-xs text-slate-600 w-24">
+                  <td className="px-3 py-3 text-xs text-slate-600 w-36 min-w-[130px] whitespace-normal break-words leading-snug">
                     <EditableCell reportId={report._id} field="programme" value={report.programme} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-2 py-3 text-center text-xs w-10">
+                  <td className="px-3 py-3 text-center text-xs w-12">
                     <EditableCell reportId={report._id} field="semester" value={report.semester} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-2 py-3 text-center w-12">
+                  <td className="px-3 py-3 text-center w-14">
                     {report.ffiScore!=null ? (
                       <span className={`text-sm font-bold ${report.ffiScore>=4?"text-emerald-600":report.ffiScore>=3?"text-amber-600":"text-red-600"}`}>
                         {report.ffiScore.toFixed(2)}
                       </span>
                     ) : <span className="text-slate-300">-</span>}
                   </td>
-                  <td className="px-2 py-3 text-center w-16">
+                  <td className="px-3 py-3 text-center w-16">
                     <span className="text-xs font-semibold text-slate-500">
                       {report.responsePercent != null ? `${Number(report.responsePercent).toFixed(2)}%` : (report.responseCount != null ? String(report.responseCount) : "-")}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-xs whitespace-normal" style={{minWidth: '320px', width: '320px'}}>
+                  <td className="px-3 py-3 text-xs min-w-[200px] whitespace-normal">
                     <EditableComments
                       reportId={report._id}
                       field="commentsNeedingAttention"
@@ -323,7 +299,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                       onSave={onFieldEdit}
                     />
                   </td>
-                  <td className="px-3 py-3 text-xs whitespace-normal" style={{minWidth: '320px', width: '320px'}}>
+                  <td className="px-3 py-3 text-xs min-w-[200px] whitespace-normal">
                     <EditableComments
                       reportId={report._id}
                       field="appreciation"
@@ -333,22 +309,22 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                       onSave={onFieldEdit}
                     />
                   </td>
-                  <td className="px-2 py-3 w-32"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} /></td>
-                  <td className="px-2 py-3 w-16">
+                  <td className="px-3 py-3 min-w-[120px]"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} /></td>
+                  <td className="px-3 py-3 w-16">
                     <button onClick={() => setViewReport(report)}
-                      className="flex items-center gap-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition-colors border border-indigo-200">
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors border border-indigo-200">
                       <Eye size={12}/> View
                     </button>
                   </td>
                   {onDeleteReport && (
-                    <td className="px-2 py-3 text-center w-12">
+                    <td className="px-3 py-3 text-center w-12">
                       {deletable ? (
                         <button
                           onClick={() => onDeleteReport(report._id)}
-                          className="flex items-center justify-center w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors border border-red-100 mx-auto"
+                          className="flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors border border-red-100 mx-auto"
                           title="Delete report"
                         >
-                          <Trash2 size={10}/>
+                          <Trash2 size={12}/>
                         </button>
                       ) : (
                         <span className="text-slate-200 text-xs">—</span>
@@ -396,12 +372,26 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
             </div>
             <div className="text-center">
               <p className="text-sm font-semibold text-slate-700">{vcUser?.name || "Pro Vice-Chancellor"}</p>
-              <p className="text-xs text-slate-400 mt-0.5">Pro-VC</p>
+              <p className="text-xs text-slate-400 mt-0.5">VC</p>
             </div>
           </div>
 
         </div>
       </div>
+
+      {totalPages > 1 && (
+        <div className="px-5 py-3 border-t bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+          <span>Showing {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE,filtered.length)} of {filtered.length}</span>
+          <div className="flex gap-1">
+            {Array.from({length:Math.min(totalPages,7)},(_,i)=>i+1).map(p=>(
+              <button key={p} onClick={()=>setPage(p)}
+                className={`w-7 h-7 rounded-lg text-xs font-semibold transition-all ${p===page?"bg-indigo-600 text-white shadow-sm":"hover:bg-slate-200 text-slate-600"}`}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Report Detail Modal */}
       {viewReport && (

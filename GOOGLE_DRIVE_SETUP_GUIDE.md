@@ -1,10 +1,10 @@
-# 🔐 Google Drive Setup Guide - MITS General Access
+# ≡ƒöÉ Google Drive Setup Guide - MITS General Access
 
 This guide explains how to set up Google Drive folder sharing so that any MITS faculty member can upload Excel files and the system can fetch them automatically.
 
 ---
 
-## 📋 **Overview**
+## ≡ƒôï **Overview**
 
 **Goal:** Allow any `@mitsgwl.ac.in` OR `@mitsgwalior.in` email to access the feedback folder and enable automatic Excel file fetching.
 
@@ -12,13 +12,13 @@ This guide explains how to set up Google Drive folder sharing so that any MITS f
 
 ---
 
-## 🎯 **Step 1: Create Google Drive Folder Structure**
+## ≡ƒÄ» **Step 1: Create Google Drive Folder Structure**
 
 ### **1.1 Create Main Folder**
 
 1. Go to https://drive.google.com
 2. Sign in with your MITS Google Workspace account (administrator account preferred)
-3. Click **"New"** → **"Folder"**
+3. Click **"New"** ΓåÆ **"Folder"**
 4. Name it: **`MITS Faculty Feedback - 2025-26`**
 5. Click **"Create"**
 
@@ -27,21 +27,21 @@ This guide explains how to set up Google Drive folder sharing so that any MITS f
 Inside the main folder, create:
 ```
 MITS Faculty Feedback - 2025-26/
-├── Pending/           (Excel files waiting to be processed)
-├── Processed/         (Completed Excel files)
-├── Reports/           (Generated PDF reports)
-└── Archive/           (Old semester data)
+Γö£ΓöÇΓöÇ Pending/           (Excel files waiting to be processed)
+Γö£ΓöÇΓöÇ Processed/         (Completed Excel files)
+Γö£ΓöÇΓöÇ Reports/           (Generated PDF reports)
+ΓööΓöÇΓöÇ Archive/           (Old semester data)
 ```
 
 ---
 
-## 🔓 **Step 2: Set Up General Access for MITS Domain**
+## ≡ƒöô **Step 2: Set Up General Access for MITS Domain**
 
 ### **2.1 Configure Folder Sharing**
 
-1. **Right-click** on the main folder → **"Share"** → **"Share"**
+1. **Right-click** on the main folder ΓåÆ **"Share"** ΓåÆ **"Share"**
 
-2. Click **"Settings"** icon (⚙️) at top right
+2. Click **"Settings"** icon (ΓÜÖ∩╕Å) at top right
 
 3. Under **"General access"** section:
    - Click dropdown (currently shows "Restricted")
@@ -52,8 +52,8 @@ MITS Faculty Feedback - 2025-26/
    - OR **"Viewer"** (read-only, if you want only admins to upload)
 
 5. **Important Settings:**
-   - ✅ **Check:** "Editors can change permissions and share"
-   - ✅ **Check:** "Viewers and commenters can see the option to download, print, and copy"
+   - Γ£à **Check:** "Editors can change permissions and share"
+   - Γ£à **Check:** "Viewers and commenters can see the option to download, print, and copy"
 
 6. Click **"Done"**
 
@@ -61,21 +61,21 @@ MITS Faculty Feedback - 2025-26/
 
 The sharing should now show:
 ```
-🌐 Anyone at Madhav Institute of Technology & Science with the link
+≡ƒîÉ Anyone at Madhav Institute of Technology & Science with the link
    Can edit (or Can view)
 ```
 
 This means:
-- ✅ Any `@mitsgwl.ac.in` email can access
-- ✅ Any `@mitsgwalior.in` email can access
-- ✅ External emails CANNOT access
-- ✅ Public access is BLOCKED
+- Γ£à Any `@mitsgwl.ac.in` email can access
+- Γ£à Any `@mitsgwalior.in` email can access
+- Γ£à External emails CANNOT access
+- Γ£à Public access is BLOCKED
 
 **Note:** Both MITS email domains are supported since the Google Workspace organization includes both.
 
 ---
 
-## 🔑 **Step 3: Get Folder ID and Share Link**
+## ≡ƒöæ **Step 3: Get Folder ID and Share Link**
 
 ### **3.1 Copy Folder ID**
 
@@ -84,12 +84,12 @@ This means:
    ```
    https://drive.google.com/drive/folders/1ABC123XYZ789_FolderID_Here
    ```
-3. Copy the part after `/folders/` → This is your **Folder ID**
+3. Copy the part after `/folders/` ΓåÆ This is your **Folder ID**
 4. Example: `1aBcDeFgHiJkLmNoPqRsTuVwXyZ123456`
 
 ### **3.2 Copy Share Link**
 
-1. Right-click folder → **"Get link"**
+1. Right-click folder ΓåÆ **"Get link"**
 2. Click **"Copy link"**
 3. Share this link with all MITS faculty members
 
@@ -100,7 +100,7 @@ https://drive.google.com/drive/folders/1aBcDeFgHiJkLmNoPqRsTuVwXyZ123456?usp=sha
 
 ---
 
-## 🤖 **Step 4: Enable Service Account Access**
+## ≡ƒñû **Step 4: Enable Service Account Access**
 
 For the backend system to fetch files automatically, you need a **Service Account**.
 
@@ -108,29 +108,29 @@ For the backend system to fetch files automatically, you need a **Service Accoun
 
 1. Go to https://console.cloud.google.com
 2. Select or create project: **"MITS Feedback System"**
-3. Go to **"IAM & Admin"** → **"Service Accounts"**
+3. Go to **"IAM & Admin"** ΓåÆ **"Service Accounts"**
 4. Click **"Create Service Account"**
 5. Fill in:
    - **Name:** `feedback-drive-access`
    - **Description:** `Service account for MITS Faculty Feedback System to access Google Drive`
 6. Click **"Create and Continue"**
 7. **Role:** Select **"Viewer"** (or "Editor" if system needs to upload)
-8. Click **"Continue"** → **"Done"**
+8. Click **"Continue"** ΓåÆ **"Done"**
 
 ### **4.2 Generate Service Account Key**
 
 1. Click on the newly created service account
 2. Go to **"Keys"** tab
-3. Click **"Add Key"** → **"Create new key"**
+3. Click **"Add Key"** ΓåÆ **"Create new key"**
 4. Choose format: **"JSON"**
 5. Click **"Create"**
-6. A JSON file will download → **Save it securely!**
+6. A JSON file will download ΓåÆ **Save it securely!**
 
 ### **4.3 Enable Google Drive API**
 
-1. In Google Cloud Console, go to **"APIs & Services"** → **"Library"**
+1. In Google Cloud Console, go to **"APIs & Services"** ΓåÆ **"Library"**
 2. Search for: **"Google Drive API"**
-3. Click on it → Click **"Enable"**
+3. Click on it ΓåÆ Click **"Enable"**
 
 ### **4.4 Share Folder with Service Account**
 
@@ -145,7 +145,7 @@ For the backend system to fetch files automatically, you need a **Service Accoun
    ```
 3. Copy the email address
 4. Go back to Google Drive
-5. Right-click your main folder → **"Share"**
+5. Right-click your main folder ΓåÆ **"Share"**
 6. Paste the service account email
 7. Set permission: **"Viewer"** (or "Editor")
 8. **Uncheck:** "Notify people"
@@ -153,7 +153,7 @@ For the backend system to fetch files automatically, you need a **Service Accoun
 
 ---
 
-## 🔧 **Step 5: Configure Backend Environment Variables**
+## ≡ƒöº **Step 5: Configure Backend Environment Variables**
 
 Add these to your Render deployment:
 
@@ -170,7 +170,7 @@ GOOGLE_DRIVE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...your key here...\n
 - From Step 3.1 above
 
 **GOOGLE_DRIVE_CLIENT_EMAIL:**
-- From the JSON key file → `client_email` field
+- From the JSON key file ΓåÆ `client_email` field
 
 **GOOGLE_DRIVE_PRIVATE_KEY:**
 1. Open the JSON key file
@@ -183,7 +183,7 @@ GOOGLE_DRIVE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...your key here...\n
 
 ---
 
-## 📤 **Step 6: Faculty Upload Instructions**
+## ≡ƒôñ **Step 6: Faculty Upload Instructions**
 
 Share these instructions with MITS faculty members:
 
@@ -194,7 +194,7 @@ Share these instructions with MITS faculty members:
    - **Important:** Sign in with your MITS email (`@mitsgwl.ac.in` OR `@mitsgwalior.in`)
 
 2. **Upload Excel file:**
-   - Click **"New"** → **"File upload"**
+   - Click **"New"** ΓåÆ **"File upload"**
    - Select your Excel file
    - OR drag-and-drop the file
 
@@ -216,22 +216,22 @@ Share these instructions with MITS faculty members:
 
 | Email Domain | Can Access | Can Upload | Can Edit |
 |--------------|-----------|-----------|----------|
-| @mitsgwl.ac.in | ✅ Yes | ✅ Yes | ✅ Yes |
-| @mitsgwalior.in | ✅ Yes | ✅ Yes | ✅ Yes |
-| @gmail.com | ❌ No | ❌ No | ❌ No |
-| Others | ❌ No | ❌ No | ❌ No |
+| @mitsgwl.ac.in | Γ£à Yes | Γ£à Yes | Γ£à Yes |
+| @mitsgwalior.in | Γ£à Yes | Γ£à Yes | Γ£à Yes |
+| @gmail.com | Γ¥î No | Γ¥î No | Γ¥î No |
+| Others | Γ¥î No | Γ¥î No | Γ¥î No |
 
 ---
 
-## 🔒 **Security Settings**
+## ≡ƒöÆ **Security Settings**
 
 ### **Recommended Folder Permissions:**
 
 ```
 General Access:
-├─ Anyone at MITS → Editor
-├─ Service Account → Viewer
-└─ External sharing → BLOCKED
+Γö£ΓöÇ Anyone at MITS ΓåÆ Editor
+Γö£ΓöÇ Service Account ΓåÆ Viewer
+ΓööΓöÇ External sharing ΓåÆ BLOCKED
 ```
 
 ### **Additional Security:**
@@ -241,7 +241,7 @@ General Access:
    - Can restore deleted files
 
 2. **Set Up Access Logs:**
-   - Go to folder → Details → Activity
+   - Go to folder ΓåÆ Details ΓåÆ Activity
    - Monitor who accessed/modified files
 
 3. **Regular Audits:**
@@ -251,7 +251,7 @@ General Access:
 
 ---
 
-## 🧪 **Step 7: Test the Setup**
+## ≡ƒº¬ **Step 7: Test the Setup**
 
 ### **7.1 Test Manual Access**
 
@@ -286,13 +286,13 @@ async function testDriveAccess() {
       fields: 'files(id, name, mimeType, createdTime)',
     });
 
-    console.log('✅ Drive access successful!');
+    console.log('Γ£à Drive access successful!');
     console.log('Files found:', response.data.files.length);
     response.data.files.forEach(file => {
       console.log(`- ${file.name} (${file.mimeType})`);
     });
   } catch (error) {
-    console.error('❌ Drive access failed:', error.message);
+    console.error('Γ¥î Drive access failed:', error.message);
   }
 }
 
@@ -307,7 +307,7 @@ node test_drive_access.js
 
 ---
 
-## 📊 **Step 8: Backend Integration**
+## ≡ƒôè **Step 8: Backend Integration**
 
 Your backend already has Drive integration in `backend/services/cloudStorage.js`. Ensure these functions work:
 
@@ -320,7 +320,7 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 ### **Auto-Fetch Flow:**
 
 ```
-1. HOD uploads Excel → Google Drive
+1. HOD uploads Excel ΓåÆ Google Drive
 2. Backend polls folder every 5 minutes
 3. Detects new .xlsx files
 4. Downloads and processes them
@@ -330,7 +330,7 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 
 ---
 
-## ⚠️ **Troubleshooting**
+## ΓÜá∩╕Å **Troubleshooting**
 
 ### **Problem: "Access Denied" for MITS users**
 
@@ -364,7 +364,7 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 
 ---
 
-## 📞 **Support Contacts**
+## ≡ƒô₧ **Support Contacts**
 
 **Google Workspace Admin:**
 - Contact your MITS IT department
@@ -380,7 +380,7 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 
 ---
 
-## ✅ **Setup Checklist**
+## Γ£à **Setup Checklist**
 
 - [ ] Created main Google Drive folder
 - [ ] Set General Access to "MITS domain - Editor"
@@ -396,21 +396,21 @@ Your backend already has Drive integration in `backend/services/cloudStorage.js`
 
 ---
 
-## 🎉 **Success!**
+## ≡ƒÄë **Success!**
 
 Your Google Drive is now configured for MITS-wide access!
 
 **What faculty can do:**
-- ✅ Access folder with any `@mitsgwl.ac.in` email
-- ✅ Upload Excel files
-- ✅ View/download reports
-- ✅ Collaborate with other MITS faculty
+- Γ£à Access folder with any `@mitsgwl.ac.in` email
+- Γ£à Upload Excel files
+- Γ£à View/download reports
+- Γ£à Collaborate with other MITS faculty
 
 **What the system can do:**
-- ✅ Automatically detect new Excel files
-- ✅ Download and process them
-- ✅ Generate PDF reports
-- ✅ Store results back to Drive (if configured)
+- Γ£à Automatically detect new Excel files
+- Γ£à Download and process them
+- Γ£à Generate PDF reports
+- Γ£à Store results back to Drive (if configured)
 
 ---
 

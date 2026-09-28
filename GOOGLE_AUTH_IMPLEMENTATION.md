@@ -1,15 +1,15 @@
-# 🔐 Google OAuth Implementation Guide
+# ≡ƒöÉ Google OAuth Implementation Guide
 
-## 📋 **Overview**
+## ≡ƒôï **Overview**
 
 Your MITS Feedback System uses **Google OAuth 2.0** for secure authentication. Users log in with their Google Workspace accounts.
 
 ---
 
-## 🎯 **How It Works**
+## ≡ƒÄ» **How It Works**
 
 ```
-User → Google Login Button → Google → Your Backend → JWT Token → Dashboard
+User ΓåÆ Google Login Button ΓåÆ Google ΓåÆ Your Backend ΓåÆ JWT Token ΓåÆ Dashboard
 ```
 
 ### **Step-by-Step Flow:**
@@ -27,7 +27,7 @@ User → Google Login Button → Google → Your Backend → JWT Token → Dashb
 
 ---
 
-## 🔧 **Frontend Implementation**
+## ≡ƒöº **Frontend Implementation**
 
 ### **File: `src/pages/Login.jsx`**
 
@@ -91,7 +91,7 @@ async function handleGoogleSuccess(response) {
 
 ---
 
-## 🖥️ **Backend Implementation**
+## ≡ƒûÑ∩╕Å **Backend Implementation**
 
 ### **File: `backend/routes/auth.js`**
 
@@ -118,9 +118,9 @@ router.post('/google', async (req, res) => {
   try {
     const { credential } = req.body;
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 1: Verify Google Token
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     
@@ -131,9 +131,9 @@ router.post('/google', async (req, res) => {
     
     const googlePayload = ticket.getPayload();
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 2: Extract User Info
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     const {
       email,
@@ -149,9 +149,9 @@ router.post('/google', async (req, res) => {
       });
     }
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 3: Domain Restriction
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     const allowedDomains = [
       '@mitsgwl.ac.in',
@@ -168,9 +168,9 @@ router.post('/google', async (req, res) => {
       });
     }
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 4: Find or Create User
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     let user = await User.findOne({ email: email.toLowerCase() });
     
@@ -199,9 +199,9 @@ router.post('/google', async (req, res) => {
       await user.save();
     }
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 5: Generate Your JWT Token
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     const token = jwt.sign(
       {
@@ -214,9 +214,9 @@ router.post('/google', async (req, res) => {
       { expiresIn: '7d' }
     );
     
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     // STEP 6: Return User + Token
-    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü
     
     res.json({
       token,
@@ -241,7 +241,7 @@ router.post('/google', async (req, res) => {
 
 ---
 
-## 🔑 **Get Google Client ID**
+## ≡ƒöæ **Get Google Client ID**
 
 ### **Step 1: Go to Google Cloud Console**
 
@@ -249,20 +249,20 @@ https://console.cloud.google.com
 
 ### **Step 2: Create Project**
 
-1. Click "Select a project" → "New Project"
+1. Click "Select a project" ΓåÆ "New Project"
 2. Name: "MITS Feedback System"
 3. Click "Create"
 
 ### **Step 3: Enable Google+ API**
 
-1. Go to "APIs & Services" → "Library"
+1. Go to "APIs & Services" ΓåÆ "Library"
 2. Search for "Google+ API"
 3. Click "Enable"
 
 ### **Step 4: Create OAuth Credentials**
 
-1. Go to "APIs & Services" → "Credentials"
-2. Click "Create Credentials" → "OAuth client ID"
+1. Go to "APIs & Services" ΓåÆ "Credentials"
+2. Click "Create Credentials" ΓåÆ "OAuth client ID"
 3. Application type: "Web application"
 4. Name: "MITS Feedback Web"
 5. Authorized JavaScript origins:
@@ -293,7 +293,7 @@ https://console.cloud.google.com
 
 ---
 
-## ⚙️ **Environment Setup**
+## ΓÜÖ∩╕Å **Environment Setup**
 
 ### **Frontend (.env)**
 
@@ -312,7 +312,7 @@ MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/mits-feedback
 
 ---
 
-## 🔒 **Security Features**
+## ≡ƒöÆ **Security Features**
 
 ### **1. Domain Restriction**
 
@@ -334,22 +334,22 @@ Only MITS email addresses can log in!
 ### **2. Token Verification**
 
 Google's OAuth2Client verifies:
-- ✅ Token signature (not tampered)
-- ✅ Token expiry (not expired)
-- ✅ Audience (for your app only)
-- ✅ Issuer (from Google)
+- Γ£à Token signature (not tampered)
+- Γ£à Token expiry (not expired)
+- Γ£à Audience (for your app only)
+- Γ£à Issuer (from Google)
 
 ### **3. JWT Token**
 
 Your backend generates its own JWT:
-- ✅ Includes user ID, role, email
-- ✅ Expires in 7 days
-- ✅ Signed with secret key
-- ✅ Verified on every API request
+- Γ£à Includes user ID, role, email
+- Γ£à Expires in 7 days
+- Γ£à Signed with secret key
+- Γ£à Verified on every API request
 
 ---
 
-## 🧪 **Testing**
+## ≡ƒº¬ **Testing**
 
 ### **Test with Real Google Account**
 
@@ -378,42 +378,42 @@ Your backend generates its own JWT:
 
 ---
 
-## 🐛 **Troubleshooting**
+## ≡ƒÉ¢ **Troubleshooting**
 
 ### **Error: "Invalid client_id"**
 
-→ Check `VITE_GOOGLE_CLIENT_ID` in frontend `.env`  
-→ Make sure it matches Google Cloud Console
+ΓåÆ Check `VITE_GOOGLE_CLIENT_ID` in frontend `.env`  
+ΓåÆ Make sure it matches Google Cloud Console
 
 ### **Error: "redirect_uri_mismatch"**
 
-→ Add your URL to Google Console:
+ΓåÆ Add your URL to Google Console:
   - Authorized JavaScript origins
   - Authorized redirect URIs
 
 ### **Error: "Only MITS email addresses allowed"**
 
-→ Your email doesn't end with @mitsgwl.ac.in  
-→ Update `ALLOWED_DOMAINS` in `backend/routes/auth.js`
+ΓåÆ Your email doesn't end with @mitsgwl.ac.in  
+ΓåÆ Update `ALLOWED_DOMAINS` in `backend/routes/auth.js`
 
 ### **Error: "Invalid or expired Google token"**
 
-→ Google token verification failed  
-→ Check `GOOGLE_CLIENT_ID` in backend `.env`  
-→ Make sure `google-auth-library` is installed
+ΓåÆ Google token verification failed  
+ΓåÆ Check `GOOGLE_CLIENT_ID` in backend `.env`  
+ΓåÆ Make sure `google-auth-library` is installed
 
 ### **Button doesn't appear**
 
-→ Google script not loaded  
-→ Check browser console for errors  
-→ Make sure this is in `index.html`:
+ΓåÆ Google script not loaded  
+ΓåÆ Check browser console for errors  
+ΓåÆ Make sure this is in `index.html`:
   ```html
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   ```
 
 ---
 
-## 📊 **What Gets Stored**
+## ≡ƒôè **What Gets Stored**
 
 ### **In MongoDB (User collection):**
 
@@ -451,7 +451,7 @@ Your backend generates its own JWT:
 
 ---
 
-## 🔄 **Role Assignment Logic**
+## ≡ƒöä **Role Assignment Logic**
 
 ```javascript
 // In backend/routes/auth.js
@@ -477,7 +477,7 @@ if (cleanEmail === 'vc@mitsgwl.ac.in') {
 
 ---
 
-## ✅ **Summary**
+## Γ£à **Summary**
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
@@ -487,8 +487,8 @@ if (cleanEmail === 'vc@mitsgwl.ac.in') {
 | **Backend** | JWT | Generate your own token |
 | **Database** | MongoDB | Store user data |
 
-**Flow:** User → Google Button → Google Popup → Google Token → Your Backend → Verify → Create/Find User → Your JWT → Frontend → Dashboard
+**Flow:** User ΓåÆ Google Button ΓåÆ Google Popup ΓåÆ Google Token ΓåÆ Your Backend ΓåÆ Verify ΓåÆ Create/Find User ΓåÆ Your JWT ΓåÆ Frontend ΓåÆ Dashboard
 
 **Security:** Domain restriction + Token verification + JWT expiry + HTTPS only
 
-**Your implementation is ALREADY complete and working!** 🎉
+**Your implementation is ALREADY complete and working!** ≡ƒÄë

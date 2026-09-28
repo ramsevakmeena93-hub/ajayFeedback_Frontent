@@ -1,23 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "framework": "vite",
   "outputDirectory": "dist",
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
-    "VITE_API_URL": "@vite_api_url",
-    "VITE_GOOGLE_CLIENT_ID": "@vite_google_client_id"
-  },
-  "git": {
-    "deploymentEnabled": {
-      "main": true
-    }
+    "VITE_API_URL": "https://ajayfeedback-backend.onrender.com",
+    "VITE_GOOGLE_CLIENT_ID": "32902780570-ltgii8ds5cf6pp8elj3uapsao7a78u88.apps.googleusercontent.com"
   }
 }

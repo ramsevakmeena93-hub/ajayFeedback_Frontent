@@ -1,43 +1,43 @@
 # Complete Code Reference - All Files
 
-## 📁 FILE STRUCTURE
+## ≡ƒôü FILE STRUCTURE
 
 ```
 backend/
-├── models/
-│   ├── FacultyReport.js          # Main report model
-│   ├── Submission.js              # HOD → VC submission model
-│   ├── User.js                    # User accounts & profiles
-│   ├── TeachingAssignment.js      # Faculty course assignments
-│   ├── Notification.js            # In-app notifications
-│   ├── ApprovalPolicy.js          # Conflict resolution policies
-│   ├── ActivityLog.js             # Activity audit trail
-│   ├── AuditLog.js               # System audit logs
-│   ├── SystemLog.js              # System logs
-│   └── UserRole.js               # Multi-role support
-├── routes/
-│   ├── process.js                # CSV upload & PDF processing
-│   ├── reports.js                # Report CRUD & management
-│   ├── submissions.js            # HOD → VC workflow
-│   ├── middleware.js             # Auth & authorization
-│   ├── workspace.js              # Workspace switching
-│   ├── notifications.js          # Notification endpoints
-│   └── admin.js                  # Admin panel
-├── services/
-│   ├── csvParser.js              # Excel/CSV parser
-│   ├── pdfGenerator.js           # PDF report generator
-│   ├── pdfAnalyzer.js            # PDF text extraction
-│   ├── aiAnalyzer.js             # Google Gemini AI
-│   ├── cloudStorage.js           # File upload/storage
-│   ├── cache.js                  # In-memory cache
-│   ├── emailService.js           # Email notifications
-│   └── logger.js                 # Logging service
-└── server.js                     # Express app entry point
+Γö£ΓöÇΓöÇ models/
+Γöé   Γö£ΓöÇΓöÇ FacultyReport.js          # Main report model
+Γöé   Γö£ΓöÇΓöÇ Submission.js              # HOD ΓåÆ VC submission model
+Γöé   Γö£ΓöÇΓöÇ User.js                    # User accounts & profiles
+Γöé   Γö£ΓöÇΓöÇ TeachingAssignment.js      # Faculty course assignments
+Γöé   Γö£ΓöÇΓöÇ Notification.js            # In-app notifications
+Γöé   Γö£ΓöÇΓöÇ ApprovalPolicy.js          # Conflict resolution policies
+Γöé   Γö£ΓöÇΓöÇ ActivityLog.js             # Activity audit trail
+Γöé   Γö£ΓöÇΓöÇ AuditLog.js               # System audit logs
+Γöé   Γö£ΓöÇΓöÇ SystemLog.js              # System logs
+Γöé   ΓööΓöÇΓöÇ UserRole.js               # Multi-role support
+Γö£ΓöÇΓöÇ routes/
+Γöé   Γö£ΓöÇΓöÇ process.js                # CSV upload & PDF processing
+Γöé   Γö£ΓöÇΓöÇ reports.js                # Report CRUD & management
+Γöé   Γö£ΓöÇΓöÇ submissions.js            # HOD ΓåÆ VC workflow
+Γöé   Γö£ΓöÇΓöÇ middleware.js             # Auth & authorization
+Γöé   Γö£ΓöÇΓöÇ workspace.js              # Workspace switching
+Γöé   Γö£ΓöÇΓöÇ notifications.js          # Notification endpoints
+Γöé   ΓööΓöÇΓöÇ admin.js                  # Admin panel
+Γö£ΓöÇΓöÇ services/
+Γöé   Γö£ΓöÇΓöÇ csvParser.js              # Excel/CSV parser
+Γöé   Γö£ΓöÇΓöÇ pdfGenerator.js           # PDF report generator
+Γöé   Γö£ΓöÇΓöÇ pdfAnalyzer.js            # PDF text extraction
+Γöé   Γö£ΓöÇΓöÇ aiAnalyzer.js             # Google Gemini AI
+Γöé   Γö£ΓöÇΓöÇ cloudStorage.js           # File upload/storage
+Γöé   Γö£ΓöÇΓöÇ cache.js                  # In-memory cache
+Γöé   Γö£ΓöÇΓöÇ emailService.js           # Email notifications
+Γöé   ΓööΓöÇΓöÇ logger.js                 # Logging service
+ΓööΓöÇΓöÇ server.js                     # Express app entry point
 ```
 
 ---
 
-## 📄 COMPLETE CODE FILES
+## ≡ƒôä COMPLETE CODE FILES
 
 ### 1. backend/models/FacultyReport.js
 
@@ -57,18 +57,18 @@ const facultyReportSchema = new mongoose.Schema({
   driveLink: { type: String, default: '' },
   pdfFilePath: { type: String, default: '' }, // absolute path to original uploaded file on server
 
-  // ── Extended location fields (separate from roles) ──────────────────
-  /** Branch — e.g. "CSE", "IT", "EC". Complements programme (which holds the full degree name). */
+  // ΓöÇΓöÇ Extended location fields (separate from roles) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  /** Branch ΓÇö e.g. "CSE", "IT", "EC". Complements programme (which holds the full degree name). */
   branch:   { type: String, default: '' },
 
-  /** Section — e.g. "A", "B", "C" */
+  /** Section ΓÇö e.g. "A", "B", "C" */
   section:  { type: String, default: '' },
 
   /**
    * Reference to a TeachingAssignment document.
    * Linked when a report is sent to faculty and the backend can match
    * the subjectCode+branch+section to a known assignment.
-   * Optional — reports can exist without a formal assignment.
+   * Optional ΓÇö reports can exist without a formal assignment.
    */
   teachingAssignmentId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -122,16 +122,16 @@ const submissionSchema = new mongoose.Schema({
   reports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FacultyReport' }],
 
   /**
-   * Approval status — extended state machine:
+   * Approval status ΓÇö extended state machine:
    *
-   *  submitted   → initial state when HOD sends to VC
-   *  pending     → synonym for submitted (alias kept for clarity in multi-HOD flow)
-   *  approved    → VC/approver accepted
-   *  rejected    → VC/approver rejected (terminal for this version)
-   *  reviewed    → legacy alias for approved
-   *  sent_back   → returned to HOD with comments for revision
-   *  conflict    → self-approval conflict detected, awaiting resolution
-   *  escalated   → conflict could not be auto-resolved; admin intervention needed
+   *  submitted   ΓåÆ initial state when HOD sends to VC
+   *  pending     ΓåÆ synonym for submitted (alias kept for clarity in multi-HOD flow)
+   *  approved    ΓåÆ VC/approver accepted
+   *  rejected    ΓåÆ VC/approver rejected (terminal for this version)
+   *  reviewed    ΓåÆ legacy alias for approved
+   *  sent_back   ΓåÆ returned to HOD with comments for revision
+   *  conflict    ΓåÆ self-approval conflict detected, awaiting resolution
+   *  escalated   ΓåÆ conflict could not be auto-resolved; admin intervention needed
    */
   status: {
     type: String,
@@ -149,7 +149,7 @@ const submissionSchema = new mongoose.Schema({
   finalReportDate: { type: Date, default: null },    // date VC / approver approved
   submittedAt: { type: Date, default: Date.now },
 
-  // ── Multi-role approval fields ──────────────────────────────────────
+  // ΓöÇΓöÇ Multi-role approval fields ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
   /**
    * The user who will actually approve this submission.
@@ -205,7 +205,7 @@ const userSchema = new mongoose.Schema({
   password:     { type: String, required: true },
 
   /**
-   * Legacy single-role field — kept for backward compatibility.
+   * Legacy single-role field ΓÇö kept for backward compatibility.
    * New code should read roles from the UserRole collection.
    * This field is still used as the "primary" / "last-active" role
    * so existing queries don't break.
@@ -224,14 +224,14 @@ const userSchema = new mongoose.Schema({
   }],
 
   /**
-   * Active workspace — the role context the user is currently operating in.
+   * Active workspace ΓÇö the role context the user is currently operating in.
    * Stored server-side so it survives page refreshes.
    * Values: 'hod' | 'faculty' | 'vc' | 'admin'
    */
   activeWorkspace: { type: String, enum: ['hod', 'vc', 'faculty', 'admin', ''], default: '' },
 
   /**
-   * Alternate approver — when this user (as HOD) has a self-conflict,
+   * Alternate approver ΓÇö when this user (as HOD) has a self-conflict,
    * route approvals to this user instead.
    * Overridden per-faculty by ApprovalPolicy.alternateApprovers.
    */
@@ -438,7 +438,7 @@ function parseCSV(buffer) {
       const texts = row.map(c => c.val.toLowerCase());
       const rowStr = texts.join(' ');
 
-      // Skip rows that actually contain URLs — those are data rows
+      // Skip rows that actually contain URLs ΓÇö those are data rows
       const hasUrl = row.some(c => /https?:\/\//i.test(c.val) || (c.link && c.link.startsWith('http')));
       if (hasUrl) continue;
 
@@ -478,7 +478,7 @@ function parseCSV(buffer) {
     for (let r = startRow; r < rows.length; r++) {
       const row = rows[r];
 
-      // Collect ALL urls from this row — a cell may contain multiple concatenated URLs
+      // Collect ALL urls from this row ΓÇö a cell may contain multiple concatenated URLs
       const allUrlsInRow = [];
 
       // First check cell hyperlink targets
@@ -488,7 +488,7 @@ function parseCSV(buffer) {
         }
       }
 
-      // Then scan all cell text values — extract every https?:// occurrence
+      // Then scan all cell text values ΓÇö extract every https?:// occurrence
       const fullRowStr = row.map(c => c.val).join(' ');
       const urlRegex = /https?:\/\/[^\s"',;<>\]]+/gi;
       let m;
@@ -661,7 +661,7 @@ Features:
 
 ---
 
-## 🔧 SERVICE LAYER FUNCTIONS
+## ≡ƒöº SERVICE LAYER FUNCTIONS
 
 ### csvParser.js
 ```javascript
@@ -687,7 +687,7 @@ extractMetaFromPDF(buffer)
 // Returns: { facultyName, subjectCode, programme, semester, ffiScore }
 
 convertDriveLink(url)
-// Converts: Google Drive share link → direct download URL
+// Converts: Google Drive share link ΓåÆ direct download URL
 ```
 
 ### aiAnalyzer.js (referenced)
@@ -731,70 +731,70 @@ log(userId, event, description, meta, level)
 
 ---
 
-## 📊 DATA FLOW DIAGRAMS
+## ≡ƒôè DATA FLOW DIAGRAMS
 
 ### CSV Upload & Processing Flow
 ```
 1. User uploads Excel file
-   ↓
+   Γåô
 2. POST /api/process/upload-csv
-   ↓
+   Γåô
 3. csvParser.parseCSV(buffer)
-   ↓
+   Γåô
 4. Returns: Array of {pdfLink, facultyName, subjectCode, ...}
-   ↓
+   Γåô
 5. Frontend displays parsed data
-   ↓
+   Γåô
 6. User confirms processing
-   ↓
+   Γåô
 7. For each link: POST /api/process/process-one
-   ↓
+   Γåô
 8. Download PDF from Google Drive (with retry logic)
-   ↓
-9. analyzePDFBuffer(buffer) → AI analysis
-   ↓
+   Γåô
+9. analyzePDFBuffer(buffer) ΓåÆ AI analysis
+   Γåô
 10. Create FacultyReport in database
-   ↓
+   Γåô
 11. Frontend polls: POST /api/process/status
-   ↓
+   Γåô
 12. Display results to HOD
 ```
 
-### Report Submission Flow (HOD → VC)
+### Report Submission Flow (HOD ΓåÆ VC)
 ```
 1. HOD selects reports
-   ↓
+   Γåô
 2. POST /api/submissions/send
-   ↓
+   Γåô
 3. checkSelfApprovalConflict(submission, hodId)
-   ↓
+   Γåô
 4. IF conflict detected:
-   ├─→ resolveAlternateApprover()
-   ├─→ status = 'conflict' or 'escalated'
-   └─→ Log to AuditLog
-   ↓
+   Γö£ΓöÇΓåÆ resolveAlternateApprover()
+   Γö£ΓöÇΓåÆ status = 'conflict' or 'escalated'
+   ΓööΓöÇΓåÆ Log to AuditLog
+   Γåô
 5. Create Submission document
-   ↓
+   Γåô
 6. VC reviews: GET /api/submissions/all
-   ↓
+   Γåô
 7. VC approves: PATCH /api/submissions/:id/status
-   ↓
+   Γåô
 8. Send email notifications
-   ↓
+   Γåô
 9. Create in-app notifications
-   ↓
+   Γåô
 10. HOD generates PDF: GET /api/submissions/:id/download-pdf
-   ↓
+   Γåô
 11. generateFeedbackReportPDF()
-    ├─→ Create cover page with table
-    ├─→ Download individual PDFs from Drive
-    ├─→ Append PDFs with signature stamps
-    └─→ Return final PDF buffer
+    Γö£ΓöÇΓåÆ Create cover page with table
+    Γö£ΓöÇΓåÆ Download individual PDFs from Drive
+    Γö£ΓöÇΓåÆ Append PDFs with signature stamps
+    ΓööΓöÇΓåÆ Return final PDF buffer
 ```
 
 ---
 
-## 🎯 KEY ARCHITECTURAL PATTERNS
+## ≡ƒÄ» KEY ARCHITECTURAL PATTERNS
 
 ### 1. Multi-Role Support
 - User can have multiple roles (HOD + Faculty)
@@ -832,7 +832,7 @@ log(userId, event, description, meta, level)
 
 ---
 
-## 🚀 DEPLOYMENT CONFIGURATION
+## ≡ƒÜÇ DEPLOYMENT CONFIGURATION
 
 ### Environment Variables
 ```bash

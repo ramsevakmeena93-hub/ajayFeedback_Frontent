@@ -41,9 +41,9 @@ const STEPS = [
 ];
 
 const PORTALS = [
-  { icon: Building2, label: "HOD Portal",     color: "border-blue-500   text-blue-600   bg-blue-50",   desc: "Upload CSV, manage feedback pipeline, send to Pro-VC."  },
+  { icon: Building2, label: "HOD Portal",     color: "border-blue-500   text-blue-600   bg-blue-50",   desc: "Upload CSV, manage feedback pipeline, send to VC."  },
   { icon: Users,     label: "Faculty Portal",  color: "border-emerald-500 text-emerald-600 bg-emerald-50", desc: "View reports, acknowledge and sign off results."  },
-  { icon: GraduationCap, label: "Pro-VC Portal",  color: "border-violet-500  text-violet-600 bg-violet-50", desc: "Review submissions, approve or reject with comments." },
+  { icon: GraduationCap, label: "VC Portal",  color: "border-violet-500  text-violet-600 bg-violet-50", desc: "Review submissions, approve or reject with comments." },
   { icon: Shield,    label: "Admin Portal",    color: "border-rose-500    text-rose-600   bg-rose-50",   desc: "Manage users, monitor logs, push code to GitHub."   },
 ];
 

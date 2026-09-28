@@ -1,6 +1,6 @@
-# 🎯 VC Test Account Setup Guide
+# ≡ƒÄ» VC Test Account Setup Guide
 
-## ✅ **Status: HOD Account Created**
+## Γ£à **Status: HOD Account Created**
 
 I've created the HOD account for you:
 
@@ -14,9 +14,9 @@ Department: Humanities
 
 ---
 
-## 📋 **Step-by-Step Instructions:**
+## ≡ƒôï **Step-by-Step Instructions:**
 
-### **Step 1: Login as HOD** ✅ READY
+### **Step 1: Login as HOD** Γ£à READY
 
 1. Open your frontend app
 2. Click "Login"
@@ -27,7 +27,7 @@ Department: Humanities
 
 ---
 
-### **Step 2: Upload Excel File** ⏳ YOU NEED TO DO THIS
+### **Step 2: Upload Excel File** ΓÅ│ YOU NEED TO DO THIS
 
 1. Go to HOD Dashboard
 2. Click "Upload Excel" or "Process Feedback"
@@ -35,11 +35,11 @@ Department: Humanities
 4. Wait for processing to complete
 5. You should see reports appear
 
-**❗ IMPORTANT:** Without this step, there are NO reports to show to VC!
+**Γ¥ù IMPORTANT:** Without this step, there are NO reports to show to VC!
 
 ---
 
-### **Step 3: Create VC Account & Submit Reports** ⏳ RUN SCRIPT AFTER STEP 2
+### **Step 3: Create VC Account & Submit Reports** ΓÅ│ RUN SCRIPT AFTER STEP 2
 
 After you've uploaded Excel, run this command:
 
@@ -49,14 +49,14 @@ node create_vc_test_account.js
 ```
 
 This will:
-- ✅ Create VC test account
-- ✅ Update all reports to `faculty_approved` status
-- ✅ Create a submission from HOD to VC
-- ✅ Show you the VC login credentials
+- Γ£à Create VC test account
+- Γ£à Update all reports to `faculty_approved` status
+- Γ£à Create a submission from HOD to VC
+- Γ£à Show you the VC login credentials
 
 ---
 
-### **Step 4: Login as VC** ⏳ AFTER STEP 3
+### **Step 4: Login as VC** ΓÅ│ AFTER STEP 3
 
 The script will give you VC credentials like:
 
@@ -69,18 +69,18 @@ Login with these and you'll see all HOD's reports!
 
 ---
 
-## 🔄 **Current Status:**
+## ≡ƒöä **Current Status:**
 
 | Step | Status | Action Needed |
 |------|--------|---------------|
-| 1. HOD Account | ✅ Created | Login with credentials above |
-| 2. Upload Excel | ⏳ Pending | YOU need to do this |
-| 3. VC Account | ⏳ Waiting | Run script after Step 2 |
-| 4. VC Login | ⏳ Waiting | Use credentials from Step 3 |
+| 1. HOD Account | Γ£à Created | Login with credentials above |
+| 2. Upload Excel | ΓÅ│ Pending | YOU need to do this |
+| 3. VC Account | ΓÅ│ Waiting | Run script after Step 2 |
+| 4. VC Login | ΓÅ│ Waiting | Use credentials from Step 3 |
 
 ---
 
-## 🗂️ **Files Created:**
+## ≡ƒùé∩╕Å **Files Created:**
 
 ### **1. `backend/create_vc_test_account.js`**
 Automated script that:
@@ -99,23 +99,23 @@ Diagnostic script that shows:
 
 ---
 
-## 🚨 **Troubleshooting:**
+## ≡ƒÜ¿ **Troubleshooting:**
 
 ### **"No reports found"**
-→ You haven't uploaded Excel file yet (Step 2)
+ΓåÆ You haven't uploaded Excel file yet (Step 2)
 
 ### **"HOD not found"**
-→ Login once as HOD first, then run script
+ΓåÆ Login once as HOD first, then run script
 
 ### **"VC already exists"**
-→ That's OK! Script will update the account
+ΓåÆ That's OK! Script will update the account
 
 ### **"Connection refused"**
-→ Check your MongoDB connection in `.env` file
+ΓåÆ Check your MongoDB connection in `.env` file
 
 ---
 
-## 📝 **What Happens Next:**
+## ≡ƒô¥ **What Happens Next:**
 
 ### **After Upload (Step 2):**
 Your database will have:
@@ -135,7 +135,7 @@ Your database will have:
 ```
 Users:
   - Shivam Singh Rajput (HOD)
-  - Dr. Pro Vice-Chancellor (VC) ← NEW!
+  - Dr. Pro Vice-Chancellor (VC) ΓåÉ NEW!
   
 Reports:
   - All reports updated to "faculty_approved"
@@ -159,7 +159,7 @@ VC Dashboard:
 
 ---
 
-## 🎯 **Quick Start Commands:**
+## ≡ƒÄ» **Quick Start Commands:**
 
 ```bash
 # Step 1: Check current status
@@ -180,9 +180,9 @@ node create_vc_test_account.js
 
 ---
 
-## ✨ **Why This Approach:**
+## Γ£¿ **Why This Approach:**
 
-1. **Real workflow** - Matches actual HOD → VC flow
+1. **Real workflow** - Matches actual HOD ΓåÆ VC flow
 2. **Data integrity** - Uses real uploaded reports
 3. **Easy testing** - Pre-configured accounts
 4. **Reproducible** - Can run script multiple times
@@ -190,7 +190,7 @@ node create_vc_test_account.js
 
 ---
 
-## 📞 **Need Help?**
+## ≡ƒô₧ **Need Help?**
 
 If you get stuck:
 
@@ -207,11 +207,11 @@ If you get stuck:
 
 ---
 
-## 🎉 **Summary:**
+## ≡ƒÄë **Summary:**
 
-1. ✅ **HOD account created** - Login and upload Excel
-2. ⏳ **You upload Excel** - This creates reports
-3. ⏳ **Run script** - This creates VC and submission
-4. ⏳ **Login as VC** - See all reports!
+1. Γ£à **HOD account created** - Login and upload Excel
+2. ΓÅ│ **You upload Excel** - This creates reports
+3. ΓÅ│ **Run script** - This creates VC and submission
+4. ΓÅ│ **Login as VC** - See all reports!
 
-**Start with Step 1 now!** 🚀
+**Start with Step 1 now!** ≡ƒÜÇ

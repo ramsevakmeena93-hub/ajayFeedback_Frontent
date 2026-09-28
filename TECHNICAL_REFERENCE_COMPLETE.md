@@ -1,6 +1,6 @@
 # Complete Technical Reference - PDF Extraction & Report System
 
-## 📦 DATABASE MODELS
+## ≡ƒôª DATABASE MODELS
 
 ### 1. FacultyReport Model
 **File:** `backend/models/FacultyReport.js`
@@ -75,8 +75,8 @@ const facultyReportSchema = new mongoose.Schema({
 ```
 
 **Status Flow:**
-- `pending` → `processed` → `sent_to_faculty` → `faculty_approved`
-- `pending` → `error` (if processing fails)
+- `pending` ΓåÆ `processed` ΓåÆ `sent_to_faculty` ΓåÆ `faculty_approved`
+- `pending` ΓåÆ `error` (if processing fails)
 
 ---
 
@@ -268,7 +268,7 @@ const facultyReportSchema = new mongoose.Schema({
 
 ---
 
-## 🌐 API ENDPOINTS
+## ≡ƒîÉ API ENDPOINTS
 
 ### CSV/EXCEL & PDF PROCESSING
 
@@ -681,7 +681,7 @@ POST /api/reports/:id/acknowledge
 
 ---
 
-### SUBMISSION ENDPOINTS (HOD → VC)
+### SUBMISSION ENDPOINTS (HOD ΓåÆ VC)
 
 #### 24. Send Reports to VC
 ```
@@ -877,7 +877,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 🔧 SERVICE FUNCTIONS
+## ≡ƒöº SERVICE FUNCTIONS
 
 ### CSV Parser Service
 **File:** `backend/services/csvParser.js`
@@ -1102,7 +1102,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 🔐 MIDDLEWARE
+## ≡ƒöÉ MIDDLEWARE
 
 ### Authentication Middleware
 **File:** `backend/routes/middleware.js`
@@ -1139,7 +1139,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 📊 HELPER FUNCTIONS
+## ≡ƒôè HELPER FUNCTIONS
 
 ### Report Helpers
 **File:** `backend/routes/reports.js`
@@ -1159,7 +1159,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 🎨 FRONTEND INTEGRATION NOTES
+## ≡ƒÄ¿ FRONTEND INTEGRATION NOTES
 
 ### CSV Upload Flow
 1. User selects Excel file
@@ -1186,7 +1186,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 📝 ENUMERATIONS
+## ≡ƒô¥ ENUMERATIONS
 
 ### Report Status
 - `pending` - Created, not yet processed
@@ -1220,7 +1220,7 @@ DELETE /api/admin/users/:id
 
 ---
 
-## 🔧 CONFIGURATION
+## ≡ƒöº CONFIGURATION
 
 ### File Size Limits
 ```javascript
@@ -1265,7 +1265,7 @@ backoffDelays: [5000, 10000, 20000]  // Exponential with jitter
 
 ---
 
-## 🗄️ DATABASE INDEXES
+## ≡ƒùä∩╕Å DATABASE INDEXES
 
 ### Recommended Indexes
 
@@ -1296,7 +1296,7 @@ backoffDelays: [5000, 10000, 20000]  // Exponential with jitter
 
 ---
 
-## 🚀 DEPLOYMENT NOTES
+## ≡ƒÜÇ DEPLOYMENT NOTES
 
 ### Environment Variables Required
 ```bash
@@ -1340,7 +1340,7 @@ npm run dev
 
 ---
 
-## 🧪 TESTING ENDPOINTS
+## ≡ƒº¬ TESTING ENDPOINTS
 
 ### Debug Parser
 ```bash

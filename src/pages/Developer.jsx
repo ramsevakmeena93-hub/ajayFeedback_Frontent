@@ -125,7 +125,7 @@ const Developer = () => {
                 {/* Stats */}
                 <div className="mt-5 pt-5 border-t border-white/10">
                   <div className="text-center p-3 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20 hover:border-purple-500/40 transition-colors duration-300">
-                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-md">4</p>
+                    <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-md">3</p>
                     <p className="text-[10px] text-slate-300 font-semibold uppercase tracking-wider mt-0.5">Hackathons Won</p>
                   </div>
                 </div>
@@ -189,7 +189,7 @@ const Developer = () => {
                 <div className="grid gap-3">
                   {[
                     'Securing First Position in Quick Quest conducted by ISBM Bangalore',
-                    'Winner of 4 Hackathons in various cutting-edge technologies',
+                    'Winner of 3 Hackathons in various cutting-edge technologies',
                     'Worked on 7+ projects in different fields including Web Development, AI/ML, Blockchain, and Hardware',
                   ].map((achievement, index) => (
                     <div key={index} className="flex items-start gap-3 p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.06] hover:border-amber-500/30 transition-all duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:pl-4">
@@ -210,16 +210,14 @@ const Developer = () => {
                <div className="w-[300px] h-[100px] bg-purple-600/30 rounded-full" />
             </div>
             
-            <h2 className="text-xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-8 drop-shadow-lg uppercase tracking-widest">
-              Under the Guidance of
+            <h2 className="text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-6 drop-shadow-lg">
+              Under the Expert Guidance of
             </h2>
             
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-[0_4px_16px_0_rgba(0,0,0,0.36)] p-8 border border-white/10 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(168,85,247,0.4)] hover:border-purple-500/50">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
-                
-                {/* Dr. Abhishek Dixit */}
-                <div className="flex flex-col items-center p-5 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.06] transition-all duration-300 hover:border-purple-500/30 w-full max-w-xs group">
-                  <div className="w-28 h-28 rounded-full overflow-hidden border-[4px] border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:scale-105 group-hover:border-purple-400/60 transition-all duration-500 mb-4 relative">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-[0_4px_16px_0_rgba(0,0,0,0.36)] p-6 border border-white/10 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(168,85,247,0.4)] hover:border-purple-500/50">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-5 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.06] transition-all duration-300 hover:border-purple-500/30 w-full max-w-2xl">
+                  <div className="w-28 h-28 rounded-full overflow-hidden border-[4px] border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:scale-105 hover:border-purple-400/60 hover:rotate-3 transition-all duration-500 shrink-0 relative group">
                     <img src="/sir.png" alt="Dr. Abhishek Dixit"
                       className="w-full h-full object-cover"
                       style={{ objectPosition: '50% 15%' }}
@@ -227,28 +225,15 @@ const Developer = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-black text-white mb-1 tracking-wide drop-shadow-md">Dr. Abhishek Dixit</h3>
-                    <p className="text-purple-400 font-semibold text-sm mb-2">Assistant Professor & Head, CCST</p>
+                  <div className="text-center sm:text-left">
+                    <h3 className="text-xl font-black text-white mb-1.5 tracking-wide drop-shadow-md">Dr. Abhishek Dixit</h3>
+                    <p className="text-purple-400 font-bold text-sm mb-2 tracking-wide">Head of Department (HOD) & Assistant Professor</p>
+                    <div className="flex items-center justify-center sm:justify-start gap-2 bg-black/20 p-2 rounded-lg border border-white/5 w-fit mx-auto sm:mx-0">
+                      <GraduationCap className="w-4 h-4 text-purple-400" />
+                      <p className="text-xs text-slate-300 font-medium">Centre for Computer Science & Technology (CST)</p>
+                    </div>
                   </div>
                 </div>
-
-                {/* Atul Chauhan */}
-                <div className="flex flex-col items-center p-5 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.06] transition-all duration-300 hover:border-cyan-500/30 w-full max-w-xs group">
-                  <div className="w-28 h-28 rounded-full overflow-hidden border-[4px] border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.3)] group-hover:scale-105 group-hover:border-cyan-400/60 transition-all duration-500 mb-4 relative">
-                    <img src="/atul-chauhan.png" alt="Atul Chauhan"
-                      className="w-full h-full object-cover"
-                      style={{ objectPosition: '50% 15%' }}
-                      onError={e => { e.target.style.display='none'; e.target.parentElement.innerHTML='<div class="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-3xl font-black">A</div>'; }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-black text-white mb-1 tracking-wide drop-shadow-md">Atul Chauhan</h3>
-                    <p className="text-cyan-400 font-semibold text-sm mb-2">Programmer, MITS-DU</p>
-                  </div>
-                </div>
-
               </div>
             </div>
           </div>

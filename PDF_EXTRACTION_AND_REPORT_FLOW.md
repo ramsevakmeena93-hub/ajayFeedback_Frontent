@@ -5,7 +5,7 @@ Your system extracts data from PDF feedback reports and Excel/CSV files, analyze
 
 ---
 
-## 🔄 Complete Data Flow
+## ≡ƒöä Complete Data Flow
 
 ### 1. **Data Input Methods**
 
@@ -152,7 +152,7 @@ A comprehensive PDF report containing:
    
 2. **Report Title Section**
    - "Action Taken Report"
-   - "Faculty Feedback – I (or form number)"
+   - "Faculty Feedback ΓÇô I (or form number)"
    - Department name
    - Academic year and session
    - Submission and generation dates
@@ -164,7 +164,7 @@ A comprehensive PDF report containing:
    - Code/Batch
    - Course Name
    - Semester
-   - FFI Score (color-coded: green ≥4, amber ≥3, red <3)
+   - FFI Score (color-coded: green ΓëÑ4, amber ΓëÑ3, red <3)
    - Response %
    - Needs Attention
    - Appreciation
@@ -272,7 +272,7 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 🎨 AI Analysis
+## ≡ƒÄ¿ AI Analysis
 
 **File:** `backend/services/aiAnalyzer.js` (referenced but not shown)
 
@@ -285,7 +285,7 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 📊 Data Models Summary
+## ≡ƒôè Data Models Summary
 
 ### Primary Models:
 1. **FacultyReport** - Individual faculty feedback records
@@ -297,7 +297,7 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 🔐 Security & Access Control
+## ≡ƒöÉ Security & Access Control
 
 **Multi-role Support:**
 - HOD can also be a faculty member
@@ -312,61 +312,61 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 🚀 Key Features
+## ≡ƒÜÇ Key Features
 
 ### CSV Parser Intelligence:
-- ✅ Direct hyperlink extraction from Excel XML
-- ✅ HYPERLINK formula parsing
-- ✅ Auto-detect header rows
-- ✅ Multi-column metadata extraction
-- ✅ URL deduplication
-- ✅ Support for concatenated URLs in cells
+- Γ£à Direct hyperlink extraction from Excel XML
+- Γ£à HYPERLINK formula parsing
+- Γ£à Auto-detect header rows
+- Γ£à Multi-column metadata extraction
+- Γ£à URL deduplication
+- Γ£à Support for concatenated URLs in cells
 
 ### PDF Generator Capabilities:
-- ✅ Professional table layout with auto-pagination
-- ✅ Dynamic row heights
-- ✅ Signature embedding and stamping
-- ✅ Color-coded FFI scores
-- ✅ Bulk PDF appending
-- ✅ Watermark/stamp on individual PDFs
+- Γ£à Professional table layout with auto-pagination
+- Γ£à Dynamic row heights
+- Γ£à Signature embedding and stamping
+- Γ£à Color-coded FFI scores
+- Γ£à Bulk PDF appending
+- Γ£à Watermark/stamp on individual PDFs
 
 ### Processing Features:
-- ✅ Batch processing with rate limiting
-- ✅ Caching to avoid reprocessing
-- ✅ Retry logic for network failures
-- ✅ Background processing
-- ✅ Status polling
+- Γ£à Batch processing with rate limiting
+- Γ£à Caching to avoid reprocessing
+- Γ£à Retry logic for network failures
+- Γ£à Background processing
+- Γ£à Status polling
 
 ---
 
-## 📝 Typical User Flow
+## ≡ƒô¥ Typical User Flow
 
 ### For HOD:
-1. Upload Excel file with PDF links → `upload-csv`
+1. Upload Excel file with PDF links ΓåÆ `upload-csv`
 2. Review parsed data
-3. Confirm processing → `process-one` (called for each PDF)
+3. Confirm processing ΓåÆ `process-one` (called for each PDF)
 4. Wait for AI analysis to complete
-5. Review reports in dashboard → `GET /api/reports/my`
-6. Edit comments, add action taken → `PATCH /api/reports/:id/edit`
-7. Send to faculty for acknowledgment → `POST /api/reports/:id/send-to-faculty`
-8. Submit to VC → `POST /api/submissions/send`
-9. VC approves → HOD generates final PDF
+5. Review reports in dashboard ΓåÆ `GET /api/reports/my`
+6. Edit comments, add action taken ΓåÆ `PATCH /api/reports/:id/edit`
+7. Send to faculty for acknowledgment ΓåÆ `POST /api/reports/:id/send-to-faculty`
+8. Submit to VC ΓåÆ `POST /api/submissions/send`
+9. VC approves ΓåÆ HOD generates final PDF
 
 ### For Faculty:
 1. Receives notification
-2. Views report → `GET /api/reports/:id`
+2. Views report ΓåÆ `GET /api/reports/:id`
 3. Reviews feedback
-4. Acknowledges → `POST /api/reports/:id/acknowledge`
+4. Acknowledges ΓåÆ `POST /api/reports/:id/acknowledge`
 
 ### For VC:
 1. Receives submission from HOD
-2. Reviews reports → `GET /api/submissions/for-vc`
-3. Approves/Rejects → `PATCH /api/submissions/:id/status`
+2. Reviews reports ΓåÆ `GET /api/submissions/for-vc`
+3. Approves/Rejects ΓåÆ `PATCH /api/submissions/:id/status`
 4. System sends notifications and emails
 
 ---
 
-## 🛠️ Technical Stack
+## ≡ƒ¢á∩╕Å Technical Stack
 
 - **Backend:** Node.js + Express
 - **Database:** MongoDB (Mongoose ODM)
@@ -382,7 +382,7 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 📌 Important Notes
+## ≡ƒôî Important Notes
 
 1. **Rate Limiting:** Google Drive has rate limits - system implements exponential backoff
 2. **Caching:** Processed PDFs are cached to avoid redundant AI calls
@@ -393,7 +393,7 @@ PATCH /api/submissions/:id/status
 
 ---
 
-## 🔧 Configuration
+## ≡ƒöº Configuration
 
 **File Size Limits:**
 - CSV/Excel: 20 MB

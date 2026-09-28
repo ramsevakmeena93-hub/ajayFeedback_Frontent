@@ -131,11 +131,11 @@
 </head>
 <body>
     <div class="card">
-        <h1>🗑️ Clear Old Reports</h1>
+        <h1>≡ƒùæ∩╕Å Clear Old Reports</h1>
         <p class="subtitle">Delete all old reports from database to see new AI fixes</p>
 
         <div class="warning">
-            <strong>⚠️ Why You Need This:</strong>
+            <strong>ΓÜá∩╕Å Why You Need This:</strong>
             The code IS fixed, but your database has OLD reports processed with OLD code. 
             Delete them and re-upload Excel to see the NEW classification!
         </div>
@@ -150,16 +150,16 @@
             <label for="token">Your Login Token:</label>
             <input type="password" id="token" placeholder="Paste your JWT token here">
             <small style="display: block; margin-top: 6px; color: #94a3b8; font-size: 12px;">
-                Press F12 → Console → Type: localStorage.getItem('token')
+                Press F12 ΓåÆ Console ΓåÆ Type: localStorage.getItem('token')
             </small>
         </div>
 
-        <button onclick="clearReports()" id="clearBtn">🗑️ Delete All Old Reports</button>
+        <button onclick="clearReports()" id="clearBtn">≡ƒùæ∩╕Å Delete All Old Reports</button>
 
         <div id="result"></div>
 
         <div class="steps">
-            <strong>📋 Steps After Clearing:</strong>
+            <strong>≡ƒôï Steps After Clearing:</strong>
             <ol>
                 <li>Wait 3 minutes for Vercel to deploy</li>
                 <li>Press <strong>Ctrl + Shift + R</strong> (hard refresh)</li>
@@ -177,14 +177,14 @@
             const btn = document.getElementById('clearBtn');
 
             if (!apiUrl || !token) {
-                resultDiv.textContent = '❌ Please fill in both fields';
+                resultDiv.textContent = 'Γ¥î Please fill in both fields';
                 resultDiv.className = 'error';
                 resultDiv.style.display = 'block';
                 return;
             }
 
             btn.disabled = true;
-            btn.textContent = '⏳ Deleting...';
+            btn.textContent = 'ΓÅ│ Deleting...';
             resultDiv.style.display = 'none';
 
             try {
@@ -199,19 +199,19 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    resultDiv.textContent = `✅ Success! Deleted ${data.deletedCount} old reports. Now re-upload Excel file!`;
+                    resultDiv.textContent = `Γ£à Success! Deleted ${data.deletedCount} old reports. Now re-upload Excel file!`;
                     resultDiv.className = 'success';
                 } else {
-                    resultDiv.textContent = `❌ Error: ${data.error || data.message || 'Unknown error'}`;
+                    resultDiv.textContent = `Γ¥î Error: ${data.error || data.message || 'Unknown error'}`;
                     resultDiv.className = 'error';
                 }
             } catch (err) {
-                resultDiv.textContent = `❌ Network Error: ${err.message}`;
+                resultDiv.textContent = `Γ¥î Network Error: ${err.message}`;
                 resultDiv.className = 'error';
             } finally {
                 resultDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = '🗑️ Delete All Old Reports';
+                btn.textContent = '≡ƒùæ∩╕Å Delete All Old Reports';
             }
         }
 
