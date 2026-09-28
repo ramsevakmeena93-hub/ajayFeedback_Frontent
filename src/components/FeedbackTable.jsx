@@ -80,7 +80,7 @@ function EditableComments({ reportId, field, items, color, commentPercentages, o
               <span className={`mt-0.5 font-bold shrink-0 ${bulletColor}`}>•</span>
               <span className="text-slate-700">{c}</span>
             </div>
-          )) : (!isAtt && pcts.length === 0 ? <span className="text-slate-400 italic text-xs">No comments</span> : (isAtt && !display ? <span className="text-slate-400 italic text-xs">No comments</span> : null))}
+          )) : (!isAtt && pcts.length === 0 ? <span className="text-slate-400 italic text-xs">No suggestion</span> : (isAtt && !display ? <span className="text-slate-400 italic text-xs">No suggestion</span> : null))}
         </div>
         <span className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition">
           <Pencil size={10} className="text-slate-400"/>
