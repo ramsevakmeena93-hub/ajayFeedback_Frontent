@@ -92,6 +92,15 @@ export default function VCDashboard() {
   // ── Approve with optional comment ──────────────────────────────
   async function handleApproveConfirm() {
     if (!approveModal) return;
+    
+    // Check if Pro-VC has uploaded signature
+    if (!user?.signatureImage) {
+      return toast.error("❌ Please upload your signature before approving submissions", {
+        duration: 5000,
+        icon: '✋'
+      });
+    }
+    
     try {
       await api.patch(`/api/submissions/${approveModal}/status`, {
         status: "approved",

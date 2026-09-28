@@ -86,6 +86,15 @@ export default function HODDashboard() {
 
   async function handleSendToVC() {
     if (selected.length === 0) return toast.error("Select at least one report");
+    
+    // Check if HOD has uploaded signature
+    if (!user?.signatureImage) {
+      return toast.error("❌ Please upload your signature before submitting to Pro-VC", {
+        duration: 5000,
+        icon: '✋'
+      });
+    }
+    
     const notApproved = reports.filter(r => selected.includes(r._id) && r.status !== "faculty_approved");
     if (notApproved.length > 0) {
       const names = notApproved.map(r => r.facultyName || "Unknown").join(", ");
@@ -435,7 +444,10 @@ export default function HODDashboard() {
                         <FileText size={14} /> {exportingPDF ? "Generating..." : "Export PDF"}
                       </button>
                   )}
-                  <button onClick={handleSendToVC} disabled={selected.length === 0} className="btn btn-success btn-sm">
+                  <button onClick={handleSendToVC} 
+                    disabled={selected.length === 0 || !user?.signatureImage} 
+                    className="btn btn-success btn-sm"
+                    title={!user?.signatureImage ? "Please upload your signature first" : ""}>
                     <Send size={14} /> Send to Pro-VC {selected.length > 0 && `(${selected.length})`}
                   </button>
                 </div>
