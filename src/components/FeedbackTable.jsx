@@ -267,19 +267,19 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
         <table className="w-full text-sm">
           <thead className="table-header">
             <tr>
-              <th className="px-3 py-3 w-8"><input type="checkbox" checked={selected.length===selectableIds.length && selectableIds.length>0} onChange={toggleAll} className="rounded accent-indigo-600" /></th>
-              <th className="px-3 py-3 text-left w-12">S.No</th>
-              <th className="px-3 py-3 text-left w-32">Faculty Name</th>
-              <th className="px-3 py-3 text-left w-24">Subject Code</th>
-              <th className="px-3 py-3 text-left w-32">Course Name</th>
-              <th className="px-3 py-3 text-center w-12">Sem</th>
-              <th className="px-3 py-3 text-center w-16">FFI</th>
-              <th className="px-3 py-3 text-center w-20">Resp. %</th>
-              <th className="px-3 py-3 text-left w-64">Needs Attention</th>
-              <th className="px-3 py-3 text-left w-64">Appreciation</th>
-              <th className="px-3 py-3 text-left w-40">Action Taken</th>
-              <th className="px-3 py-3 text-center w-20">View</th>
-              {onDeleteReport && <th className="px-3 py-3 text-center w-16">Del</th>}
+              <th className="px-2 py-3 w-8"><input type="checkbox" checked={selected.length===selectableIds.length && selectableIds.length>0} onChange={toggleAll} className="rounded accent-indigo-600" /></th>
+              <th className="px-2 py-3 text-left w-10">S.No</th>
+              <th className="px-2 py-3 text-left w-28">Faculty Name</th>
+              <th className="px-2 py-3 text-left w-20">Subject Code</th>
+              <th className="px-2 py-3 text-left w-24">Course Name</th>
+              <th className="px-2 py-3 text-center w-10">Sem</th>
+              <th className="px-2 py-3 text-center w-12">FFI</th>
+              <th className="px-2 py-3 text-center w-16">Resp. %</th>
+              <th className="px-3 py-3 text-left" style={{minWidth: '320px', width: '320px'}}>Needs Attention</th>
+              <th className="px-3 py-3 text-left" style={{minWidth: '320px', width: '320px'}}>Appreciation</th>
+              <th className="px-2 py-3 text-left w-32">Action Taken</th>
+              <th className="px-2 py-3 text-center w-16">View</th>
+              {onDeleteReport && <th className="px-2 py-3 text-center w-12">Del</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -288,33 +288,33 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
               const deletable = canDelete(report);
               return (
                 <tr key={report._id} className={`table-row align-top ${selected.includes(report._id) ? "bg-indigo-50/60" : ""}`}>
-                  <td className="px-3 py-3 w-8"><input type="checkbox" checked={selected.includes(report._id)} onChange={() => toggleSelect(report._id)} disabled={(report.status!=="processed" && report.status!=="faculty_approved") || isSubmitted(report._id)} className="rounded accent-indigo-600" /></td>
-                  <td className="px-3 py-3 text-slate-400 text-xs font-medium w-12">{idx+1}</td>
-                  <td className="px-3 py-3 font-semibold text-slate-800 whitespace-nowrap w-32">
+                  <td className="px-2 py-3 w-8"><input type="checkbox" checked={selected.includes(report._id)} onChange={() => toggleSelect(report._id)} disabled={(report.status!=="processed" && report.status!=="faculty_approved") || isSubmitted(report._id)} className="rounded accent-indigo-600" /></td>
+                  <td className="px-2 py-3 text-slate-400 text-xs font-medium w-10">{idx+1}</td>
+                  <td className="px-2 py-3 font-semibold text-slate-800 text-xs w-28">
                     <EditableCell reportId={report._id} field="facultyName" value={report.facultyName} onEdit={onFieldEdit} cls="font-semibold" />
                   </td>
-                  <td className="px-3 py-3 text-xs font-mono text-slate-600 whitespace-nowrap w-24">
+                  <td className="px-2 py-3 text-xs font-mono text-slate-600 w-20">
                     <EditableCell reportId={report._id} field="subjectCode" value={report.subjectCode} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-3 py-3 text-xs text-slate-600 w-32">
+                  <td className="px-2 py-3 text-xs text-slate-600 w-24">
                     <EditableCell reportId={report._id} field="programme" value={report.programme} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-3 py-3 text-center text-xs w-12">
+                  <td className="px-2 py-3 text-center text-xs w-10">
                     <EditableCell reportId={report._id} field="semester" value={report.semester} onEdit={onFieldEdit} />
                   </td>
-                  <td className="px-3 py-3 text-center w-16">
+                  <td className="px-2 py-3 text-center w-12">
                     {report.ffiScore!=null ? (
                       <span className={`text-sm font-bold ${report.ffiScore>=4?"text-emerald-600":report.ffiScore>=3?"text-amber-600":"text-red-600"}`}>
                         {report.ffiScore.toFixed(2)}
                       </span>
                     ) : <span className="text-slate-300">-</span>}
                   </td>
-                  <td className="px-3 py-3 text-center w-20">
+                  <td className="px-2 py-3 text-center w-16">
                     <span className="text-xs font-semibold text-slate-500">
                       {report.responsePercent != null ? `${Number(report.responsePercent).toFixed(2)}%` : (report.responseCount != null ? String(report.responseCount) : "-")}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-xs whitespace-normal w-64">
+                  <td className="px-3 py-3 text-xs whitespace-normal" style={{minWidth: '320px', width: '320px'}}>
                     <EditableComments
                       reportId={report._id}
                       field="commentsNeedingAttention"
@@ -323,7 +323,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                       onSave={onFieldEdit}
                     />
                   </td>
-                  <td className="px-3 py-3 text-xs whitespace-normal w-64">
+                  <td className="px-3 py-3 text-xs whitespace-normal" style={{minWidth: '320px', width: '320px'}}>
                     <EditableComments
                       reportId={report._id}
                       field="appreciation"
@@ -333,22 +333,22 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                       onSave={onFieldEdit}
                     />
                   </td>
-                  <td className="px-3 py-3 w-40"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} /></td>
-                  <td className="px-3 py-3 w-20">
+                  <td className="px-2 py-3 w-32"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} /></td>
+                  <td className="px-2 py-3 w-16">
                     <button onClick={() => setViewReport(report)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors border border-indigo-200">
+                      className="flex items-center gap-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg transition-colors border border-indigo-200">
                       <Eye size={12}/> View
                     </button>
                   </td>
                   {onDeleteReport && (
-                    <td className="px-3 py-3 text-center w-16">
+                    <td className="px-2 py-3 text-center w-12">
                       {deletable ? (
                         <button
                           onClick={() => onDeleteReport(report._id)}
-                          className="flex items-center justify-center w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors border border-red-100 mx-auto"
+                          className="flex items-center justify-center w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition-colors border border-red-100 mx-auto"
                           title="Delete report"
                         >
-                          <Trash2 size={12}/>
+                          <Trash2 size={10}/>
                         </button>
                       ) : (
                         <span className="text-slate-200 text-xs">—</span>
