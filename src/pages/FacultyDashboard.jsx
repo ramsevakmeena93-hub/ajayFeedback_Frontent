@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import FacultyOnboardingModal from '../components/FacultyOnboardingModal';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from 'recharts';
 import { CheckCircle, Clock, ExternalLink, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Award, BookOpen, AlertTriangle, Target, Lightbulb, Users, Archive } from 'lucide-react';
 
@@ -585,6 +586,16 @@ export default function FacultyDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col w-full text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Navbar title="Faculty Portal" subtitle={user?.department} />
+
+      {/* Faculty Onboarding Modal */}
+      <FacultyOnboardingModal 
+        user={user} 
+        token={token} 
+        onComplete={(updatedUser) => {
+          // Update user in context
+          window.location.reload();
+        }} 
+      />
 
       <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-5">
 
