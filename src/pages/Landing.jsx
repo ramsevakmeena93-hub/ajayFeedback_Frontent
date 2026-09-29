@@ -65,16 +65,16 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
 
       {/* ── NAVBAR ── */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md" : "bg-white/95 backdrop-blur-sm"
+        scrolled ? "bg-white/90 backdrop-blur-lg shadow-sm" : "bg-white/80 backdrop-blur-md"
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <a href="#home" className="flex items-center gap-4 group">
-              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm ring-2 ring-blue-100 flex-shrink-0">
+              <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm ring-2 ring-blue-100 flex-shrink-0 bg-white">
                 <img src={mitsLogo} alt="MITS" className="w-full h-full object-contain p-2" />
               </div>
               <div>
@@ -105,7 +105,7 @@ export default function Landing() {
         </div>
 
         {menuOpen && (
-          <div className="md:hidden border-t bg-white px-4 py-4 space-y-2 shadow-lg">
+          <div className="md:hidden border-t bg-white/95 backdrop-blur-md px-4 py-4 space-y-2 shadow-lg">
             <button
               onClick={() => { navigate("/developer"); setMenuOpen(false); }}
               className="w-full py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
@@ -122,7 +122,8 @@ export default function Landing() {
 
       {/* ── HERO ── */}
       <section id="home" className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-slate-50 to-indigo-50/80" />
+        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -204,11 +205,11 @@ export default function Landing() {
       </section>
 
       {/* ── STATS ── */}
-      <section className="py-16 bg-slate-50">
+      <section className="py-16 bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {STATS.map((stat, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-slate-200/50 hover:shadow-md transition-shadow">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4`}>
                   <stat.icon size={24} className="text-white" />
                 </div>
@@ -221,7 +222,7 @@ export default function Landing() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gradient-to-br from-white via-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-wide mb-4">
@@ -245,7 +246,7 @@ export default function Landing() {
                 violet: "from-violet-500 to-violet-600"
               };
               return (
-                <div key={i} className="bg-white rounded-2xl p-6 border-2 border-slate-100 hover:border-slate-200 hover:shadow-lg transition-all duration-200 group">
+                <div key={i} className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:border-slate-300/50 hover:shadow-lg transition-all duration-200 group">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[feature.color]} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <feature.icon size={28} className="text-white" />
                   </div>
@@ -259,7 +260,7 @@ export default function Landing() {
       </section>
 
       {/* ── TEAM SECTION ── */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
             
@@ -270,7 +271,7 @@ export default function Landing() {
                 Developed By
               </div>
               
-              <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100 hover:border-indigo-200 hover:shadow-xl transition-all">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-indigo-300/50 hover:shadow-xl transition-all">
                 <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <Code2 size={56} className="text-white" />
                 </div>
@@ -295,7 +296,7 @@ export default function Landing() {
                 Under the Guidance of
               </div>
               
-              <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100 hover:border-cyan-200 hover:shadow-xl transition-all">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-cyan-300/50 hover:shadow-xl transition-all">
                 <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <GraduationCap size={56} className="text-white" />
                 </div>
@@ -311,7 +312,7 @@ export default function Landing() {
             <div className="text-center">
               <div className="h-12 mb-6"></div>
               
-              <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100 hover:border-emerald-200 hover:shadow-xl transition-all">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-emerald-300/50 hover:shadow-xl transition-all">
                 <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
                   <Users size={56} className="text-white" />
                 </div>
