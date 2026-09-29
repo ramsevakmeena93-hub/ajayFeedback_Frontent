@@ -27,7 +27,7 @@ export default function VCManagement() {
   async function fetchVC() {
     setLoading(true);
     try {
-      const res = await api.get('/api/admin/users?role=provc');
+      const res = await api.get('/api/admin/users?role=vc');
       setVcs(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error('Failed to load Pro-VC users');
@@ -64,13 +64,13 @@ export default function VCManagement() {
     setSaving(true);
     try {
       if (editTarget) {
-        const payload = { ...form, role: 'provc' };
+        const payload = { ...form, role: 'vc' };
         if (!payload.password) delete payload.password;
         await api.patch(`/api/admin/users/${editTarget._id}`, payload);
         toast.success('Pro-VC updated');
       } else {
         if (!form.password) { toast.error('Password is required'); setSaving(false); return; }
-        await api.post('/api/admin/users', { ...form, role: 'provc' });
+        await api.post('/api/admin/users', { ...form, role: 'vc' });
         toast.success('Pro-VC account created');
       }
       setShowModal(false);
