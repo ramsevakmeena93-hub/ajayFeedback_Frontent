@@ -231,50 +231,67 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA BANNER ── */}
+      {/* ── FEATURES SECTION ── */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-violet-600/10 to-emerald-600/10 pointer-events-none" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-6">
-            <Zap size={12} className="text-violet-400" />
-            AI-Powered · Secure · Instant
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold mb-6">
+              <Zap size={12} className="text-violet-400" />
+              Powerful Features
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
+              Everything You Need for<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
+                Effective Feedback Management
+              </span>
+            </h2>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
-            Ready to streamline<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400">
-              faculty feedback?
-            </span>
-          </h2>
-
-          <p className="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
-            Join MITS Gwalior's official digital feedback platform.
-            Sign in with your institute Google account and get started instantly.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => navigate("/login")}
-              className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-xl hover:shadow-blue-500/30 transition-all duration-200 hover:-translate-y-1 text-base">
-              Sign In with Google <ArrowRight size={18} />
-            </button>
-          </div>
-
-          {/* Feature pills */}
-          <div className="flex flex-wrap justify-center gap-3 mt-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: BarChart3, label: "AI Analytics" },
-              { icon: Shield,    label: "Role-Based Access" },
-              { icon: Zap,       label: "Instant Processing" },
-              { icon: GraduationCap, label: "VC Approval Flow" },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs text-slate-400">
-                <Icon size={13} className="text-blue-400" />
-                {label}
+              { 
+                icon: BarChart3, 
+                title: "AI-Powered Analytics", 
+                desc: "Advanced sentiment analysis automatically categorizes feedback into appreciation and areas needing attention with intelligent insights."
+              },
+              { 
+                icon: Shield, 
+                title: "Role-Based Access", 
+                desc: "Secure multi-role system with Faculty, HOD, Pro-VC, and Admin dashboards. Each role has specific permissions and workflows."
+              },
+              { 
+                icon: Zap, 
+                title: "Instant Processing", 
+                desc: "Upload CSV feedback files and get instant AI analysis. Generate comprehensive PDF reports with one click."
+              },
+              { 
+                icon: GraduationCap, 
+                title: "Pro-VC Approval Flow", 
+                desc: "Structured approval workflow from Faculty acknowledgment → HOD review → Pro-VC approval with complete audit trail."
+              },
+            ].map(({ icon: Icon, title, desc }, i) => (
+              <div key={i} className="group relative animate-fade-up" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-violet-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+                <div className="relative bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 h-full">
+                  <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
+                    <Icon size={24} className="text-blue-400" />
+                  </div>
+                  <h3 className="text-white font-bold text-base mb-2">{title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+                </div>
               </div>
             ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <button
+              onClick={() => navigate("/login")}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-xl hover:shadow-blue-500/30 transition-all duration-200 hover:-translate-y-1 text-base group">
+              Get Started <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
       </section>
@@ -287,29 +304,21 @@ export default function Landing() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Developer Section */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
-              <Code2 size={14} className="text-indigo-400" />
-              Developed By
-            </div>
-          </div>
-
-          {/* Under Guidance Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              Under the Guidance of
-            </div>
-          </div>
-          
-          {/* 3 Cards in One Row */}
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          {/* 3 Cards in One Row with Badges */}
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto items-start">
             
             {/* Developer - Shivam Mishra */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-indigo-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/20 h-full flex flex-col">
+              {/* "Developed By" Badge - positioned above card */}
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider shadow-sm">
+                  <Code2 size={14} className="text-indigo-400" />
+                  Developed By
+                </div>
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100 mt-16" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-indigo-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/20 flex flex-col">
                 <div className="relative w-32 h-32 mx-auto mb-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-indigo-400/40 group-hover:ring-indigo-400/70 transition-all shadow-2xl">
@@ -340,8 +349,16 @@ export default function Landing() {
 
             {/* Dr. Abhishek Dixit */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-cyan-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 h-full flex flex-col">
+              {/* "Under Guidance" Badge - positioned above card, centered between two cards */}
+              <div className="flex justify-center mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  Under the Guidance of
+                </div>
+              </div>
+
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100 mt-16" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-cyan-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 flex flex-col">
                 <div className="relative w-32 h-32 mx-auto mb-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-cyan-400/40 group-hover:ring-cyan-400/70 transition-all shadow-2xl">
@@ -362,8 +379,11 @@ export default function Landing() {
 
             {/* Atul Chauhan */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-emerald-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 h-full flex flex-col">
+              {/* Empty space to align with others */}
+              <div className="h-12 mb-6"></div>
+
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100 mt-16" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-emerald-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 flex flex-col">
                 <div className="relative w-32 h-32 mx-auto mb-5">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-emerald-400/40 group-hover:ring-emerald-400/70 transition-all shadow-2xl">
