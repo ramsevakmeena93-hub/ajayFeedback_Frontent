@@ -279,96 +279,106 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── DEVELOPED BY ── */}
-      <section className="py-20 relative overflow-hidden bg-gradient-to-b from-slate-900 to-[#0d1326]">
+      {/* ── TEAM SECTION: DEVELOPER + GUIDANCE ── */}
+      <section className="py-24 relative overflow-hidden bg-gradient-to-b from-slate-900 via-[#0d1326] to-slate-900">
         <div className="absolute inset-0 bg-grid-dark opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none animate-float-slow" />
         
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-8 shadow-sm">
-            <Code2 size={14} className="text-indigo-400" />
-            Developed By
-          </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="group relative max-w-md mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-            <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10">
-              
-              <div className="relative w-40 h-40 mx-auto mb-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-                <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-indigo-400/30 group-hover:ring-indigo-400/60 transition-all shadow-xl">
-                  <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-                    <Code2 size={56} className="text-indigo-400" />
-                  </div>
-                </div>
-              </div>
-              
-              <h3 className="text-3xl font-black text-white mb-2 tracking-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-                  Shivam Mishra
-                </span>
-              </h3>
-              <p className="text-indigo-400 text-base font-semibold mb-1">Full-Stack Developer</p>
-              <p className="text-slate-400 text-sm">B.Tech CSE • MITS Deemed University</p>
-              
-              <button
-                onClick={() => navigate("/developer")}
-                className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1 text-sm group">
-                View Full Profile <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+          {/* Developer Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
+              <Code2 size={14} className="text-indigo-400" />
+              Developed By
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── UNDER THE GUIDANCE OF ── */}
-      <section className="py-20 relative overflow-hidden bg-[#0d1326]">
-        <div className="absolute inset-0 bg-grid-dark opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-        
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-8 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            Under the Guidance of
+          {/* Under Guidance Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              Under the Guidance of
+            </div>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto mt-12">
+          {/* 3 Cards in One Row */}
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
             
-            {/* Dr. Abhishek Dixit */}
+            {/* Developer - Shivam Mishra */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10">
-                <div className="relative w-32 h-32 mx-auto mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-cyan-400/30 group-hover:ring-cyan-400/60 transition-all shadow-xl">
-                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-                      <GraduationCap size={48} className="text-cyan-400" />
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-indigo-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/20 h-full flex flex-col">
+                <div className="relative w-32 h-32 mx-auto mb-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-indigo-400/40 group-hover:ring-indigo-400/70 transition-all shadow-2xl">
+                    <div className="w-full h-full bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
+                      <Code2 size={56} className="text-indigo-300" />
                     </div>
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Dr. Abhishek Dixit</h3>
-                <p className="text-cyan-400 text-sm font-semibold mb-1">Assistant Professor & Head, CCST</p>
-                <p className="text-slate-400 text-xs">MITS Deemed University</p>
+                <div className="flex-1 text-center">
+                  <h3 className="text-xl font-black text-white mb-2 tracking-tight">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                      Shivam Mishra
+                    </span>
+                  </h3>
+                  <p className="text-indigo-400 text-sm font-bold mb-1">Full-Stack Developer</p>
+                  <p className="text-slate-400 text-xs mb-1">B.Tech CSE</p>
+                  <p className="text-slate-500 text-xs">MITS Deemed University</p>
+                </div>
+                
+                <button
+                  onClick={() => navigate("/developer")}
+                  className="mt-5 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/40 transition-all duration-300 hover:-translate-y-0.5 text-sm group">
+                  View Profile <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Dr. Abhishek Dixit */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-cyan-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 h-full flex flex-col">
+                <div className="relative w-32 h-32 mx-auto mb-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-cyan-400/40 group-hover:ring-cyan-400/70 transition-all shadow-2xl">
+                    <div className="w-full h-full bg-gradient-to-br from-cyan-900 to-blue-900 flex items-center justify-center">
+                      <GraduationCap size={56} className="text-cyan-300" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex-1 text-center">
+                  <h3 className="text-xl font-black text-white mb-2 tracking-tight">Dr. Abhishek Dixit</h3>
+                  <p className="text-cyan-400 text-sm font-bold mb-1">Assistant Professor & Head</p>
+                  <p className="text-slate-400 text-xs mb-1">Centre for CST</p>
+                  <p className="text-slate-500 text-xs">MITS Deemed University</p>
+                </div>
               </div>
             </div>
 
             {/* Atul Chauhan */}
             <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
-              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10">
-                <div className="relative w-32 h-32 mx-auto mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-400/30 group-hover:ring-purple-400/60 transition-all shadow-xl">
-                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-                      <Code2 size={48} className="text-purple-400" />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <div className="relative bg-slate-800/60 backdrop-blur-md border border-slate-700/60 rounded-3xl p-6 hover:border-emerald-500/60 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 h-full flex flex-col">
+                <div className="relative w-32 h-32 mx-auto mb-5">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-emerald-400/40 group-hover:ring-emerald-400/70 transition-all shadow-2xl">
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-900 to-teal-900 flex items-center justify-center">
+                      <Users size={56} className="text-emerald-300" />
                     </div>
                   </div>
                 </div>
                 
-                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Atul Chauhan</h3>
-                <p className="text-purple-400 text-sm font-semibold mb-1">Programmer, MITS-DU</p>
-                <p className="text-slate-400 text-xs">Technical Guidance & Support</p>
+                <div className="flex-1 text-center">
+                  <h3 className="text-xl font-black text-white mb-2 tracking-tight">Atul Chauhan</h3>
+                  <p className="text-emerald-400 text-sm font-bold mb-1">Programmer</p>
+                  <p className="text-slate-400 text-xs mb-1">MITS-DU</p>
+                  <p className="text-slate-500 text-xs">Technical Guidance</p>
+                </div>
               </div>
             </div>
             
