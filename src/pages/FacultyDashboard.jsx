@@ -470,6 +470,24 @@ function AnalysisSection({ summary, advancedData }) {
 // ── MAIN DASHBOARD ───────────────────────────────────────────────
 export default function FacultyDashboard() {
   const { token, user, logout } = useAuth();
+  
+  // Safety check - if no token or user, show error
+  if (!token || !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Authentication Required</h2>
+          <p className="text-slate-500 mb-4">Please log in to access the Faculty Dashboard</p>
+          <button onClick={() => window.location.href = '/login'} 
+            className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors">
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   const [activeTab, setActiveTab] = useState('reports'); // reports | analysis | records
   const [advancedData, setAdvancedData] = useState(null);
   const [reports, setReports] = useState([]);
@@ -531,7 +549,10 @@ export default function FacultyDashboard() {
       if (filterYear) params.append('year', filterYear);
       if (filterSem) params.append('semester', filterSem);
 
+      console.log('[FacultyDashboard] Fetching data...', { filterYear, filterSem });
       const { data } = await api.get(`/api/reports/faculty/analysis?${params}`);
+      console.log('[FacultyDashboard] Data received:', data);
+      
       setReports(data?.reports || []);
       setSummary(data?.summary || null);
       if (data?.summary?.years) setAvailableYears(data.summary.years);
@@ -540,14 +561,23 @@ export default function FacultyDashboard() {
       // Concurrently load advanced analytics if analysis tab is active
       if (activeTab === 'analysis') {
         try {
+          console.log('[FacultyDashboard] Fetching advanced analytics...');
           const advRes = await api.get('/api/reports/faculty/advanced-analytics');
+          console.log('[FacultyDashboard] Advanced analytics received:', advRes?.data);
           setAdvancedData(advRes?.data || null);
-        } catch {
+        } catch (advErr) {
+          console.error('[FacultyDashboard] Advanced analytics error:', advErr);
           setAdvancedData(null);
         }
       }
     } catch (err) {
-      if (err.response?.status === 401) { logout(); return; }
+      console.error('[FacultyDashboard] Fetch error:', err);
+      if (err.response?.status === 401) { 
+        console.log('[FacultyDashboard] Unauthorized, logging out...');
+        logout(); 
+        return; 
+      }
+      toast.error(err.response?.data?.error || 'Failed to load faculty data');
       setReports([]);
       setSummary(null);
     } finally {
