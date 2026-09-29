@@ -311,6 +311,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                         <span>{t}</span>
                       </div>
                       <MoveCommentButton comment={t} reportId={report._id} from="attention" onMoved={(updatedReport) => setReport(updatedReport)} />
+                    </div>
                   ))}
               </div>
             </div>
