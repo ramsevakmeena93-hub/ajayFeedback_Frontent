@@ -124,10 +124,36 @@ export default function HODManagement() {
   }
 
   async function handleClearReports(h) {
-    if (!window.confirm(`Clear ALL reports for ${h.name}? This cannot be undone!`)) return;
+    // TRIPLE CONFIRMATION to prevent accidental deletion
+    const confirmText = `DELETE-${h.name.toUpperCase().replace(/\s+/g, '-')}`;
+    
+    const firstConfirm = window.prompt(
+      `⚠️ DANGER: This will permanently delete ALL ${h.name}'s reports!\n\n` +
+      `This action CANNOT be undone!\n\n` +
+      `To confirm, type exactly:\n${confirmText}`
+    );
+    
+    if (firstConfirm !== confirmText) {
+      if (firstConfirm !== null) { // user didn't cancel
+        toast.error('❌ Confirmation text did not match. Deletion cancelled.');
+      }
+      return;
+    }
+    
+    // Second confirmation with number
+    const secondConfirm = window.confirm(
+      `⚠️ FINAL WARNING!\n\n` +
+      `You are about to PERMANENTLY DELETE all reports for ${h.name}.\n\n` +
+      `This will erase all feedback data and CANNOT be recovered!\n\n` +
+      `Click OK ONLY if you are absolutely sure.`
+    );
+    
+    if (!secondConfirm) return;
+    
     try {
       const res = await api.delete(`/api/submissions/admin/clear-hod/${h.email}`);
       toast.success(res.data.message || `Cleared ${res.data.deleted} report(s)`);
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to clear reports');
     }
