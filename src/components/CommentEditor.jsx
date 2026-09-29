@@ -1,149 +1,163 @@
-import { ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { useState } from 'react';
+import { X, ArrowRight, Save } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
-export default function CommentEditor({ 
-  comments, 
-  otherComments,
-  title, 
-  color,
-  otherTitle,
-  onSave, 
-  onClose 
-}) {
-  const [items, setItems] = useState(comments);
-  const [otherItems, setOtherItems] = useState(otherComments);
+/**
+ * CommentEditor - Two-column editor with move buttons
+ * Edit comments and move them between categories (Appreciation ↔ Need Attention)
+ */
+export default function CommentEditor({ comments, otherComments, title, otherTitle, color, onSave, onClose }) {
+  const [leftList, setLeftList] = useState([...comments]);
+  const [rightList, setRightList] = useState([...otherComments]);
+  const [selectedLeft, setSelectedLeft] = useState(new Set());
+  const [selectedRight, setSelectedRight] = useState(new Set());
 
-  function moveToOther(index) {
-    const comment = items[index];
-    setItems(items.filter((_, i) => i !== index));
-    setOtherItems([...otherItems, comment]);
-  }
-
-  function moveFromOther(index) {
-    const comment = otherItems[index];
-    setOtherItems(otherItems.filter((_, i) => i !== index));
-    setItems([...items, comment]);
-  }
-
-  function removeItem(index) {
-    if (confirm('Delete this comment?')) {
-      setItems(items.filter((_, i) => i !== index));
+  const colorClasses = {
+    green: {
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      text: 'text-emerald-700',
+      button: 'bg-emerald-600 hover:bg-emerald-700'
+    },
+    orange: {
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      text: 'text-amber-700',
+      button: 'bg-amber-600 hover:bg-amber-700'
     }
+  };
+
+  const colors = colorClasses[color] || colorClasses.green;
+
+  // Move selected items from left to right
+  function moveLeftToRight() {
+    const toMove = leftList.filter((_, i) => selectedLeft.has(i));
+    setRightList([...rightList, ...toMove]);
+    setLeftList(leftList.filter((_, i) => !selectedLeft.has(i)));
+    setSelectedLeft(new Set());
   }
 
-  function removeOtherItem(index) {
-    if (confirm('Delete this comment?')) {
-      setOtherItems(otherItems.filter((_, i) => i !== index));
-    }
+  // Move selected items from right to left
+  function moveRightToLeft() {
+    const toMove = rightList.filter((_, i) => selectedRight.has(i));
+    setLeftList([...leftList, ...toMove]);
+    setRightList(rightList.filter((_, i) => !selectedRight.has(i)));
+    setSelectedRight(new Set());
+  }
+
+  // Toggle selection
+  function toggleLeft(index) {
+    const newSet = new Set(selectedLeft);
+    if (newSet.has(index)) newSet.delete(index);
+    else newSet.add(index);
+    setSelectedLeft(newSet);
+  }
+
+  function toggleRight(index) {
+    const newSet = new Set(selectedRight);
+    if (newSet.has(index)) newSet.delete(index);
+    else newSet.add(index);
+    setSelectedRight(newSet);
   }
 
   function handleSave() {
-    onSave(items, otherItems);
+    onSave(leftList, rightList);
   }
 
-  const bgColor = color === 'green' ? 'bg-emerald-600' : 'bg-amber-600';
-  const hoverBg = color === 'green' ? 'hover:bg-emerald-700' : 'hover:bg-amber-700';
-  const itemBg = color === 'green' ? 'bg-emerald-50' : 'bg-amber-50';
-  const otherBg = color === 'green' ? 'bg-amber-50' : 'bg-emerald-50';
-  const moveIcon = color === 'green' ? <ArrowRight size={14} /> : <ArrowLeft size={14} />;
-  const moveFromIcon = color === 'green' ? <ArrowLeft size={14} /> : <ArrowRight size={14} />;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
-      onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className={`${bgColor} px-5 py-3.5 flex items-center justify-between`}>
-          <span className="font-bold text-white text-sm">{title}</span>
-          <button onClick={onClose} className="text-white/80 hover:text-white text-lg">✕</button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+          <h3 className="text-lg font-bold text-slate-800">Edit Comments - {title}</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition-colors">
+            <X size={18}/>
+          </button>
         </div>
 
-        {/* Content - Two columns */}
-        <div className="flex-1 overflow-auto p-5 grid grid-cols-2 gap-4">
-          
-          {/* Current Category */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-bold text-slate-700 mb-3">{title} ({items.length})</h3>
-            {items.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-4">No comments</p>
-            ) : (
-              items.map((comment, idx) => (
-                <div key={idx} className={`${itemBg} p-3 rounded-lg border border-slate-200 group hover:shadow-sm transition-all`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm text-slate-700 flex-1">{comment}</p>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => moveToOther(idx)}
-                        className="p-1 hover:bg-white rounded text-slate-600 hover:text-slate-800"
-                        title={`Move to ${otherTitle}`}
-                      >
-                        {moveIcon}
-                      </button>
-                      <button
-                        onClick={() => removeItem(idx)}
-                        className="p-1 hover:bg-white rounded text-red-600 hover:text-red-800"
-                        title="Delete"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+        {/* Two-column editor */}
+        <div className="flex-1 overflow-hidden p-6">
+          <div className="grid grid-cols-2 gap-6 h-full">
+            
+            {/* Left column - Main category */}
+            <div className="flex flex-col h-full">
+              <div className={`${colors.bg} ${colors.border} border-l-4 rounded-xl p-4 mb-3`}>
+                <h4 className={`font-bold ${colors.text} mb-1`}>{title}</h4>
+                <p className="text-xs text-slate-500">{leftList.length} comments · Click to select</p>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50">
+                {leftList.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-8">No comments here</p>
+                ) : leftList.map((comment, i) => (
+                  <div
+                    key={i}
+                    onClick={() => toggleLeft(i)}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all text-sm leading-relaxed ${
+                      selectedLeft.has(i)
+                        ? 'border-blue-400 bg-blue-50 shadow-sm'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    {comment}
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))}
+              </div>
+              <button
+                onClick={moveLeftToRight}
+                disabled={selectedLeft.size === 0}
+                className="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                Move to {otherTitle} <ArrowRight size={16}/>
+              </button>
+            </div>
 
-          {/* Other Category */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-bold text-slate-700 mb-3">{otherTitle} ({otherItems.length})</h3>
-            {otherItems.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-4">No comments</p>
-            ) : (
-              otherItems.map((comment, idx) => (
-                <div key={idx} className={`${otherBg} p-3 rounded-lg border border-slate-200 group hover:shadow-sm transition-all`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm text-slate-700 flex-1">{comment}</p>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => moveFromOther(idx)}
-                        className="p-1 hover:bg-white rounded text-slate-600 hover:text-slate-800"
-                        title={`Move to ${title}`}
-                      >
-                        {moveFromIcon}
-                      </button>
-                      <button
-                        onClick={() => removeOtherItem(idx)}
-                        className="p-1 hover:bg-white rounded text-red-600 hover:text-red-800"
-                        title="Delete"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+            {/* Right column - Other category */}
+            <div className="flex flex-col h-full">
+              <div className="bg-slate-100 border-l-4 border-slate-400 rounded-xl p-4 mb-3">
+                <h4 className="font-bold text-slate-700 mb-1">{otherTitle}</h4>
+                <p className="text-xs text-slate-500">{rightList.length} comments · Click to select</p>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50">
+                {rightList.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic text-center py-8">No comments here</p>
+                ) : rightList.map((comment, i) => (
+                  <div
+                    key={i}
+                    onClick={() => toggleRight(i)}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all text-sm leading-relaxed ${
+                      selectedRight.has(i)
+                        ? 'border-blue-400 bg-blue-50 shadow-sm'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    {comment}
                   </div>
-                </div>
-              ))
-            )}
+                ))}
+              </div>
+              <button
+                onClick={moveRightToLeft}
+                disabled={selectedRight.size === 0}
+                className="mt-3 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowRight size={16} className="rotate-180"/> Move to {title}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
-          <button 
-            onClick={onClose} 
-            className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition"
-          >
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-lg transition-colors">
             Cancel
           </button>
-          <button 
-            onClick={handleSave} 
-            className={`px-5 py-2 text-sm font-semibold text-white ${bgColor} ${hoverBg} rounded-xl transition`}
-          >
-            ✓ Save Changes
+          <button onClick={handleSave} className={`px-4 py-2 ${colors.button} text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2`}>
+            <Save size={16}/> Save Changes
           </button>
         </div>
-
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
