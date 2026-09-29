@@ -93,7 +93,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
     };
   }, [onClose]);
 
-  const isEligibleForHODApprove = report.status === "sent_to_faculty" && report.sentToFacultyAt && (new Date() - new Date(report.sentToFacultyAt) >= 24 * 60 * 60 * 1000);
+  const isEligibleForHODApprove = report.status === "sent_to_faculty" || (report.status === "processed" && onHODApprove);
 
   const st = STATUS_CFG[report.status] || STATUS_CFG.pending;
   const StatusIcon = st.icon;
@@ -401,12 +401,12 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
           {showApproveForm && (
             <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-5 mb-6 space-y-3 animate-fade-in text-left">
               <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
-                <AlertTriangle size={16} /> Enter Action Taken / Approval Reason
+                <AlertTriangle size={16} /> HOD Force Approval
               </div>
-              <p className="text-xs text-amber-600">Please provide a valid action taken explanation. This will be stored on the report and visible to the Pro-VC and the Faculty member.</p>
+              <p className="text-xs text-amber-600">Faculty hasn't logged in yet. You can forcefully approve this report. Enter your comments below - no faculty signature is required.</p>
               <textarea
                 className="w-full border border-amber-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
-                placeholder="Describe action taken / reason for HOD approval..."
+                placeholder="Enter HOD approval comments... (e.g., 'Approved by HOD - Faculty not available')"
                 rows={3}
                 value={approvalReason}
                 onChange={e => { setApprovalReason(e.target.value); if(e.target.value.trim()) setErrorMsg(""); }}
@@ -419,15 +419,18 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 <button
                   onClick={() => {
                     if (!approvalReason.trim()) {
-                      setErrorMsg("A valid Action Taken comment is required to approve.");
+                      setErrorMsg("Please enter HOD approval comments.");
                       return;
                     }
-                    onHODApprove(report._id, approvalReason);
+                    const finalComment = approvalReason.trim().includes("Approved by HOD") 
+                      ? approvalReason.trim() 
+                      : `Approved by HOD: ${approvalReason.trim()}`;
+                    onHODApprove(report._id, finalComment);
                     onClose();
                   }}
                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors"
                 >
-                  Confirm Force Approve
+                  ✓ Approve as HOD
                 </button>
               </div>
             </div>
@@ -455,7 +458,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
             {isEligibleForHODApprove && onHODApprove && !showApproveForm && (
               <button onClick={() => setShowApproveForm(true)}
                 className="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1.5">
-                <CheckCircle2 size={13}/> HOD Approve
+                <CheckCircle2 size={13}/> HOD Force Approve
               </button>
             )}
             {report.status === "faculty_approved" && onApprove && (

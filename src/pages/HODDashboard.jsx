@@ -29,6 +29,8 @@ export default function HODDashboard() {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [okReviewed, setOkReviewed] = useState(new Set());
   const [vcUser, setVcUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all"); // all, approved, pending
+  const [showStatusModal, setShowStatusModal] = useState(false);
   
   const [dismissedNotifs, setDismissedNotifs] = useState(() => {
     try { return JSON.parse(localStorage.getItem('dismissedNotifs') || '[]'); } catch { return []; }
@@ -267,8 +269,15 @@ export default function HODDashboard() {
   }
 
   const visibleReports = reports.filter(r => {
-    if (sessionStartTime) return new Date(r.createdAt).getTime() >= sessionStartTime;
-    return !submittedIds.has(String(r._id));
+    // Session filter
+    if (sessionStartTime && new Date(r.createdAt).getTime() < sessionStartTime) return false;
+    if (!sessionStartTime && submittedIds.has(String(r._id))) return false;
+    
+    // Status filter
+    if (filterStatus === "approved" && r.status !== "faculty_approved") return false;
+    if (filterStatus === "pending" && r.status === "faculty_approved") return false;
+    
+    return true;
   }).sort((a, b) => {
     // Natural sort by subject code (course code)
     const ca = (a.subjectCode || '').trim();
@@ -422,13 +431,32 @@ export default function HODDashboard() {
                   </button>
 
                   {reports.length > 0 && <>
-                    <button onClick={fixMetadata} className="btn btn-secondary btn-sm text-indigo-600">
-                      <Wrench size={14} /> Fix Names
+                    <button onClick={() => setShowStatusModal(true)} className="btn btn-secondary btn-sm text-indigo-600">
+                      <Users size={14} /> Status
                     </button>
                     <button onClick={clearAllReports} className="btn btn-secondary btn-sm text-red-600">
                       <Trash2 size={14} /> Clear All
                     </button>
                   </>}
+                  
+                  {/* Filter Buttons */}
+                  <div className="flex gap-1 ml-2">
+                    <button 
+                      onClick={() => setFilterStatus("all")}
+                      className={`btn btn-sm ${filterStatus === "all" ? "bg-indigo-600 text-white" : "btn-secondary"}`}>
+                      All Files
+                    </button>
+                    <button 
+                      onClick={() => setFilterStatus("approved")}
+                      className={`btn btn-sm ${filterStatus === "approved" ? "bg-emerald-600 text-white" : "btn-secondary text-emerald-600"}`}>
+                      Approved Files
+                    </button>
+                    <button 
+                      onClick={() => setFilterStatus("pending")}
+                      className={`btn btn-sm ${filterStatus === "pending" ? "bg-amber-600 text-white" : "btn-secondary text-amber-600"}`}>
+                      Pending Files
+                    </button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={fetchReports} className="btn btn-ghost btn-sm">
@@ -528,6 +556,89 @@ export default function HODDashboard() {
             fetchReports();
           }}
         />
+      )}
+
+      {/* Status Modal - Faculty Approval Status */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-indigo-900 text-xl">Faculty Approval Status</h2>
+                <p className="text-xs text-indigo-600 mt-0.5">Track which reports have been approved by faculty</p>
+              </div>
+              <button onClick={() => setShowStatusModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 text-slate-500 transition-colors">
+                <X size={18}/>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-3">
+                {visibleReports.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users size={48} className="mx-auto text-slate-300 mb-4"/>
+                    <p className="text-slate-500">No reports found</p>
+                  </div>
+                ) : (
+                  visibleReports.map((report) => (
+                    <div key={report._id} className={`border-2 rounded-xl p-4 transition-all ${
+                      report.status === "faculty_approved" 
+                        ? "border-emerald-200 bg-emerald-50/50" 
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-slate-900 text-base mb-1">{report.facultyName || "Unknown Faculty"}</h3>
+                          <div className="flex flex-wrap gap-2 text-xs text-slate-600 mb-2">
+                            <span className="font-mono bg-slate-100 px-2 py-0.5 rounded">{report.subjectCode || "—"}</span>
+                            <span>{report.programme || "—"}</span>
+                            {report.semester && <span>Sem {report.semester}</span>}
+                          </div>
+                          {report.actionTaken && (
+                            <p className="text-xs text-slate-600 mt-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                              <span className="font-semibold">Action: </span>{report.actionTaken}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          {report.status === "faculty_approved" ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <CheckCircle size={13}/> Approved
+                              </span>
+                              {report.facultyAcknowledgedAt && (
+                                <p className="text-xs text-slate-500 mt-2">
+                                  {new Date(report.facultyAcknowledgedAt).toLocaleDateString("en-IN", { 
+                                    day: "2-digit", 
+                                    month: "short", 
+                                    year: "numeric" 
+                                  })}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                              <Clock size={13}/> Pending
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t bg-slate-50 flex items-center justify-between">
+              <div className="text-sm text-slate-600">
+                <span className="font-semibold text-emerald-600">{visibleReports.filter(r => r.status === "faculty_approved").length}</span> approved, 
+                <span className="font-semibold text-amber-600 ml-1">{visibleReports.filter(r => r.status !== "faculty_approved").length}</span> pending
+              </div>
+              <button onClick={() => setShowStatusModal(false)} className="btn btn-primary">Close</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
