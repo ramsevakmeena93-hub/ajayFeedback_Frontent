@@ -160,15 +160,24 @@ export default function Navbar({ title, subtitle }) {
 
   async function handleQuickSwitch(targetWS) {
     if (targetWS === activeWS || switchingWS) return;
+    console.log('[Switch] Starting switch from', activeWS, 'to', targetWS);
     setSwitchingWS(true);
     try {
+      console.log('[Switch] Making API call to /api/workspace/switch');
       const res = await api().post("/api/workspace/switch", { workspace: targetWS });
+      console.log('[Switch] API response:', res.data);
+      
       if (res.data.token && res.data.user) {
         login(res.data.user, res.data.token);
         toast.success(`Switched to ${targetWS === 'faculty' ? 'Faculty View' : 'HOD View'}`);
         navigate(targetWS === 'faculty' ? '/faculty' : '/hod');
+      } else {
+        console.warn('[Switch] No token/user in response, navigating anyway');
+        navigate(targetWS === 'faculty' ? '/faculty' : '/hod');
       }
     } catch (err) {
+      console.error('[Switch] Error:', err);
+      toast.error('Switch failed: ' + (err.response?.data?.error || err.message));
       navigate(targetWS === 'faculty' ? '/faculty' : '/hod');
     } finally {
       setSwitchingWS(false);
