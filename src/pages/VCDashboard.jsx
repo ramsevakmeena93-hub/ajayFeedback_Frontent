@@ -241,14 +241,14 @@ export default function VCDashboard() {
             {/* Title row */}
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-blue-200 text-sm font-medium">Dr. Manjuree Pandit Portal</p>
+                <p className="text-blue-200 text-sm font-medium">Dr. Manjaree Pandit Portal</p>
                 <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Dr. Manjuree Pandit"}</h1>
                 <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science · 2025–26</p>
               </div>
               <div className="flex gap-3">
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-white text-xl font-black">{approvedCount}</p>
-                  <p className="text-blue-200 text-xs mt-0.5">Pro-Pro-VC Approved</p>
+                  <p className="text-blue-200 text-xs mt-0.5">Pro-VC Approved</p>
                 </div>
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-amber-300 text-xl font-black">{pendingCount}</p>
