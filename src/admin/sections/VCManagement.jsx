@@ -110,7 +110,7 @@ export default function VCManagement() {
             <Crown className="text-violet-500" size={24} /> Pro-VC Management
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Manage Dr. Manjuree Pandit accounts — add, edit or remove.
+            Manage Dr. Manjaree Pandit accounts — add, edit or remove.
           </p>
         </div>
         <div className="flex gap-2">
