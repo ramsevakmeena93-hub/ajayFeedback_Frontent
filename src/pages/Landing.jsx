@@ -257,24 +257,20 @@ export default function Landing() {
       {/* ── TEAM SECTION ── */}
       <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Badges Row */}
-          <div className="flex justify-center items-center gap-8 mb-12">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-wide shadow-sm">
-              <Code2 size={14} />
-              Developed By
-            </div>
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold uppercase tracking-wide shadow-sm">
-              <GraduationCap size={14} />
-              Under Guidance
-            </div>
-          </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             
             {/* Developer - Ajay Meena */}
             <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
               <div className="text-center">
+                {/* Badge inside card - LARGER */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-indigo-50 border-2 border-indigo-200 text-indigo-700 text-base font-bold uppercase tracking-wide shadow-sm">
+                    <Code2 size={18} />
+                    Developed By
+                  </div>
+                </div>
+                
                 <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <Code2 size={48} className="text-white" />
                 </div>
@@ -295,6 +291,14 @@ export default function Landing() {
             {/* Dr. Abhishek Dixit */}
             <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-cyan-300 transition-all duration-300">
               <div className="text-center">
+                {/* Badge inside card - LARGER */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-50 border-2 border-cyan-200 text-cyan-700 text-base font-bold uppercase tracking-wide shadow-sm">
+                    <GraduationCap size={18} />
+                    Under Guidance
+                  </div>
+                </div>
+                
                 <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
                   <GraduationCap size={48} className="text-white" />
                 </div>
@@ -309,6 +313,14 @@ export default function Landing() {
             {/* Atul Chauhan */}
             <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-emerald-300 transition-all duration-300">
               <div className="text-center">
+                {/* Badge inside card - LARGER */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-50 border-2 border-cyan-200 text-cyan-700 text-base font-bold uppercase tracking-wide shadow-sm">
+                    <GraduationCap size={18} />
+                    Under Guidance
+                  </div>
+                </div>
+                
                 <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
                   <Users size={48} className="text-white" />
                 </div>
