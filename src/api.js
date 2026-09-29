@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// Base URL — in prod Railway, in dev localhost:5000
+// Base URL — in prod NEW Render, in dev localhost:5000
 const isProd = import.meta.env.PROD;
 export const API_BASE = import.meta.env.VITE_API_URL
-  || (isProd ? 'https://ajayfeedback-backend.onrender.com' : 'http://localhost:5000');
+  || (isProd ? 'https://ajayfeedback-backend-5jk8.onrender.com' : 'http://localhost:5000');
 
 const baseURL = import.meta.env.VITE_API_URL
-  || (isProd ? 'https://ajayfeedback-backend.onrender.com' : '');
+  || (isProd ? 'https://ajayfeedback-backend-5jk8.onrender.com' : '');
 
 export function getPdfUrl(report) {
   if (!report) return '#';
