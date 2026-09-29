@@ -8,13 +8,6 @@ import Footer from '../components/Footer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from 'recharts';
 import { CheckCircle, Clock, ExternalLink, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Award, BookOpen, AlertTriangle, Target, Lightbulb, Users, Archive } from 'lucide-react';
 
-// ── GRADE BADGE ──────────────────────────────────────────────────
-function GradeBadge({ grade }) {
-  if (!grade) return null;
-  const colors = { 'A+': 'bg-emerald-100 text-emerald-800 border-emerald-300', 'A': 'bg-green-100 text-green-800 border-green-300', 'B+': 'bg-blue-100 text-blue-800 border-blue-300', 'B': 'bg-indigo-100 text-indigo-800 border-indigo-300', 'C+': 'bg-amber-100 text-amber-800 border-amber-300', 'C': 'bg-red-100 text-red-800 border-red-300' };
-  return <span className={`text-2xl font-black px-4 py-1 rounded-xl border-2 ${colors[grade] || colors['C']}`}>{grade}</span>;
-}
-
 // ── REPORT CARD ──────────────────────────────────────────────────
 function ReportCard({ report, onAcknowledge, acknowledging }) {
   const [expanded, setExpanded] = useState(false);
@@ -221,10 +214,9 @@ function AnalysisSection({ summary, advancedData }) {
       )}
 
       {/* ── 2. Performance Stats Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { label: 'Average FFI Score', value: avgFFI, icon: TrendingUp, color: avgFFI >= 4.0 ? 'text-emerald-650 dark:text-emerald-400' : avgFFI >= 3.0 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400', bg: 'from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20', border: 'border-emerald-100 dark:border-emerald-900/30' },
-          { label: 'Performance Grade', value: <span className="flex items-center justify-center bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl px-3.5 py-0.5 text-lg font-black shadow-sm ring-4 ring-indigo-100 dark:ring-indigo-900/20">{grade}</span>, icon: Award, color: 'text-indigo-600 dark:text-indigo-400', bg: 'from-indigo-50 to-violet-50 dark:from-indigo-950/20 dark:to-violet-950/20', border: 'border-indigo-100 dark:border-indigo-900/30' },
           { label: 'Appreciation Comments', value: totalAppreciation, icon: BookOpen, color: 'text-indigo-600 dark:text-indigo-400', bg: 'from-indigo-50 to-violet-50 dark:from-indigo-950/20 dark:to-violet-950/20', border: 'border-indigo-100 dark:border-indigo-900/30' },
           { label: 'Needs Attention', value: totalAttention, icon: AlertTriangle, color: 'text-amber-600 dark:text-amber-450', bg: 'from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20', border: 'border-amber-100 dark:border-amber-900/30' },
         ].map((card, idx) => (
