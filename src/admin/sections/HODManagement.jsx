@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   UserCog, Search, Mail, Phone, Award,
   Edit, Trash2, Plus, X, RefreshCw, CheckCircle,
-  Ban, PenTool, Eye, EyeOff, BookOpen,
+  Ban, PenTool, Eye, EyeOff, BookOpen, Eraser,
 } from 'lucide-react';
 import api from '../../api';
 import toast from 'react-hot-toast';
@@ -123,6 +123,16 @@ export default function HODManagement() {
     } catch { toast.error('Failed to update status'); }
   }
 
+  async function handleClearReports(h) {
+    if (!window.confirm(`Clear ALL reports for ${h.name}? This cannot be undone!`)) return;
+    try {
+      const res = await api.delete(`/api/submissions/admin/clear-hod/${h.email}`);
+      toast.success(res.data.message || `Cleared ${res.data.deleted} report(s)`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to clear reports');
+    }
+  }
+
   return (
     <div className="space-y-6">
 
@@ -227,21 +237,27 @@ export default function HODManagement() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                <button onClick={() => openEdit(h)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-all">
-                  <Edit size={12} /> Edit
-                </button>
-                <button onClick={() => handleToggleStatus(h)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold transition-all
-                    ${h.status === 'active'
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
-                      : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 hover:bg-emerald-100'}`}>
-                  {h.status === 'active' ? <><Ban size={12} /> Suspend</> : <><CheckCircle size={12} /> Activate</>}
-                </button>
-                <button onClick={() => handleDelete(h)}
-                  className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100 transition-all" title="Remove">
-                  <Trash2 size={14} />
+              <div className="flex flex-col gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <button onClick={() => openEdit(h)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 transition-all">
+                    <Edit size={12} /> Edit
+                  </button>
+                  <button onClick={() => handleToggleStatus(h)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold transition-all
+                      ${h.status === 'active'
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 hover:bg-emerald-100'}`}>
+                    {h.status === 'active' ? <><Ban size={12} /> Suspend</> : <><CheckCircle size={12} /> Activate</>}
+                  </button>
+                  <button onClick={() => handleDelete(h)}
+                    className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 hover:bg-rose-100 transition-all" title="Remove">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <button onClick={() => handleClearReports(h)}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 transition-all border border-red-200 dark:border-red-900">
+                  <Eraser size={12} /> Clear All Reports
                 </button>
               </div>
             </div>
