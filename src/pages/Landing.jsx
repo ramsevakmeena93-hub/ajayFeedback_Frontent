@@ -257,16 +257,25 @@ export default function Landing() {
       {/* ── TEAM SECTION ── */}
       <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
+          
+          {/* Under Guidance Badge - Centered above both guidance cards */}
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-wide">
+              <GraduationCap size={14} />
+              Under Guidance
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             
-            {/* Developer - Larger Box */}
-            <div className="text-center md:col-span-1">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-indigo-300/50 hover:shadow-xl transition-all h-full">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wide mb-6">
-                  <Code2 size={14} />
-                  Developed By
-                </div>
-                
+            {/* Developer */}
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wide mb-6">
+                <Code2 size={14} />
+                Developed By
+              </div>
+              
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-indigo-300/50 hover:shadow-xl transition-all">
                 <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <Code2 size={56} className="text-white" />
                 </div>
@@ -285,35 +294,32 @@ export default function Landing() {
             </div>
 
             {/* Dr. Abhishek Dixit */}
-            <div className="text-center md:col-span-1">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-wide mb-6">
-                <GraduationCap size={14} />
-                Under Guidance
-              </div>
+            <div className="text-center">
+              <div className="h-12 mb-6"></div>
               
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-200/50 hover:border-cyan-300/50 hover:shadow-xl transition-all">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <GraduationCap size={40} className="text-white" />
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-cyan-300/50 hover:shadow-xl transition-all">
+                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
+                  <GraduationCap size={56} className="text-white" />
                 </div>
                 
-                <h3 className="text-lg font-black text-slate-900 mb-2">Dr. Abhishek Dixit</h3>
-                <p className="text-cyan-600 text-xs font-bold mb-1">Assistant Professor & Head</p>
+                <h3 className="text-xl font-black text-slate-900 mb-2">Dr. Abhishek Dixit</h3>
+                <p className="text-cyan-600 text-sm font-bold mb-1">Assistant Professor & Head</p>
                 <p className="text-slate-600 text-xs mb-1">Centre for CST</p>
                 <p className="text-slate-500 text-xs">MITS Deemed University</p>
               </div>
             </div>
 
             {/* Atul Chauhan */}
-            <div className="text-center md:col-span-1">
+            <div className="text-center">
               <div className="h-12 mb-6"></div>
               
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-200/50 hover:border-emerald-300/50 hover:shadow-xl transition-all">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                  <Users size={40} className="text-white" />
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-slate-200/50 hover:border-emerald-300/50 hover:shadow-xl transition-all">
+                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                  <Users size={56} className="text-white" />
                 </div>
                 
-                <h3 className="text-lg font-black text-slate-900 mb-2">Atul Chauhan</h3>
-                <p className="text-emerald-600 text-xs font-bold mb-1">Programmer</p>
+                <h3 className="text-xl font-black text-slate-900 mb-2">Atul Chauhan</h3>
+                <p className="text-emerald-600 text-sm font-bold mb-1">Programmer</p>
                 <p className="text-slate-600 text-xs mb-1">MITS-DU</p>
                 <p className="text-slate-500 text-xs">Technical Guidance</p>
               </div>
