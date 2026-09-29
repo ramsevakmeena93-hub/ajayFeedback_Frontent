@@ -27,10 +27,10 @@ export default function VCManagement() {
   async function fetchVC() {
     setLoading(true);
     try {
-      const res = await api.get('/api/admin/users?role=vc');
+      const res = await api.get('/api/admin/users?role=provc');
       setVcs(Array.isArray(res.data) ? res.data : []);
     } catch {
-      toast.error('Failed to load VC users');
+      toast.error('Failed to load Pro-VC users');
     } finally {
       setLoading(false);
     }
@@ -64,14 +64,14 @@ export default function VCManagement() {
     setSaving(true);
     try {
       if (editTarget) {
-        const payload = { ...form, role: 'vc' };
+        const payload = { ...form, role: 'provc' };
         if (!payload.password) delete payload.password;
         await api.patch(`/api/admin/users/${editTarget._id}`, payload);
-        toast.success('VC updated');
+        toast.success('Pro-VC updated');
       } else {
         if (!form.password) { toast.error('Password is required'); setSaving(false); return; }
-        await api.post('/api/admin/users', { ...form, role: 'vc' });
-        toast.success('VC account created');
+        await api.post('/api/admin/users', { ...form, role: 'provc' });
+        toast.success('Pro-VC account created');
       }
       setShowModal(false);
       fetchVC();
@@ -107,7 +107,7 @@ export default function VCManagement() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Crown className="text-violet-500" size={24} /> VC Management
+            <Crown className="text-violet-500" size={24} /> Pro-VC Management
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Manage Dr. Manjuree Pandit accounts — add, edit or remove.
@@ -116,7 +116,7 @@ export default function VCManagement() {
         <div className="flex gap-2">
           <button onClick={openAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-xl shadow-sm transition-all">
-            <Plus size={15} /> Add VC
+            <Plus size={15} /> Add Pro-VC
           </button>
           <button onClick={fetchVC}
             className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 hover:bg-slate-50 transition-all" title="Refresh">
