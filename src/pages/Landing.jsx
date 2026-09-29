@@ -9,13 +9,6 @@ import {
   Zap, Menu, X, Code2, Award, Target, Globe
 } from "lucide-react";
 
-const STATS = [
-  { value: "200+", label: "Faculty Members", icon: Users, color: "from-blue-500 to-blue-600" },
-  { value: "8", label: "Departments", icon: Building2, color: "from-indigo-500 to-indigo-600" },
-  { value: "5000+", label: "Students", icon: GraduationCap, color: "from-emerald-500 to-emerald-600" },
-  { value: "2024", label: "Current Year", icon: Award, color: "from-amber-500 to-amber-600" }
-];
-
 const FEATURES = [
   {
     icon: BarChart3,
@@ -195,23 +188,6 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section className="py-16 bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat, i) => (
-              <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-slate-200/50 hover:shadow-md transition-shadow">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4`}>
-                  <stat.icon size={24} className="text-white" />
-                </div>
-                <p className="text-3xl font-black text-slate-900 leading-none mb-2">{stat.value}</p>
-                <p className="text-slate-600 text-sm font-medium">{stat.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
