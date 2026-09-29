@@ -218,6 +218,17 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
     return { code: subjectCode.trim(), batch: "—" };
   }
 
+  // Clean course name - remove "submitted answer" and similar unwanted text
+  function cleanCourseName(name) {
+    if (!name) return "";
+    return name
+      .replace(/\bsubmitted\s+answer\b/gi, "")
+      .replace(/\bsubmitted\s+response\b/gi, "")
+      .replace(/\bstudent\s+feedback\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   // Can delete: not faculty_approved, not submitted
   function canDelete(report) {
     if (report.status === "faculty_approved") return false;
@@ -288,7 +299,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                     <EditableCell reportId={report._id} field="subjectCode" value={report.subjectCode} onEdit={onFieldEdit} />
                   </td>
                   <td className="px-3 py-3 text-xs text-slate-600 w-36 min-w-[130px] whitespace-normal break-words leading-snug">
-                    <EditableCell reportId={report._id} field="programme" value={report.programme} onEdit={onFieldEdit} />
+                    <EditableCell reportId={report._id} field="programme" value={cleanCourseName(report.programme)} onEdit={onFieldEdit} />
                   </td>
                   <td className="px-3 py-3 text-center text-xs w-12">
                     <EditableCell reportId={report._id} field="semester" value={report.semester} onEdit={onFieldEdit} />
