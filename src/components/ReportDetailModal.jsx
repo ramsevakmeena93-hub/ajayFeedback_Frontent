@@ -304,10 +304,12 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 {(report.commentsNeedingAttention||[]).length === 0
                   ? <p className="text-xs text-slate-400 italic py-2 text-center">No concerns raised</p>
                   : (report.commentsNeedingAttention||[]).map((t,i) => (
-                    <div key={i} className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
-                      <span className="mt-1 text-amber-500 font-bold shrink-0"></span>
-                      <span>{t}</span>
-                    </div>
+                    <div key={i} className="flex items-start justify-between gap-2 text-sm text-slate-700 leading-relaxed p-2 hover:bg-amber-50/50 rounded transition-colors">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="mt-1 text-amber-500 font-bold shrink-0">•</span>
+                        <span>{t}</span>
+                      </div>
+                      <MoveCommentButton comment={t} reportId={report._id} from="attention" onMoved={(updatedReport) => setReport(updatedReport)} />
                   ))}
               </div>
             </div>
@@ -509,6 +511,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
 
   return typeof document !== "undefined" ? createPortal(modalJSX, document.body) : modalJSX;
 }
+
 
 
 
