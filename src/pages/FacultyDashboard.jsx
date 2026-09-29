@@ -553,8 +553,20 @@ export default function FacultyDashboard() {
       const { data } = await api.get(`/api/reports/faculty/analysis?${params}`);
       console.log('[FacultyDashboard] Data received:', data);
       
-      setReports(data?.reports || []);
-      setSummary(data?.summary || null);
+      // Safely set data with fallbacks to prevent crashes
+      setReports(Array.isArray(data?.reports) ? data.reports : []);
+      setSummary(data?.summary || {
+        totalReports: 0,
+        avgFFI: 0,
+        totalAppreciation: 0,
+        totalAttention: 0,
+        grade: 'N/A',
+        ffiBySubject: [],
+        commentPercentages: {},
+        years: [],
+        semesters: []
+      });
+      
       if (data?.summary?.years) setAvailableYears(data.summary.years);
       if (data?.summary?.semesters) setAvailableSems(data.summary.semesters);
 
@@ -577,9 +589,20 @@ export default function FacultyDashboard() {
         logout(); 
         return; 
       }
+      // Don't crash on error - show empty state instead
       toast.error(err.response?.data?.error || 'Failed to load faculty data');
       setReports([]);
-      setSummary(null);
+      setSummary({
+        totalReports: 0,
+        avgFFI: 0,
+        totalAppreciation: 0,
+        totalAttention: 0,
+        grade: 'N/A',
+        ffiBySubject: [],
+        commentPercentages: {},
+        years: [],
+        semesters: []
+      });
     } finally {
       setLoading(false);
     }
@@ -604,6 +627,19 @@ export default function FacultyDashboard() {
     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
 
+  // Safe fallback for summary
+  const safeSummary = summary || {
+    totalReports: 0,
+    avgFFI: 0,
+    totalAppreciation: 0,
+    totalAttention: 0,
+    grade: 'N/A',
+    ffiBySubject: [],
+    commentPercentages: {},
+    years: [],
+    semesters: []
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col w-full text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Navbar title="Faculty Portal" subtitle={user?.department} />
@@ -616,7 +652,7 @@ export default function FacultyDashboard() {
             <h1 className="page-title">Welcome, {user?.name}</h1>
             <p className="text-slate-500 text-sm mt-0.5">{user?.department || 'Faculty Member'} · MITS Gwalior</p>
           </div>
-          {summary && <GradeBadge grade={summary.grade} />}
+          {summary && summary.grade && summary.grade !== 'N/A' && <GradeBadge grade={summary.grade} />}
         </div>
 
         {/* Quick stats */}
@@ -625,7 +661,7 @@ export default function FacultyDashboard() {
             { label: 'Total Reports', value: reports.length, color: 'text-blue-900 bg-blue-50 border-blue-200' },
             { label: 'Pending', value: pending.length, color: 'text-amber-700 bg-amber-50 border-amber-200' },
             { label: 'Acknowledged', value: acknowledged.length, color: 'text-green-700 bg-green-50 border-green-200' },
-            { label: 'Avg FFI', value: summary?.avgFFI || '—', color: 'text-purple-700 bg-purple-50 border-purple-200' },
+            { label: 'Avg FFI', value: safeSummary?.avgFFI || '—', color: 'text-purple-700 bg-purple-50 border-purple-200' },
           ].map(({ label, value, color }) => (
             <div key={label} className={`card p-4 border ${color}`}>
               <p className="text-xs font-semibold uppercase tracking-wide mb-1">{label}</p>
@@ -799,7 +835,7 @@ export default function FacultyDashboard() {
                   <p className="text-slate-500 text-sm">Loading Analytics & Insights...</p>
                 </div>
               ) : (
-                <AnalysisSection summary={summary} advancedData={advancedData} />
+                <AnalysisSection summary={safeSummary} advancedData={advancedData} />
               )
             )}
 
