@@ -4,6 +4,7 @@ import { X, FileText, User, BarChart3, CheckCircle2, Clock, AlertCircle, Externa
 import { getPdfUrl, API_BASE } from "../api";
 import toast from "react-hot-toast";
 import MoveCommentButton from "./MoveCommentButton";
+import CommentEditor from "./CommentEditor";
 
 const STATUS_CFG = {
   processed:        { color:"bg-emerald-100 text-emerald-700 border-emerald-200", icon:CheckCircle2, label:"Processed" },
@@ -317,86 +318,42 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
 
           {/* Edit Appreciation Popup */}
           {editingApp && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
-              onClick={e => { if(e.target===e.currentTarget) setEditingApp(false); }}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-                <div className="bg-emerald-600 px-5 py-3.5 flex items-center justify-between">
-                  <span className="font-bold text-white text-sm">Edit Appreciation Comments</span>
-                  <button onClick={() => setEditingApp(false)} className="text-white/80 hover:text-white text-lg">?</button>
-                </div>
-                <div className="p-5 space-y-3">
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">One comment per line</p>
-                    <textarea autoFocus rows={8}
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-300 leading-relaxed"
-                      value={appDraft} onChange={e => setAppDraft(e.target.value)}
-                      placeholder="Enter each comment on a new line..." />
-                    <p className="text-xs text-slate-400">Each line = one bullet point.</p>
-                  </div>
-                  
-                  {/* Live Preview with Bullets */}
-                  {appDraft.trim() && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preview</p>
-                      <div className="border border-emerald-200 bg-emerald-50 rounded-xl px-4 py-3 space-y-2 max-h-[200px] overflow-y-auto">
-                        {appDraft.split('\n').filter(line => line.trim()).map((line, i) => (
-                          <div key={i} className="flex items-start gap-2 text-sm leading-snug">
-                            <span className="mt-0.5 font-bold shrink-0 text-emerald-600"></span>
-                            <span className="text-slate-700">{line.trim()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
-                  <button onClick={() => setEditingApp(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition">Cancel</button>
-                  <button onClick={() => saveComments('appreciation', appDraft, setEditingApp)} className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition">? Save</button>
-                </div>
-              </div>
-            </div>
+            <CommentEditor
+              comments={report.appreciation || []}
+              otherComments={report.commentsNeedingAttention || []}
+              title="Appreciation"
+              otherTitle="Need Attention"
+              color="green"
+              onSave={async (appreciation, attention) => {
+                if (onFieldEdit) {
+                  await onFieldEdit(report._id, 'appreciation', appreciation);
+                  await onFieldEdit(report._id, 'commentsNeedingAttention', attention);
+                }
+                setReport(prev => ({ ...prev, appreciation, commentsNeedingAttention: attention }));
+                setEditingApp(false);
+              }}
+              onClose={() => setEditingApp(false)}
+            />
           )}
 
           {/* Edit Needs Attention Popup */}
           {editingAtt && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
-              onClick={e => { if(e.target===e.currentTarget) setEditingAtt(false); }}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-                <div className="bg-amber-600 px-5 py-3.5 flex items-center justify-between">
-                  <span className="font-bold text-white text-sm">Edit Needs Attention Comments</span>
-                  <button onClick={() => setEditingAtt(false)} className="text-white/80 hover:text-white text-lg">?</button>
-                </div>
-                <div className="p-5 space-y-3">
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">One comment per line</p>
-                    <textarea autoFocus rows={8}
-                      className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 leading-relaxed"
-                      value={attDraft} onChange={e => setAttDraft(e.target.value)}
-                      placeholder="Enter each comment on a new line..." />
-                    <p className="text-xs text-slate-400">Each line = one bullet point.</p>
-                  </div>
-                  
-                  {/* Live Preview with Bullets */}
-                  {attDraft.trim() && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preview</p>
-                      <div className="border border-amber-200 bg-amber-50 rounded-xl px-4 py-3 space-y-2 max-h-[200px] overflow-y-auto">
-                        {attDraft.split('\n').filter(line => line.trim()).map((line, i) => (
-                          <div key={i} className="flex items-start gap-2 text-sm leading-snug">
-                            <span className="mt-0.5 font-bold shrink-0 text-amber-600"></span>
-                            <span className="text-slate-700">{line.trim()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
-                  <button onClick={() => setEditingAtt(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition">Cancel</button>
-                  <button onClick={() => saveComments('commentsNeedingAttention', attDraft, setEditingAtt)} className="px-5 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition">? Save</button>
-                </div>
-              </div>
-            </div>
+            <CommentEditor
+              comments={report.commentsNeedingAttention || []}
+              otherComments={report.appreciation || []}
+              title="Need Attention"
+              otherTitle="Appreciation"
+              color="orange"
+              onSave={async (attention, appreciation) => {
+                if (onFieldEdit) {
+                  await onFieldEdit(report._id, 'commentsNeedingAttention', attention);
+                  await onFieldEdit(report._id, 'appreciation', appreciation);
+                }
+                setReport(prev => ({ ...prev, commentsNeedingAttention: attention, appreciation }));
+                setEditingAtt(false);
+              }}
+              onClose={() => setEditingAtt(false)}
+            />
           )}
 
           {/* Raw Student Comments  Collapsible */}
