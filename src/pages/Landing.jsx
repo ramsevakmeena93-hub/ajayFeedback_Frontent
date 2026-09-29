@@ -264,28 +264,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Atul Chauhan - Developer */}
-            <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-indigo-300 transition-all duration-300">
-              <div className="text-center">
-                {/* Badge inside card - LARGER */}
-                <div className="flex justify-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-indigo-50 border-2 border-indigo-200 text-indigo-700 text-base font-bold uppercase tracking-wide shadow-sm">
-                    <Code2 size={18} />
-                    Developed By
-                  </div>
-                </div>
-                
-                <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                  <Users size={48} className="text-white" />
-                </div>
-                
-                <h3 className="text-xl font-black text-slate-900 mb-2">Atul Chauhan</h3>
-                <p className="text-indigo-600 font-bold text-sm mb-1">Programmer</p>
-                <p className="text-slate-600 text-xs mb-0.5">MITS-DU</p>
-                <p className="text-slate-500 text-xs">Technical Developer</p>
-              </div>
-            </div>
-
             {/* Dr. Abhishek Dixit */}
             <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-cyan-300 transition-all duration-300">
               <div className="text-center">
@@ -305,6 +283,28 @@ export default function Landing() {
                 <p className="text-cyan-600 font-bold text-sm mb-1">Assistant Professor & Head</p>
                 <p className="text-slate-600 text-xs mb-0.5">Centre for CST</p>
                 <p className="text-slate-500 text-xs">MITS Deemed University</p>
+              </div>
+            </div>
+
+            {/* Atul Chauhan - Under Guidance */}
+            <div className="bg-white rounded-2xl p-8 shadow-md border border-slate-200 hover:shadow-xl hover:border-cyan-300 transition-all duration-300">
+              <div className="text-center">
+                {/* Badge inside card - LARGER */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-50 border-2 border-cyan-200 text-cyan-700 text-base font-bold uppercase tracking-wide shadow-sm">
+                    <GraduationCap size={18} />
+                    Under Guidance
+                  </div>
+                </div>
+                
+                <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                  <Users size={48} className="text-white" />
+                </div>
+                
+                <h3 className="text-xl font-black text-slate-900 mb-2">Atul Chauhan</h3>
+                <p className="text-cyan-600 font-bold text-sm mb-1">Programmer</p>
+                <p className="text-slate-600 text-xs mb-0.5">MITS-DU</p>
+                <p className="text-slate-500 text-xs">Technical Guidance</p>
               </div>
             </div>
             
