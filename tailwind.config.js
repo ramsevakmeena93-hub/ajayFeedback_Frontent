@@ -1,6 +1,6 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
-  darkMode: "class",
+  // darkMode disabled - always use light theme
   theme: {
     extend: {
       colors: {
