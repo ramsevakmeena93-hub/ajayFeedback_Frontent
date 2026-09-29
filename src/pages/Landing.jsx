@@ -279,6 +279,88 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── UNDER THE GUIDANCE OF ── */}
+      <section className="py-20 relative overflow-hidden bg-gradient-to-b from-slate-900 to-[#0d1326]">
+        <div className="absolute inset-0 bg-grid-dark opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-8 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            Under the Guidance of
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto mt-12">
+            
+            {/* Dr. Abhishek Dixit */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/10">
+                <div className="relative w-32 h-32 mx-auto mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-cyan-400/30 group-hover:ring-cyan-400/60 transition-all shadow-xl">
+                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                      <GraduationCap size={48} className="text-cyan-400" />
+                    </div>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Dr. Abhishek Dixit</h3>
+                <p className="text-cyan-400 text-sm font-semibold mb-1">Assistant Professor & Head, CCST</p>
+                <p className="text-slate-400 text-xs">MITS Deemed University</p>
+              </div>
+            </div>
+
+            {/* Atul Chauhan */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100" />
+              <div className="relative bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10">
+                <div className="relative w-32 h-32 mx-auto mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-400/30 group-hover:ring-purple-400/60 transition-all shadow-xl">
+                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+                      <Code2 size={48} className="text-purple-400" />
+                    </div>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Atul Chauhan</h3>
+                <p className="text-purple-400 text-sm font-semibold mb-1">Programmer, MITS-DU</p>
+                <p className="text-slate-400 text-xs">Technical Guidance & Support</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </section>
+
+      {/* ── DEVELOPED BY ── */}
+      <section className="py-16 relative overflow-hidden bg-[#0d1326]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-900/5 pointer-events-none" />
+        
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
+            <Code2 size={14} className="text-indigo-400" />
+            Developed By
+          </div>
+          
+          <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:border-indigo-500/30 transition-all duration-300">
+            <h3 className="text-3xl font-black text-white mb-3 tracking-tight">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                Shivam Mishra
+              </span>
+            </h3>
+            <p className="text-slate-400 text-sm mb-6">Full-Stack Developer • MITS Deemed University</p>
+            
+            <button
+              onClick={() => navigate("/developer")}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-1 text-sm group">
+              View Full Profile <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* ── DEVELOPER SECTION ── */}
       <section className="py-24 relative overflow-hidden bg-[#0d1326] border-t border-slate-800">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-900/10 pointer-events-none" />
