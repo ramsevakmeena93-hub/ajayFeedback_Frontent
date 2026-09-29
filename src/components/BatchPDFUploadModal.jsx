@@ -32,6 +32,7 @@ export default function BatchPDFUploadModal({ user, token, onClose, onSuccess })
 
   const [excelFile, setExcelFile] = useState(null);
   const [csvEntries, setCsvEntries] = useState([]);
+  const [fileHash, setFileHash] = useState(''); // Store CSV file hash
   const [dragOver, setDragOver] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [singleLink, setSingleLink] = useState('');
@@ -72,6 +73,7 @@ export default function BatchPDFUploadModal({ user, token, onClose, onSuccess })
     setExcelFile(file);
     setParsing(true);
     setCsvEntries([]);
+    setFileHash('');
 
     const fd = new FormData();
     fd.append("csv", file);
@@ -80,12 +82,30 @@ export default function BatchPDFUploadModal({ user, token, onClose, onSuccess })
       const { data } = await api.post("/api/process/upload-csv", fd);
       console.log('[BatchModal] upload-csv response:', data);
       const links = data.links || [];
+      const hash = data.fileHash || '';
       setCsvEntries(links);
+      setFileHash(hash);
       toast.success(`${links.length} PDF links found in Excel`);
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to parse Excel file");
+      // Check for duplicate file error (409 status)
+      if (err.response?.status === 409 && err.response?.data?.isDuplicate) {
+        const errorData = err.response.data;
+        toast.error(
+          errorData.message || 'Duplicate file detected',
+          { 
+            duration: 6000,
+            icon: '⚠️',
+            style: {
+              maxWidth: '500px'
+            }
+          }
+        );
+      } else {
+        toast.error(err.response?.data?.error || "Failed to parse Excel file");
+      }
       setExcelFile(null);
       setCsvEntries([]);
+      setFileHash('');
     } finally {
       setParsing(false);
     }
@@ -137,6 +157,7 @@ export default function BatchPDFUploadModal({ user, token, onClose, onSuccess })
           academicYear: sessionInfo.academicYear,
           session: sessionInfo.session,
           feedbackFormNo: sessionInfo.feedbackFormNo,
+          fileHash: fileHash, // Pass file hash for tracking
         });
 
         completedCount++;
