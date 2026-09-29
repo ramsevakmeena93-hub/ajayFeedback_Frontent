@@ -1,6 +1,6 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
-  // darkMode disabled - always use light theme
+  darkMode: "class", // Enable dark mode with class strategy
   theme: {
     extend: {
       colors: {

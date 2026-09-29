@@ -26,13 +26,17 @@ const NAV_LINKS = {
   admin:   [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
 };
 
+// Theme functions - default to light but allow toggle
 function getInitialDark() {
   try {
     const s = localStorage.getItem("theme");
     if (s) return s === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  } catch { return false; }
+    return false; // Default to light theme
+  } catch {
+    return false;
+  }
 }
+
 function applyDark(dark) {
   document.documentElement.classList.toggle("dark", dark);
   localStorage.setItem("theme", dark ? "dark" : "light");
