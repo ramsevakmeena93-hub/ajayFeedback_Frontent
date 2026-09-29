@@ -60,6 +60,17 @@ export default function HODDashboard() {
   async function fetchSubmissions() {
     try { const { data } = await api.get("/api/submissions/my"); setSubmissions(data); } catch { }
   }
+  
+  async function handleDeleteSubmission(submissionId) {
+    if (!window.confirm("Delete this submission? This will NOT delete the individual reports, only the submission record.")) return;
+    try {
+      await api.delete(`/api/submissions/${submissionId}`);
+      toast.success("Submission deleted successfully");
+      fetchSubmissions();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to delete submission");
+    }
+  }
   async function fetchVCUser() {
     try { const { data } = await api.get("/api/auth/vc-info"); setVcUser(data); } catch { }
   }
