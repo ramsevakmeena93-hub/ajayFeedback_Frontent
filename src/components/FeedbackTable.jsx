@@ -222,10 +222,10 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
   function cleanCourseName(name) {
     if (!name) return "";
     return name
-      .replace(/\bsubmitted\s+answer\b/gi, "")
-      .replace(/\bsubmitted\s+response\b/gi, "")
-      .replace(/\bstudent\s+feedback\b/gi, "")
-      .replace(/\s+/g, " ")
+      .replace(/\bsubmitted\s+answers?\s*:?\s*-?\s*/gi, "") // Remove "submitted answer(s):-" or variations
+      .replace(/\bsubmitted\s+responses?\s*:?\s*-?\s*/gi, "")
+      .replace(/\bstudent\s+feedback\s*:?\s*-?\s*/gi, "")
+      .replace(/\s+/g, " ") // Normalize whitespace
       .trim();
   }
 
