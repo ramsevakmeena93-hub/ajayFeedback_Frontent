@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 
 const STATS = [
-  { value: "500+", label: "Faculty Evaluated", icon: Users, color: "from-blue-500 to-blue-600" },
-  { value: "14", label: "Departments", icon: Building2, color: "from-indigo-500 to-indigo-600" },
-  { value: "98%", label: "Response Rate", icon: TrendingUp, color: "from-emerald-500 to-emerald-600" },
-  { value: "4.2", label: "Avg FFI Score", icon: Award, color: "from-amber-500 to-amber-600" }
+  { value: "200+", label: "Faculty Members", icon: Users, color: "from-blue-500 to-blue-600" },
+  { value: "8", label: "Departments", icon: Building2, color: "from-indigo-500 to-indigo-600" },
+  { value: "5000+", label: "Students", icon: GraduationCap, color: "from-emerald-500 to-emerald-600" },
+  { value: "2024", label: "Current Year", icon: Award, color: "from-amber-500 to-amber-600" }
 ];
 
 const FEATURES = [
