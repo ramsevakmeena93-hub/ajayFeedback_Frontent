@@ -5,10 +5,11 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import {
   GraduationCap,
-  Users,
+  Shield,
+  Award,
   CheckCircle,
   ArrowLeft,
-  Shield
+  Globe
 } from "lucide-react";
 import mitsLogo from "../assets/mits-logo.png";
 
@@ -49,192 +50,189 @@ export default function Login() {
             width: 320,
           });
         }
-        return true;
       }
-      return false;
     }
 
-    if (!initializeGoogle()) {
-      const interval = setInterval(() => {
-        if (initializeGoogle()) clearInterval(interval);
-      }, 300);
-      return () => clearInterval(interval);
+    const existingScript = document.querySelector('script[src*="accounts.google.com"]');
+    if (existingScript) {
+      if (window.google?.accounts?.id) initializeGoogle();
+      else existingScript.onload = initializeGoogle;
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeGoogle;
+      document.body.appendChild(script);
     }
   }, []);
 
   async function handleGoogleSuccess(response) {
-    if (!response?.credential) return;
+    if (!response.credential) {
+      toast.error("Google Sign-In failed. Please try again.");
+      return;
+    }
+
     setLoading(true);
+    const toastId = toast.loading("Signing in with Google...");
+
     try {
-      const { data } = await axios.post("/api/auth/google", {
-        credential: response.credential,
-      });
-      login(data.user, data.token);
-      toast.success(`Welcome back, ${data.user.name || "User"}! 🎉`);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_BASE || "https://ajayfeedback-backend.onrender.com"}/api/auth/google`,
+        { idToken: response.credential }
+      );
+
+      login(data.token, data.user);
+      toast.success(`Welcome, ${data.user.name || data.user.email}!`, { id: toastId });
       go(data.user.activeWorkspace || data.user.role);
     } catch (err) {
-      toast.error(
-        err.response?.data?.error ||
-          "Google Sign-In failed. Please use your @mitsgwalior.in institutional account."
-      );
+      console.error("Login error:", err);
+      const msg = err.response?.data?.error || "Sign-in failed. Please try again.";
+      toast.error(msg, { id: toastId });
     } finally {
       setLoading(false);
     }
   }
 
-  function go(role) {
-    const dest =
-      role === "vc"
-        ? "/vc"
-        : role === "faculty"
-        ? "/faculty"
-        : role === "admin"
-        ? "/admin"
-        : "/hod";
+  function go(roleOrWorkspace) {
+    const dest = roleOrWorkspace === "vc" || roleOrWorkspace === "provc" ? "/vc"
+      : roleOrWorkspace === "faculty" ? "/faculty"
+      : roleOrWorkspace === "admin" ? "/admin"
+      : "/hod";
     navigate(dest, { replace: true });
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0f1e]">
-      {/* ── Left Branding Panel ── */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 opacity-90" />
-        <div className="absolute inset-0 bg-[#0a0f1e]/30" />
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white/10 rounded-full blur-3xl animate-float-slow" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
+      
+      {/* Left Side - Branding & Info */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 p-12 flex-col justify-between relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+        </div>
 
-        <div className="relative flex flex-col h-full p-10">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-white/20 shrink-0 shadow-lg p-1">
-              <img src={mitsLogo} alt="MITS" className="w-full h-full object-contain" />
+        <div className="relative z-10">
+          {/* Logo & Title */}
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-16 h-16 bg-white rounded-2xl p-3 shadow-xl">
+              <img src={mitsLogo} alt="MITS Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <p className="text-white font-bold leading-tight">MITS Gwalior</p>
-              <p className="text-white/60 text-xs">Faculty Feedback System</p>
+              <h1 className="text-white font-black text-2xl leading-tight">MITS Gwalior</h1>
+              <p className="text-blue-100 text-sm font-medium">Deemed to be University</p>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
-              <GraduationCap size={36} className="text-white" />
-            </div>
-            <h2 className="text-4xl font-extrabold text-white mb-3">Welcome Back</h2>
-            <p className="text-white/70 text-base mb-8">
-              Manual portal login for HODs, Faculties, VC, and Administrators.
+          {/* Hero Text */}
+          <div className="max-w-md">
+            <h2 className="text-white text-4xl font-black leading-tight mb-6">
+              Faculty Feedback<br />Management System
+            </h2>
+            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+              A comprehensive digital platform for collecting, analyzing, and managing faculty performance feedback with AI-powered insights.
             </p>
 
-            <div className="space-y-3 mb-8">
+            {/* Features */}
+            <div className="space-y-4">
               {[
-                "Instant manual email and password authentication",
-                "Automated Google Drive batch PDF processing",
-                "AI-powered sentiment analysis and feedback metrics",
-              ].map((t, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                    <CheckCircle size={12} className="text-white" />
+                { icon: Shield, text: "Secure Google OAuth Authentication" },
+                { icon: Award, text: "AI-Powered Feedback Analysis" },
+                { icon: CheckCircle, text: "Streamlined Approval Workflow" }
+              ].map(({ icon: Icon, text }, i) => (
+                <div key={i} className="flex items-center gap-3 text-white">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                    <Icon size={20} />
                   </div>
-                  <span className="text-white/80 text-sm">{t}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Role Cards */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { icon: Users, label: "HOD", desc: "Batch upload & send" },
-                { icon: GraduationCap, label: "Faculty", desc: "View PDF feedback" },
-                { icon: Shield, label: "VC", desc: "Final report approval" },
-                { icon: Shield, label: "Admin", desc: "System management" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="p-3 bg-white/10 rounded-xl border border-white/10 backdrop-blur-sm">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <Icon size={12} className="text-blue-200" />
-                    <span className="text-white text-xs font-bold">{label}</span>
-                  </div>
-                  <p className="text-white/50 text-[10px]">{desc}</p>
+                  <span className="text-sm font-medium">{text}</span>
                 </div>
               ))}
             </div>
           </div>
+        </div>
 
-          <p className="text-white/30 text-xs">
-            Faculty Feedback Analysis System · MITS Gwalior
+        {/* Footer Info */}
+        <div className="relative z-10">
+          <p className="text-blue-100 text-sm">
+            © 2024 Madhav Institute of Technology & Science, Gwalior
           </p>
+          <p className="text-blue-200 text-xs mt-1">An initiative towards academic excellence</p>
         </div>
       </div>
 
-      {/* ── Right Login Form Panel ── */}
-      <div className="flex-1 flex flex-col">
-        <div className="px-6 lg:px-10 py-5 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/landing")}
-            className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors"
-          >
-            <ArrowLeft size={16} /> Back to Home
-          </button>
-          <Link
-            to="/register"
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition"
-          >
-            Create an Account →
-          </Link>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center px-4 pb-10">
-          <div className="w-full max-w-sm">
-            {/* Header */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl p-2">
-                <img src={mitsLogo} alt="MITS" className="w-12 h-12 object-contain" />
-              </div>
-              <h1 className="text-2xl font-bold text-white">Sign In</h1>
-              <p className="text-slate-400 text-xs mt-1">
-                Enter your registered institutional credentials
-              </p>
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl p-2 shadow-lg">
+              <img src={mitsLogo} alt="MITS Logo" className="w-full h-full object-contain brightness-0 invert" />
             </div>
-
-            {/* Google Sign-In Card */}
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <div className="text-center mb-5">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full text-violet-300 text-xs font-medium mb-3">
-                  <Shield size={12} /> Google OAuth 2.0
-                </div>
-                <h2 className="text-white text-base font-semibold">Institute Single Sign-On</h2>
-                <p className="text-slate-400 text-xs mt-1">
-                  Sign in using your authorized MITS institutional Google account
-                </p>
-              </div>
-
-              {/* Google Button Container */}
-              <div className="flex justify-center w-full min-h-[44px] my-3">
-                <div id="google-login-btn" className="w-full flex justify-center" />
-              </div>
-
-              {loading && (
-                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-blue-400">
-                  <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Authenticating with Google...</span>
-                </div>
-              )}
-
-              {/* Allowed Domains Info Box */}
-              <div className="mt-5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] text-[11px] text-slate-400 space-y-1.5">
-                <p className="font-semibold text-slate-300 flex items-center gap-1.5">
-                  <CheckCircle size={13} className="text-emerald-400" />
-                  Authorized Institutional Domain:
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300 font-mono text-xs font-semibold">
-                    @mitsgwalior.in
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-500 pt-1">
-                  Applicable for all Faculty, HODs, Administration & Dr. Manjuree Pandit.
-                </p>
-              </div>
+            <div>
+              <h1 className="text-slate-800 font-black text-xl">MITS Gwalior</h1>
+              <p className="text-slate-500 text-xs font-medium">Feedback System</p>
             </div>
           </div>
+
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 text-sm font-medium mb-8 transition-colors group">
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+            Back to Home
+          </button>
+
+          {/* Login Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-black text-slate-800 mb-2">Welcome Back</h2>
+              <p className="text-slate-500 text-sm">Sign in with your MITS Google account to continue</p>
+            </div>
+
+            {/* Google Sign-In Button Container */}
+            <div className="flex justify-center mb-6">
+              <div id="google-login-btn" className="w-full flex justify-center" />
+            </div>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-4 text-slate-500 font-medium">AUTHORIZED USERS ONLY</span>
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <Globe size={18} className="text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-blue-900 text-sm font-semibold mb-1">Access Requirements</p>
+                  <p className="text-blue-700 text-xs leading-relaxed">
+                    Only users with <strong>@mitsgwl.ac.in</strong> or <strong>@mitsgwalior.in</strong> email addresses can access this system.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Note */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-xs">
+              <Shield size={12} />
+              <span>Secured by Google OAuth 2.0</span>
+            </div>
+          </div>
+
+          {/* Help Text */}
+          <p className="text-center text-slate-500 text-xs mt-6">
+            Having trouble signing in? Contact{" "}
+            <a href="mailto:support@mitsgwl.ac.in" className="text-blue-600 hover:underline font-medium">
+              support@mitsgwl.ac.in
+            </a>
+          </p>
         </div>
       </div>
     </div>
