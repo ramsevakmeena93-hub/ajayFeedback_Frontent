@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import mitsLogo from "../assets/mits-logo.png";
 import campusImg from "../assets/mits-campus2.png";
+import ajayMeenaImg from "../assets/ajay-meena.png";
+import abhishekDixitImg from "../assets/abhishek-dixit.png";
 import {
   Building2, Users, GraduationCap, Shield,
   ArrowRight, TrendingUp, CheckCircle, BarChart3,
@@ -247,8 +249,8 @@ export default function Landing() {
                   </div>
                 </div>
                 
-                <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <Code2 size={48} className="text-white" />
+                <div className="w-28 h-28 mx-auto mb-6 rounded-full overflow-hidden shadow-lg ring-4 ring-indigo-100">
+                  <img src={ajayMeenaImg} alt="Ajay Meena" className="w-full h-full object-cover" />
                 </div>
                 
                 <h3 className="text-xl font-black text-slate-900 mb-2">Ajay Meena</h3>
@@ -275,8 +277,8 @@ export default function Landing() {
                   </div>
                 </div>
                 
-                <div className="w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <GraduationCap size={48} className="text-white" />
+                <div className="w-28 h-28 mx-auto mb-6 rounded-full overflow-hidden shadow-lg ring-4 ring-cyan-100">
+                  <img src={abhishekDixitImg} alt="Dr. Abhishek Dixit" className="w-full h-full object-cover" />
                 </div>
                 
                 <h3 className="text-xl font-black text-slate-900 mb-2">Dr. Abhishek Dixit</h3>
