@@ -1,8 +1,9 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, FileText, User, BarChart3, CheckCircle2, Clock, AlertCircle, ExternalLink, ThumbsUp, AlertTriangle, Zap, ChevronDown, Pencil } from "lucide-react";
 import { getPdfUrl, API_BASE } from "../api";
 import toast from "react-hot-toast";
+import MoveCommentButton from "./MoveCommentButton";
 
 const STATUS_CFG = {
   processed:        { color:"bg-emerald-100 text-emerald-700 border-emerald-200", icon:CheckCircle2, label:"Processed" },
@@ -40,7 +41,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
 
     const url = getPdfUrl(report);
 
-    // External cloud URL — open directly in new tab
+    // External cloud URL  open directly in new tab
     if (url.startsWith('https://') && !url.startsWith(API_BASE)) {
       window.open(url, '_blank', 'noopener,noreferrer');
       return;
@@ -118,8 +119,8 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
               <User size={22} className="text-white"/>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{report.facultyName || "—"}</h2>
-              <p className="text-sm text-slate-500">{report.subjectCode || "—"} · {report.programme || "—"} · Sem {report.semester || "—"}</p>
+              <h2 className="text-xl font-bold text-slate-900">{report.facultyName || ""}</h2>
+              <p className="text-sm text-slate-500">{report.subjectCode || ""}  {report.programme || ""}  Sem {report.semester || ""}</p>
               {/* note: "programme" DB field now labelled "Course Name" in UI */}
             </div>
           </div>
@@ -128,7 +129,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
           </button>
         </div>
 
-        {/* Body — scrollable */}
+        {/* Body  scrollable */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
@@ -150,7 +151,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-400">Faculty ack.</span>
                   <span className={report.facultyAcknowledged ? "text-emerald-600 font-semibold" : "text-slate-400"}>
-                    {report.facultyAcknowledged ? "✓ Yes" : "Pending"}
+                    {report.facultyAcknowledged ? "? Yes" : "Pending"}
                   </span>
                 </div>
                 {report.facultyAcknowledgedAt && (
@@ -170,16 +171,16 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 </div>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Faculty</p>
               </div>
-              <p className="font-bold text-slate-900 text-sm mb-1">{report.facultyName || "—"}</p>
+              <p className="font-bold text-slate-900 text-sm mb-1">{report.facultyName || ""}</p>
               <div className="space-y-1.5 mt-2">
                 {[
                   ["Subject Code", report.subjectCode],
                   ["Course Name",  report.programme],
-                  ["Semester",    report.semester ? `Sem ${report.semester}` : "—"],
+                  ["Semester",    report.semester ? `Sem ${report.semester}` : ""],
                 ].map(([l,v]) => (
                   <div key={l} className="flex items-center justify-between text-xs">
                     <span className="text-slate-400">{l}</span>
-                    <span className="text-slate-700 font-medium">{v || "—"}</span>
+                    <span className="text-slate-700 font-medium">{v || ""}</span>
                   </div>
                 ))}
               </div>
@@ -215,7 +216,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">FFI Score</p>
               </div>
               <p className={`text-4xl font-black ${ffiColor} mb-1`}>
-                {ffi != null ? ffi.toFixed(2) : "—"}
+                {ffi != null ? ffi.toFixed(2) : ""}
               </p>
               <p className="text-xs text-slate-500 mb-3">
                 {ffi == null ? "Not calculated" : ffi >= 4 ? "Excellent performance" : ffi >= 3 ? "Good performance" : "Needs improvement"}
@@ -233,7 +234,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
           {/* Comment Percentages */}
           {pctEntries.length > 0 && (
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-5 mb-6">
-              <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3">📊 Response Breakdown</p>
+              <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3">?? Response Breakdown</p>
               <div className="space-y-2.5">
                 {pctEntries.map(([label, pct]) => (
                   <div key={label} className="flex items-center gap-3">
@@ -248,7 +249,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
             </div>
           )}
 
-          {/* Comments Analysis — Popup Edit Sections */}
+          {/* Comments Analysis  Popup Edit Sections */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {/* Appreciation */}
             <div className="rounded-2xl border border-emerald-200 overflow-hidden">
@@ -271,9 +272,12 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 {(report.appreciation||[]).filter(t => t.trim().split(/\s+/).length >= 6).length === 0
                   ? <p className="text-xs text-slate-400 italic py-2 text-center">No detailed comments</p>
                   : (report.appreciation||[]).filter(t => t.trim().split(/\s+/).length >= 6).map((t,i) => (
-                    <div key={i} className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
-                      <span className="mt-1 text-emerald-500 font-bold shrink-0">•</span>
-                      <span>{t}</span>
+                    <div key={i} className="flex items-start justify-between gap-2 text-sm text-slate-700 leading-relaxed p-2 hover:bg-emerald-50/50 rounded transition-colors">
+                      <div className="flex items-start gap-2 flex-1">
+                        <span className="mt-1 text-emerald-500 font-bold shrink-0"></span>
+                        <span>{t}</span>
+                      </div>
+                      <MoveCommentButton comment={t} reportId={report._id} from="appreciation" onMoved={(updatedReport) => setReport(updatedReport)} />
                     </div>
                   ))}
               </div>
@@ -301,7 +305,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                   ? <p className="text-xs text-slate-400 italic py-2 text-center">No concerns raised</p>
                   : (report.commentsNeedingAttention||[]).map((t,i) => (
                     <div key={i} className="flex items-start gap-2 text-sm text-slate-700 leading-relaxed">
-                      <span className="mt-1 text-amber-500 font-bold shrink-0">•</span>
+                      <span className="mt-1 text-amber-500 font-bold shrink-0"></span>
                       <span>{t}</span>
                     </div>
                   ))}
@@ -316,7 +320,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
                 <div className="bg-emerald-600 px-5 py-3.5 flex items-center justify-between">
                   <span className="font-bold text-white text-sm">Edit Appreciation Comments</span>
-                  <button onClick={() => setEditingApp(false)} className="text-white/80 hover:text-white text-lg">✕</button>
+                  <button onClick={() => setEditingApp(false)} className="text-white/80 hover:text-white text-lg">?</button>
                 </div>
                 <div className="p-5 space-y-3">
                   <div className="space-y-1.5">
@@ -335,7 +339,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                       <div className="border border-emerald-200 bg-emerald-50 rounded-xl px-4 py-3 space-y-2 max-h-[200px] overflow-y-auto">
                         {appDraft.split('\n').filter(line => line.trim()).map((line, i) => (
                           <div key={i} className="flex items-start gap-2 text-sm leading-snug">
-                            <span className="mt-0.5 font-bold shrink-0 text-emerald-600">•</span>
+                            <span className="mt-0.5 font-bold shrink-0 text-emerald-600"></span>
                             <span className="text-slate-700">{line.trim()}</span>
                           </div>
                         ))}
@@ -345,7 +349,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 </div>
                 <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
                   <button onClick={() => setEditingApp(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition">Cancel</button>
-                  <button onClick={() => saveComments('appreciation', appDraft, setEditingApp)} className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition">✓ Save</button>
+                  <button onClick={() => saveComments('appreciation', appDraft, setEditingApp)} className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition">? Save</button>
                 </div>
               </div>
             </div>
@@ -358,7 +362,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
                 <div className="bg-amber-600 px-5 py-3.5 flex items-center justify-between">
                   <span className="font-bold text-white text-sm">Edit Needs Attention Comments</span>
-                  <button onClick={() => setEditingAtt(false)} className="text-white/80 hover:text-white text-lg">✕</button>
+                  <button onClick={() => setEditingAtt(false)} className="text-white/80 hover:text-white text-lg">?</button>
                 </div>
                 <div className="p-5 space-y-3">
                   <div className="space-y-1.5">
@@ -377,7 +381,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                       <div className="border border-amber-200 bg-amber-50 rounded-xl px-4 py-3 space-y-2 max-h-[200px] overflow-y-auto">
                         {attDraft.split('\n').filter(line => line.trim()).map((line, i) => (
                           <div key={i} className="flex items-start gap-2 text-sm leading-snug">
-                            <span className="mt-0.5 font-bold shrink-0 text-amber-600">•</span>
+                            <span className="mt-0.5 font-bold shrink-0 text-amber-600"></span>
                             <span className="text-slate-700">{line.trim()}</span>
                           </div>
                         ))}
@@ -387,17 +391,17 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 </div>
                 <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
                   <button onClick={() => setEditingAtt(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition">Cancel</button>
-                  <button onClick={() => saveComments('commentsNeedingAttention', attDraft, setEditingAtt)} className="px-5 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition">✓ Save</button>
+                  <button onClick={() => saveComments('commentsNeedingAttention', attDraft, setEditingAtt)} className="px-5 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition">? Save</button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Raw Student Comments — Collapsible */}
+          {/* Raw Student Comments  Collapsible */}
           {report.rawStudentComments && report.rawStudentComments.length > 0 && (
             <details className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-6 group">
               <summary className="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 cursor-pointer flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <span>📝 All Student Comments ({report.rawStudentComments.length})</span>
+                <span>?? All Student Comments ({report.rawStudentComments.length})</span>
                 <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
               </summary>
               <div className="p-3 space-y-1 max-h-64 overflow-y-auto">
@@ -421,7 +425,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
           {/* Faculty Acknowledgment & Action */}
           {(report.facultyAcknowledged || report.facultyAcknowledgedAt) && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6">
-              <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">✅ Faculty Acknowledged</p>
+              <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">? Faculty Acknowledged</p>
               {report.facultyAcknowledgedAt && (
                 <p className="text-xs text-emerald-600">On {new Date(report.facultyAcknowledgedAt).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" })}</p>
               )}
@@ -460,7 +464,7 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                   }}
                   className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors"
                 >
-                  ✓ Approve as HOD
+                  ? Approve as HOD
                 </button>
               </div>
             </div>
@@ -505,3 +509,6 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
 
   return typeof document !== "undefined" ? createPortal(modalJSX, document.body) : modalJSX;
 }
+
+
+
