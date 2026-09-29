@@ -145,25 +145,84 @@ function EditableComments({ reportId, field, items, color, commentPercentages, o
 }
 
 function ActionTakenCell({ reportId, value, onSave }) {
-  const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(false);
   const [val, setVal] = useState(value || "");
-  function save() { onSave && onSave(reportId, "actionTaken", val); setEditing(false); }
-  if (editing) return (
-    <div className="flex flex-col gap-1.5 min-w-[160px]">
-      <textarea autoFocus rows={3} className="input text-xs resize-none py-1.5"
-        value={val} onChange={e => setVal(e.target.value)} placeholder="Describe action taken..." />
-      <div className="flex gap-1">
-        <button onClick={save} className="btn btn-success btn-sm text-xs py-1">Save</button>
-        <button onClick={() => setEditing(false)} className="btn btn-ghost btn-sm text-xs py-1">Cancel</button>
-      </div>
-    </div>
-  );
+
+  function openModal() {
+    setVal(value || "");
+    setOpen(true);
+  }
+
+  function save() {
+    onSave && onSave(reportId, "actionTaken", val);
+    setOpen(false);
+  }
+
   return (
-    <div onClick={() => { setVal(value || ""); setEditing(true); }}
-      className="cursor-pointer min-w-[110px] max-w-[160px] min-h-[36px] rounded-xl border border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 px-2.5 py-1.5 transition-all">
-      {value ? <p className="text-xs text-slate-700 leading-snug">{value}</p>
-              : <p className="text-xs text-slate-400 italic">Click to add...</p>}
-    </div>
+    <>
+      {/* Table cell display — click to open popup */}
+      <div className="group relative cursor-pointer" onClick={openModal}>
+        <div className="min-w-[110px] max-w-[200px] min-h-[36px] rounded-xl border border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 px-2.5 py-1.5 transition-all">
+          {value ? (
+            <p className="text-xs text-slate-700 leading-snug line-clamp-3">{value}</p>
+          ) : (
+            <p className="text-xs text-slate-400 italic">Click to add...</p>
+          )}
+        </div>
+        <span className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition">
+          <Pencil size={10} className="text-slate-400"/>
+        </span>
+      </div>
+
+      {/* Popup Modal */}
+      {open && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="px-5 py-3.5 flex items-center justify-between bg-indigo-600 text-white">
+              <span className="font-bold text-sm tracking-wide">✍️ Action Taken by HOD</span>
+              <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white text-lg leading-none">✕</button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              {/* Edit area */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Describe the corrective action</p>
+                <textarea
+                  autoFocus
+                  rows={6}
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 leading-relaxed"
+                  value={val}
+                  onChange={e => setVal(e.target.value)}
+                  placeholder="Example: Conducted faculty meeting to discuss teaching methodology improvements. Assigned mentor to work on student engagement techniques."
+                />
+                <p className="text-xs text-slate-400">Explain what steps were taken to address the feedback.</p>
+              </div>
+
+              {/* Live Preview */}
+              {val.trim() && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preview</p>
+                  <div className="border border-indigo-200 rounded-xl px-4 py-3 bg-indigo-50 max-h-[200px] overflow-y-auto">
+                    <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{val.trim()}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3.5 border-t bg-slate-50 flex gap-3 justify-end">
+              <button onClick={() => setOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition">Cancel</button>
+              <button onClick={save} className="px-5 py-2 text-sm font-semibold text-white rounded-xl transition bg-indigo-600 hover:bg-indigo-700">
+                ✓ Save Action
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
