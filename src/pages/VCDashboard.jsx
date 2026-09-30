@@ -246,6 +246,18 @@ export default function VCDashboard() {
                 <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science · 2025–26</p>
               </div>
               <div className="flex gap-3">
+                {/* Signature Upload Button */}
+                <button 
+                  onClick={() => setShowSignatureModal(true)}
+                  className="bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-center hover:bg-white/15 transition-all flex items-center gap-2"
+                  title={user?.signatureImage ? "Update signature" : "Upload signature"}
+                >
+                  <BadgeCheck size={18} className="text-white" />
+                  <div className="text-left">
+                    <p className="text-white text-xs font-semibold">{user?.signatureImage ? "✓ Signature" : "Upload"}</p>
+                    <p className="text-blue-200 text-[10px]">{user?.signatureImage ? "Uploaded" : "Required"}</p>
+                  </div>
+                </button>
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
                   <p className="text-white text-xl font-black">{approvedCount}</p>
                   <p className="text-blue-200 text-xs mt-0.5">Pro-VC Approved</p>
