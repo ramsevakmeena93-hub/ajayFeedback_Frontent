@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -89,15 +89,16 @@ export default function VCDashboard() {
     }
   }
 
-  // ── Approve with optional comment ──────────────────────────────
+  // -- Approve with optional comment ------------------------------
   async function handleApproveConfirm() {
+    if (!approveComment.trim()) return toast.error("Please enter action comment - required for approval");
     if (!approveModal) return;
     
     // Check if Pro-VC has uploaded signature
     if (!user?.signatureImage) {
-      return toast.error("❌ Please upload your signature before approving submissions", {
+      return toast.error("? Please upload your signature before approving submissions", {
         duration: 5000,
-        icon: '✋'
+        icon: '?'
       });
     }
     
@@ -106,7 +107,7 @@ export default function VCDashboard() {
         status: "approved",
         vcComment: approveComment || "",
       });
-      toast.success("Submission Pro-Pro-VC Approved ✓");
+      toast.success("Submission Pro-Pro-VC Approved ?");
       setApproveModal(null);
       setApproveComment("");
       fetchSubmissions();
@@ -124,7 +125,7 @@ export default function VCDashboard() {
   const handleSignatureSaved = async () => {
     setShowSignatureModal(false);
     if (pendingApproveId) {
-      // Don't auto-approve — reopen the approve modal so VC can confirm
+      // Don't auto-approve � reopen the approve modal so VC can confirm
       setApproveModal(pendingApproveId);
       setApproveComment("");
       setPendingApproveId(null);
@@ -132,7 +133,7 @@ export default function VCDashboard() {
     }
   };
 
-  // ── Reject ──────────────────────────────────────────────────────
+  // -- Reject ------------------------------------------------------
   async function handleRejectConfirm() {
     if (!rejectModal) return;
     try {
@@ -146,7 +147,7 @@ export default function VCDashboard() {
     } catch { toast.error("Failed to reject"); }
   }
 
-  // ── Action Taken (Pro-VC Comment) ───────────────────────────────────
+  // -- Action Taken (Pro-VC Comment) -----------------------------------
   async function handleActionTakenSave() {
     if (!actionModal) return;
     if (!actionComment.trim()) return toast.error("Please enter an action comment");
@@ -164,7 +165,7 @@ export default function VCDashboard() {
     finally { setActionSaving(false); }
   }
 
-  // ── Derived data ────────────────────────────────────────────────
+  // -- Derived data ------------------------------------------------
   const filtered = submissions.filter(sub => {
     const ms = !search ||
       (sub.hodId?.name||"").toLowerCase().includes(search.toLowerCase()) ||
@@ -175,11 +176,11 @@ export default function VCDashboard() {
 
   const totalReports  = submissions.reduce((s,sub) => s + (sub.reports?.length||0), 0);
   const allFFIs       = submissions.flatMap(sub => (sub.reports||[]).map(r=>r.ffiScore).filter(Boolean));
-  const avgFFI        = allFFIs.length ? (allFFIs.reduce((s,v)=>s+v,0)/allFFIs.length).toFixed(2) : "—";
+  const avgFFI        = allFFIs.length ? (allFFIs.reduce((s,v)=>s+v,0)/allFFIs.length).toFixed(2) : "�";
   const pendingCount  = submissions.filter(s=>s.status==="submitted"||s.status==="conflict"||s.status==="escalated").length;
   const approvedCount = submissions.filter(s=>s.status==="approved").length;
 
-  // HOD status map: hodId → latest submission status
+  // HOD status map: hodId ? latest submission status
   const hodStatusMap = {};
   submissions.forEach(sub => {
     const id = sub.hodId?._id || sub.hodId;
@@ -213,7 +214,7 @@ export default function VCDashboard() {
   submissions.forEach(sub => {
     (sub.reports||[]).forEach(r => {
       const key = r.facultyName || "Unknown";
-      if (!facultyAnalysis[key]) facultyAnalysis[key] = { reports:[], ffis:[], dept: sub.hodId?.department || sub.department || "—" };
+      if (!facultyAnalysis[key]) facultyAnalysis[key] = { reports:[], ffis:[], dept: sub.hodId?.department || sub.department || "�" };
       facultyAnalysis[key].reports.push(r);
       if (r.ffiScore) facultyAnalysis[key].ffis.push(r.ffiScore);
     });
@@ -223,7 +224,7 @@ export default function VCDashboard() {
   submissions.forEach(sub => {
     (sub.reports||[]).forEach(r => {
       const key = r.subjectCode || "Unknown";
-      if (!subjectAnalysis[key]) subjectAnalysis[key] = { name:r.facultyName||"—", programme:r.programme||"—", ffis:[], count:0 };
+      if (!subjectAnalysis[key]) subjectAnalysis[key] = { name:r.facultyName||"�", programme:r.programme||"�", ffis:[], count:0 };
       subjectAnalysis[key].count++;
       if (r.ffiScore) subjectAnalysis[key].ffis.push(r.ffiScore);
     });
@@ -235,7 +236,7 @@ export default function VCDashboard() {
 
       <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-7">
 
-        {/* ── Top Banner ── */}
+        {/* -- Top Banner -- */}
         <div className="rounded-2xl overflow-hidden shadow-md" style={{background:"linear-gradient(120deg,#1e3a5f 0%,#1e4d8c 60%,#1a3a6e 100%)"}}>
           <div className="px-8 py-6 flex flex-col gap-5">
             {/* Title row */}
@@ -243,7 +244,7 @@ export default function VCDashboard() {
               <div>
                 <p className="text-blue-200 text-sm font-medium">Dr. Manjaree Pandit Portal</p>
                 <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Dr. Manjaree Pandit"}</h1>
-                <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science · 2025–26</p>
+                <p className="text-blue-300 text-xs mt-1">MITS Gwalior � Madhav Institute of Technology & Science � 2025�26</p>
               </div>
               <div className="flex gap-3">
                 <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
@@ -257,7 +258,7 @@ export default function VCDashboard() {
               </div>
             </div>
 
-            {/* ── HOD Status Row ── */}
+            {/* -- HOD Status Row -- */}
             {allHods.length > 0 && (
               <div>
                 <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-2">HOD Submission Status</p>
@@ -284,7 +285,7 @@ export default function VCDashboard() {
                         />
                         <div>
                           <p className="text-white font-semibold leading-tight truncate max-w-[130px]">{hod.name}</p>
-                          <p className="text-blue-300 text-[10px] truncate max-w-[130px]">{hod.department || "—"}</p>
+                          <p className="text-blue-300 text-[10px] truncate max-w-[130px]">{hod.department || "�"}</p>
                         </div>
                         <span
                           className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
@@ -293,7 +294,7 @@ export default function VCDashboard() {
                             color: isApproved ? "#5eead4" : isPending ? "#fde68a" : isRejected ? "#fca5a5" : "#94a3b8",
                           }}
                         >
-                          {isApproved ? "✓ Approved" : isPending ? "⏳ Pending" : isRejected ? "✗ Rejected" : "Not Sent"}
+                          {isApproved ? "? Approved" : isPending ? "? Pending" : isRejected ? "? Rejected" : "Not Sent"}
                         </span>
                       </div>
                     );
@@ -305,7 +306,7 @@ export default function VCDashboard() {
           <div className="h-1" style={{background:"linear-gradient(90deg,#d4a017,#f0c040,#d4a017)"}}></div>
         </div>
 
-        {/* ── Stats ── */}
+        {/* -- Stats -- */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {STATS.map(({ label, value, icon:Icon, accent }) => (
             <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
@@ -320,12 +321,12 @@ export default function VCDashboard() {
           ))}
         </div>
 
-        {/* ── Tabs ── */}
+        {/* -- Tabs -- */}
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
           {[
             { id:"submissions", label:"Submissions" },
-            { id:"hod_status",  label:"👥 HOD Status" },
-            { id:"analysis",    label:"📊 Analysis" },
+            { id:"hod_status",  label:"?? HOD Status" },
+            { id:"analysis",    label:"?? Analysis" },
           ].map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab===t.id?"bg-white shadow text-slate-800":"text-slate-500 hover:text-slate-700"}`}>
@@ -334,12 +335,12 @@ export default function VCDashboard() {
           ))}
         </div>
 
-        {/* ── HOD STATUS TAB ── */}
+        {/* -- HOD STATUS TAB -- */}
         {activeTab === "hod_status" && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60">
               <h2 className="font-bold text-slate-800 text-base">HOD Submission Status</h2>
-              <p className="text-xs text-slate-400 mt-0.5">All registered HODs — who submitted, who is pending, who hasn't submitted</p>
+              <p className="text-xs text-slate-400 mt-0.5">All registered HODs � who submitted, who is pending, who hasn't submitted</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -360,7 +361,7 @@ export default function VCDashboard() {
                     const latest = hodSubs[0];
                     const status = latest?.status;
                     const ffis = (latest?.reports||[]).map(r=>r.ffiScore).filter(Boolean);
-                    const avg = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "—";
+                    const avg = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "�";
 
                     let badge, dotColor;
                     if (!latest) {
@@ -382,22 +383,22 @@ export default function VCDashboard() {
                           <p className="font-semibold text-slate-800 text-sm">{hod.name}</p>
                           <p className="text-xs text-slate-400">{hod.email}</p>
                         </td>
-                        <td className="px-5 py-4 text-xs text-slate-600">{hod.department || "—"}</td>
+                        <td className="px-5 py-4 text-xs text-slate-600">{hod.department || "�"}</td>
                         <td className="px-5 py-4">{badge}</td>
                         <td className="px-5 py-4 text-center">
                           {latest ? (
                             <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100">
                               {latest.reports?.length||0}
                             </span>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-slate-300">�</span>}
                         </td>
                         <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
-                          {latest?.createdAt ? new Date(latest.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "—"}
+                          {latest?.createdAt ? new Date(latest.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "�"}
                         </td>
                         <td className="px-5 py-4 text-center">
-                          {avg !== "—" ? (
+                          {avg !== "�" ? (
                             <span className={`text-sm font-bold ${parseFloat(avg)>=4?"text-teal-600":parseFloat(avg)>=3?"text-amber-600":"text-rose-600"}`}>{avg}</span>
-                          ) : <span className="text-slate-300">—</span>}
+                          ) : <span className="text-slate-300">�</span>}
                         </td>
                         <td className="px-5 py-4">
                           {latest ? (
@@ -419,7 +420,7 @@ export default function VCDashboard() {
           </div>
         )}
 
-        {/* ── ANALYSIS TAB ── */}
+        {/* -- ANALYSIS TAB -- */}
         {activeTab === "analysis" && (
           <div className="space-y-6 animate-fade-in">
             {/* Department-wise */}
@@ -447,7 +448,7 @@ export default function VCDashboard() {
                         <tr key={dept} className="table-row">
                           <td className="px-4 py-3 font-semibold text-slate-800 max-w-[200px] truncate">{dept}</td>
                           <td className="px-4 py-3 text-slate-600">{d.reports.length}</td>
-                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"—"}</td>
+                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"�"}</td>
                           <td className="px-4 py-3 text-emerald-600 font-semibold">{d.appreciation}</td>
                           <td className="px-4 py-3 text-amber-600 font-semibold">{d.attention}</td>
                           <td className="px-4 py-3">
@@ -493,7 +494,7 @@ export default function VCDashboard() {
                           <td className="px-4 py-3 font-semibold text-slate-800">{name}</td>
                           <td className="px-4 py-3 text-xs text-slate-500 max-w-[180px] truncate">{f.dept}</td>
                           <td className="px-4 py-3 text-slate-600">{f.reports.length}</td>
-                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"—"}</td>
+                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"�"}</td>
                           <td className="px-4 py-3">
                             {avg && <span className={`text-xs font-bold px-2 py-1 rounded-full ${parseFloat(avg)>=4?"bg-emerald-100 text-emerald-700":parseFloat(avg)>=3?"bg-amber-100 text-amber-700":"bg-red-100 text-red-700"}`}>
                               {parseFloat(avg)>=4?"Excellent":parseFloat(avg)>=3?"Good":"Needs Improvement"}
@@ -534,7 +535,7 @@ export default function VCDashboard() {
                           <td className="px-4 py-3 text-slate-700">{s.name}</td>
                           <td className="px-4 py-3 text-xs text-slate-500">{s.programme}</td>
                           <td className="px-4 py-3 text-slate-600">{s.count}</td>
-                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"—"}</td>
+                          <td className={`px-4 py-3 font-bold ${fc}`}>{avg||"�"}</td>
                         </tr>
                       );
                     })}
@@ -545,7 +546,7 @@ export default function VCDashboard() {
           </div>
         )}
 
-        {/* ── SUBMISSIONS TAB ── */}
+        {/* -- SUBMISSIONS TAB -- */}
         {activeTab === "submissions" && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {/* Table header */}
@@ -599,10 +600,10 @@ export default function VCDashboard() {
                   <tbody className="divide-y divide-slate-50">
                     {filtered.map(sub => {
                       const ffis  = (sub.reports||[]).map(r=>r.ffiScore).filter(Boolean);
-                      const avg   = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "—";
+                      const avg   = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "�";
                       const avgN  = parseFloat(avg);
                       const sc    = STATUS_CFG[sub.status] || STATUS_CFG.submitted;
-                      const hodName  = sub.hodId?.name || "—";
+                      const hodName  = sub.hodId?.name || "�";
                       const initials = hodName.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2) || "H";
                       const isPending = sub.status === "submitted" || sub.status === "conflict" || sub.status === "escalated";
                       const isApproved = sub.status === "approved";
@@ -626,12 +627,12 @@ export default function VCDashboard() {
 
                           {/* Department */}
                           <td className="px-5 py-4 text-slate-600 text-xs max-w-[150px] truncate">
-                            {sub.hodId?.department||sub.department||"—"}
+                            {sub.hodId?.department||sub.department||"�"}
                           </td>
 
                           {/* Session */}
                           <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
-                            {sub.session === "jan-may" ? "Jan–Jun" : sub.session === "jul-dec" ? "Jul–Dec" : sub.session || "—"}
+                            {sub.session === "jan-may" ? "Jan�Jun" : sub.session === "jul-dec" ? "Jul�Dec" : sub.session || "�"}
                             {sub.academicYear && <span className="block text-slate-400">{sub.academicYear}</span>}
                           </td>
 
@@ -644,14 +645,14 @@ export default function VCDashboard() {
 
                           {/* Avg FFI */}
                           <td className="px-5 py-4 text-center">
-                            {avg !== "—" ? (
+                            {avg !== "�" ? (
                               <span className={`text-sm font-bold ${avgN>=4?"text-teal-600":avgN>=3?"text-amber-600":"text-rose-600"}`}>{avg}</span>
-                            ) : <span className="text-slate-300">—</span>}
+                            ) : <span className="text-slate-300">�</span>}
                           </td>
 
                           {/* Submitted date */}
                           <td className="px-5 py-4 text-slate-500 text-xs whitespace-nowrap">
-                            {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "—"}
+                            {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "�"}
                           </td>
 
                           {/* Status */}
@@ -666,7 +667,7 @@ export default function VCDashboard() {
                           <td className="px-5 py-4 text-xs text-slate-500 max-w-[130px]">
                             {sub.vcComment
                               ? <span className="italic">"{sub.vcComment}"</span>
-                              : <span className="text-slate-300">—</span>
+                              : <span className="text-slate-300">�</span>
                             }
                           </td>
 
@@ -679,36 +680,7 @@ export default function VCDashboard() {
                                 <Eye size={11}/> View
                               </button>
 
-                              {/* Pro-VC Approve — only if pending */}
-                              {isPending && (
-                                <button onClick={() => { setApproveModal(sub._id); setApproveComment(""); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                                  <BadgeCheck size={11}/> Pro-VC Approve
-                                </button>
-                              )}
-
-                              {/* Already approved badge */}
-                              {isApproved && (
-                                <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-lg border border-teal-200">
-                                  <CheckCircle size={11}/> Pro-Pro-VC Approved
-                                </span>
-                              )}
-
-                              {/* Reject — only if pending */}
-                              {isPending && (
-                                <button onClick={() => { setRejectModal(sub._id); setRejectComment(""); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold rounded-lg transition-colors">
-                                  <XCircle size={11}/> Reject
-                                </button>
-                              )}
-
-                              {/* Action Taken — always visible */}
-                              <button
-                                onClick={() => { setActionModal(sub); setActionComment(sub.vcComment || ""); }}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition-colors"
-                              >
-                                <ClipboardList size={11}/> Action Taken
-                              </button>
+                              {/* Unified Approve with Comment Button */}{isPending && (<button onClick={() => { setApproveModal(sub._id); setApproveComment(sub.vcComment || ""); }} className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-colors"><BadgeCheck size={11}/> Approve & Add Comment</button>)}
                             </div>
                           </td>
                         </tr>
@@ -724,12 +696,12 @@ export default function VCDashboard() {
 
       <Footer />
 
-      {/* ── Signature Modal ── */}
+      {/* -- Signature Modal -- */}
       {showSignatureModal && (
         <SignatureUpload token={token} onSaved={handleSignatureSaved} onSkip={() => setShowSignatureModal(false)} />
       )}
 
-      {/* ── Pro-VC Approve Modal (with optional comment) ── */}
+      {/* -- Pro-VC Approve Modal (with optional comment) -- */}
       {approveModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-5 animate-scale-in">
@@ -738,8 +710,8 @@ export default function VCDashboard() {
                 <BadgeCheck size={20} className="text-teal-600"/>
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-800">Pro-VC Approve Submission</h2>
-                <p className="text-xs text-slate-400">Optionally add a comment before approving</p>
+                <h2 className="text-base font-bold text-slate-800">Approve & Add Action Comment</h2>
+                <p className="text-xs text-slate-400">Comment is required (action taken by Pro-VC)</p>
               </div>
             </div>
             <textarea rows={3}
@@ -760,72 +732,3 @@ export default function VCDashboard() {
         </div>
       )}
 
-      {/* ── Action Taken Modal ── */}
-      {actionModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[70] p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-5 animate-scale-in">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100">
-                <ClipboardList size={20} className="text-indigo-600"/>
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-800">Action Taken</h2>
-                <p className="text-xs text-slate-400">
-                  {actionModal.hodId?.name || "HOD"} · {actionModal.hodId?.department || actionModal.department || ""}
-                </p>
-              </div>
-            </div>
-            <div>
-              <textarea rows={4}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
-                placeholder="Enter each point on a new line — numbering is added automatically..."
-                value={actionComment} onChange={e => setActionComment(e.target.value)} />
-              <p className="text-xs text-slate-400 mt-1">Each line will be auto-numbered when saved.</p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => { setActionModal(null); setActionComment(""); }}
-                className="px-5 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleActionTakenSave} disabled={actionSaving}
-                className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-60">
-                <ClipboardList size={14}/> {actionSaving ? "Saving..." : "Save Action"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Reject Modal ── */}
-      {rejectModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-5 animate-scale-in">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-rose-50 rounded-xl flex items-center justify-center border border-rose-100">
-                <XCircle size={20} className="text-rose-500"/>
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-800">Reject Submission</h2>
-                <p className="text-xs text-slate-400">Provide a reason (optional)</p>
-              </div>
-            </div>
-            <textarea rows={3}
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-rose-200 focus:border-rose-300"
-              placeholder="Enter rejection reason..."
-              value={rejectComment} onChange={e => setRejectComment(e.target.value)} />
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => setRejectModal(null)}
-                className="px-5 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleRejectConfirm}
-                className="px-5 py-2 text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-colors flex items-center gap-2">
-                <XCircle size={14}/> Confirm Reject
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
