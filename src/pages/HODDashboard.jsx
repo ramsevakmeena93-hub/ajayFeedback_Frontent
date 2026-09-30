@@ -485,14 +485,18 @@ export default function HODDashboard() {
                   )}
                   <button onClick={handleSendToVC} 
                     disabled={selected.length === 0 || !user?.signatureImage || selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0} 
-                    className="btn btn-success btn-sm"
+                    className={`btn btn-sm ${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length > 0 ? 'btn-success' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                     title={
                       !user?.signatureImage ? "Please upload your signature first" 
                       : selected.length === 0 ? "Select reports to send"
-                      : selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0 ? "At least one report must be approved by faculty before sending to Pro-VC"
-                      : ""
+                      : selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0 ? "At least one report must be approved by faculty"
+                      : `Send ${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length} approved report(s) to Pro-VC`
                     }>
-                    <Send size={14} /> Send to Pro-VC {selected.length > 0 && `(${selected.length})`}
+                    <Send size={14} /> 
+                    {selected.length > 0 
+                      ? `Send to Pro-VC (${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length}/${selected.length} ✓)` 
+                      : 'Send to Pro-VC'
+                    }
                   </button>
                 </div>
               </div>
