@@ -8,6 +8,28 @@ import Footer from '../components/Footer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, LineChart, Line } from 'recharts';
 import { CheckCircle, Clock, ExternalLink, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Award, BookOpen, AlertTriangle, Target, Lightbulb, Users, Archive } from 'lucide-react';
 
+// ── GRADE BADGE ──────────────────────────────────────────────────
+function GradeBadge({ grade }) {
+  const gradeColors = {
+    'A+': 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    'A':  'bg-green-100 text-green-700 border-green-300',
+    'B+': 'bg-blue-100 text-blue-700 border-blue-300',
+    'B':  'bg-indigo-100 text-indigo-700 border-indigo-300',
+    'C+': 'bg-amber-100 text-amber-700 border-amber-300',
+    'C':  'bg-orange-100 text-orange-700 border-orange-300',
+    'D':  'bg-red-100 text-red-700 border-red-300',
+    'N/A': 'bg-slate-100 text-slate-500 border-slate-300'
+  };
+  
+  const colorClass = gradeColors[grade] || gradeColors['N/A'];
+  
+  return (
+    <div className={`px-4 py-2 rounded-xl border-2 ${colorClass} font-bold text-lg`}>
+      Grade: {grade}
+    </div>
+  );
+}
+
 // ── REPORT CARD ──────────────────────────────────────────────────
 function ReportCard({ report, onAcknowledge, acknowledging }) {
   const [expanded, setExpanded] = useState(false);
