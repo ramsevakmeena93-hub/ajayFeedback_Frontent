@@ -242,7 +242,7 @@ export default function VCDashboard() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="text-blue-200 text-sm font-medium">Dr. Manjaree Pandit Portal</p>
-                <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Dr. Manjuree Pandit"}</h1>
+                <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name || "Dr. Manjaree Pandit"}</h1>
                 <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science · 2025–26</p>
               </div>
               <div className="flex gap-3">

@@ -361,20 +361,20 @@ export default function HODDashboard() {
                 <div className="px-6 py-5 space-y-4">
                   <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
                     {isApproved && <>
-                      The Dr. Manjuree Pandit has <strong className="text-emerald-600">approved</strong> your feedback
+                      The Dr. Manjaree Pandit has <strong className="text-emerald-600">approved</strong> your feedback
                       submission for the <strong>{sub.department || "your department"}</strong> department,
                       Academic Year <strong>{sub.academicYear || "2026"}</strong>
                       {sub.session ? `, ${sub.session === "jan-may" ? "Jan – May" : "Jul – Dec"} session` : ""}.
                       The final PDF report is now available.
                     </>}
                     {isRejected && <>
-                      The Dr. Manjuree Pandit has <strong className="text-red-600">rejected</strong> your feedback
+                      The Dr. Manjaree Pandit has <strong className="text-red-600">rejected</strong> your feedback
                       submission for <strong>{sub.department || "your department"}</strong>,
                       Academic Year <strong>{sub.academicYear || "2026"}</strong>.
                       Please review the comments and resubmit.
                     </>}
                     {isSentBack && <>
-                      The Dr. Manjuree Pandit has <strong className="text-amber-600">sent back</strong> your
+                      The Dr. Manjaree Pandit has <strong className="text-amber-600">sent back</strong> your
                       submission for <strong>{sub.department || "your department"}</strong> for revision.
                     </>}
                   </p>

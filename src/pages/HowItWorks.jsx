@@ -27,8 +27,8 @@ const STEPS = [
   {
     icon: GraduationCap,
     color: "bg-amber-600",
-    title: "Dr. Manjuree Pandit Approves",
-    desc: "The Dr. Manjuree Pandit reviews all HOD submissions, approves or rejects with comments, triggering the final report generation.",
+    title: "Dr. Manjaree Pandit Approves",
+    desc: "The Dr. Manjaree Pandit reviews all HOD submissions, approves or rejects with comments, triggering the final report generation.",
     step: "04"
   },
   {
