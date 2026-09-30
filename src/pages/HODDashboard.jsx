@@ -53,6 +53,12 @@ export default function HODDashboard() {
   // PDF preview (before VC)
   const [exportingPDF, setExportingPDF] = useState(false);
 
+  // HOD Comment modal
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [hodComment, setHodComment] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
+
   const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
 
   useEffect(() => { fetchReports(); fetchSubmissions(); fetchVCUser(); }, []);
@@ -74,6 +80,64 @@ export default function HODDashboard() {
   async function fetchVCUser() {
     try { const { data } = await api.get("/api/auth/vc-info"); setVcUser(data); } catch { }
   }
+
+  // Fetch HOD comment for current department
+  async function fetchHODComment() {
+    if (!user?.department) return;
+    setCommentLoading(true);
+    try {
+      const { data } = await api.get("/api/reports/hod-comment", {
+        params: {
+          department: user.department,
+          academicYear: '2026-2027', // Can be dynamic later
+          session: '' // Can add session filter later
+        }
+      });
+      if (data.comment) {
+        setHodComment(data.comment.comment || '');
+      } else {
+        setHodComment('');
+      }
+    } catch (err) {
+      console.error('Failed to load comment:', err);
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  // Save HOD comment
+  async function handleSaveComment() {
+    if (!hodComment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+    if (hodComment.length > 2000) {
+      toast.error('Comment must be less than 2000 characters');
+      return;
+    }
+    setCommentSaving(true);
+    try {
+      await api.post("/api/reports/hod-comment", {
+        department: user?.department || '',
+        academicYear: '2026-2027',
+        session: '',
+        comment: hodComment.trim()
+      });
+      toast.success('Comment saved successfully!');
+      setShowCommentModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save comment');
+    } finally {
+      setCommentSaving(false);
+    }
+  }
+
+  // Open comment modal and fetch existing comment
+  function openCommentModal() {
+    setShowCommentModal(true);
+    fetchHODComment();
+  }
+
   async function fetchReports() {
     setLoading(true);
     try {
@@ -483,6 +547,11 @@ export default function HODDashboard() {
                         <FileText size={14} /> {exportingPDF ? "Generating..." : "Export PDF"}
                       </button>
                   )}
+                  {reports.length > 0 && (
+                      <button onClick={openCommentModal} className="btn btn-secondary btn-sm text-blue-700">
+                        <PenLine size={14} /> Add Report Comments
+                      </button>
+                  )}
                   <button onClick={handleSendToVC} 
                     disabled={selected.length === 0 || !user?.signatureImage || selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0} 
                     className={`btn btn-sm ${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length > 0 ? 'btn-success' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
@@ -656,6 +725,103 @@ export default function HODDashboard() {
                 <span className="font-semibold text-amber-600 ml-1">{visibleReports.filter(r => r.status !== "faculty_approved").length}</span> pending
               </div>
               <button onClick={() => setShowStatusModal(false)} className="btn btn-primary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOD Comment Modal */}
+      {showCommentModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl animate-scale-in overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-blue-900 text-xl flex items-center gap-2">
+                  <PenLine size={20} />
+                  Add Report Comments
+                </h2>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  These comments will appear in the PDF report between summary statistics and the faculty table
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowCommentModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {commentLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-sm text-slate-600">Loading existing comment...</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Department Comments
+                    </label>
+                    <textarea
+                      value={hodComment}
+                      onChange={(e) => setHodComment(e.target.value)}
+                      placeholder="Enter your comments about the overall department performance, observations, or recommendations..."
+                      rows={8}
+                      maxLength={2000}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-slate-500">
+                        This will appear for all reports in your department
+                      </p>
+                      <p className={`text-xs font-medium ${hodComment.length > 1900 ? 'text-red-600' : 'text-slate-400'}`}>
+                        {hodComment.length} / 2000
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-xs text-blue-800 font-medium mb-1">💡 Example Comments:</p>
+                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Overall performance is satisfactory with areas for improvement</li>
+                      <li>Faculty members have shown improvement in student engagement</li>
+                      <li>Action items have been communicated to respective faculty</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t bg-slate-50 flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowCommentModal(false)} 
+                className="btn btn-secondary"
+                disabled={commentSaving}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveComment} 
+                disabled={commentSaving || commentLoading || !hodComment.trim()}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                {commentSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={16} />
+                    Save Comment
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
