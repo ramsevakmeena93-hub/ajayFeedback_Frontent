@@ -10,7 +10,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import mitsLogo from "../assets/mits-logo.png";
-import WorkspaceSwitcher from "./WorkspaceSwitcher";
+// import WorkspaceSwitcher from "./WorkspaceSwitcher"; // Not needed
 
 const ROLE_CFG = {
   hod:     { label: "HOD",     color: "from-blue-600 to-blue-700",    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",     home: "/hod"     },
@@ -262,8 +262,8 @@ export default function Navbar({ title, subtitle }) {
               </button>
             )}
 
-            {/* Workspace Switcher — only shows for multi-role users with > 2 roles or custom setups */}
-            <WorkspaceSwitcher />
+            {/* Workspace Switcher — Disabled (not needed for single toggle) */}
+            {/* <WorkspaceSwitcher /> */}
 
             {/* Theme toggle */}
             <button
