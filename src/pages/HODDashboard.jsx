@@ -484,9 +484,14 @@ export default function HODDashboard() {
                       </button>
                   )}
                   <button onClick={handleSendToVC} 
-                    disabled={selected.length === 0 || !user?.signatureImage} 
+                    disabled={selected.length === 0 || !user?.signatureImage || selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0} 
                     className="btn btn-success btn-sm"
-                    title={!user?.signatureImage ? "Please upload your signature first" : ""}>
+                    title={
+                      !user?.signatureImage ? "Please upload your signature first" 
+                      : selected.length === 0 ? "Select reports to send"
+                      : selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0 ? "At least one report must be approved by faculty before sending to Pro-VC"
+                      : ""
+                    }>
                     <Send size={14} /> Send to Pro-VC {selected.length > 0 && `(${selected.length})`}
                   </button>
                 </div>
