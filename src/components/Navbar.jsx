@@ -140,7 +140,10 @@ export default function Navbar({ title, subtitle }) {
     if (!sigPreview) return;
     setSigSaving(true);
     try {
-      await api().post("/api/auth/signature", { signatureImage: sigPreview });
+      const res = await api().post("/api/auth/signature", { signatureImage: sigPreview });
+      if (res.data.user) {
+        login(res.data.user, token); // Update user state
+      }
       toast.success("Signature saved!");
       setShowSigModal(false);
     } catch { toast.error("Failed to save signature"); }
@@ -433,7 +436,7 @@ export default function Navbar({ title, subtitle }) {
     </nav>
 
     {/* Signature Modal — HOD/Faculty, triggered from Navbar */}
-    {showSigModal && (user?.role === "hod" || user?.role === "faculty") && (
+    {showSigModal && (user?.role === "hod" || user?.role === "faculty" || user?.role === "vc") && (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
           <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50">
@@ -477,3 +480,5 @@ export default function Navbar({ title, subtitle }) {
   </>
   );
 }
+
+
