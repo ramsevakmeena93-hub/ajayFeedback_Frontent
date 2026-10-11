@@ -59,6 +59,20 @@ export default function HODDashboard() {
   const [commentSaving, setCommentSaving] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
 
+  // Export PDF filters
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    semester: 'all',
+    academicYear: 'all',
+    session: 'all'
+  });
+  const [availableFilters, setAvailableFilters] = useState({
+    semesters: [],
+    academicYears: [],
+    sessions: [],
+    totalReports: 0
+  });
+
   const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
 
   useEffect(() => { fetchReports(); fetchSubmissions(); fetchVCUser(); }, []);
@@ -215,22 +229,56 @@ export default function HODDashboard() {
     }
   }
 
-  // Export PDF before VC approval (HOD review)
-  async function handleExportPDF() {
-    if (reports.length === 0) return toast.error("No reports to export");
-    setExportingPDF(true);
-    toast.loading("Generating preview PDF...", { id: "pdf-preview" });
+  // Fetch available filter options
+  async function fetchAvailableFilters() {
     try {
-      const res = await api.get("/api/reports/my/preview-pdf", { responseType: 'blob' });
+      const { data } = await api.get("/api/reports/my/export-filters");
+      setAvailableFilters(data);
+    } catch (err) {
+      console.error('Failed to load filters:', err);
+    }
+  }
+
+  // Open filter modal and fetch available options
+  function openFilterModal() {
+    setShowFilterModal(true);
+    fetchAvailableFilters();
+  }
+
+  // Export PDF with filters
+  async function handleExportPDFWithFilters() {
+    if (reports.length === 0) return toast.error("No reports to export");
+    
+    const filters = {};
+    if (exportFilters.semester !== 'all') filters.semester = exportFilters.semester;
+    if (exportFilters.academicYear !== 'all') filters.academicYear = exportFilters.academicYear;
+    if (exportFilters.session !== 'all') filters.session = exportFilters.session;
+    
+    const filterDesc = Object.keys(filters).length > 0 
+      ? `Applying filters: ${JSON.stringify(filters)}` 
+      : 'Exporting all reports';
+    
+    setExportingPDF(true);
+    toast.loading(`${filterDesc}...`, { id: "pdf-export" });
+    
+    try {
+      const res = await api.post("/api/reports/my/export-pdf", filters, { responseType: 'blob' });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `hod-review-report-${new Date().toISOString().split("T")[0]}.pdf`;
+      
+      // Get filename from response header
+      const disposition = res.headers['content-disposition'];
+      const filenameMatch = disposition && disposition.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `hod-report-${Date.now()}.pdf`;
+      
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("PDF downloaded for review!", { id: "pdf-preview" });
+      toast.success(`PDF downloaded: ${filename}`, { id: "pdf-export" });
+      setShowFilterModal(false);
     } catch (err) {
-      toast.error("Failed to generate PDF", { id: "pdf-preview" });
+      toast.error("Failed to generate PDF", { id: "pdf-export" });
     } finally { setExportingPDF(false); }
   }
 
@@ -543,7 +591,7 @@ export default function HODDashboard() {
                     </button>
                   )}
                   {reports.length > 0 && (
-                      <button onClick={handleExportPDF} disabled={exportingPDF} className="btn btn-secondary btn-sm text-violet-700">
+                      <button onClick={openFilterModal} disabled={exportingPDF} className="btn btn-secondary btn-sm text-violet-700">
                         <FileText size={14} /> {exportingPDF ? "Generating..." : "Export PDF"}
                       </button>
                   )}
@@ -819,6 +867,157 @@ export default function HODDashboard() {
                   <>
                     <CheckCircle size={16} />
                     Save Comment
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export PDF Filter Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg animate-scale-in overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-violet-900 dark:text-violet-100 text-xl flex items-center gap-2">
+                  <Download size={20} />
+                  Export PDF with Filters
+                </h2>
+                <p className="text-xs text-violet-600 dark:text-violet-400 mt-0.5">
+                  Filter reports by semester, academic year, or session
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowFilterModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Available reports info */}
+              <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100 mb-1">
+                  📊 Available Reports: {availableFilters.totalReports}
+                </p>
+                {availableFilters.semesters.length > 0 && (
+                  <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                    Semesters: {availableFilters.semesters.join(', ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Semester Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Semester
+                </label>
+                <select
+                  value={exportFilters.semester}
+                  onChange={(e) => setExportFilters({...exportFilters, semester: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Semesters</option>
+                  {availableFilters.semesters.map(sem => (
+                    <option key={sem} value={sem}>Semester {sem}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Academic Year Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Academic Year
+                </label>
+                <select
+                  value={exportFilters.academicYear}
+                  onChange={(e) => setExportFilters({...exportFilters, academicYear: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Years</option>
+                  {availableFilters.academicYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Session Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Session
+                </label>
+                <select
+                  value={exportFilters.session}
+                  onChange={(e) => setExportFilters({...exportFilters, session: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Sessions</option>
+                  {availableFilters.sessions.map(sess => (
+                    <option key={sess} value={sess}>
+                      {sess === 'jan-may' ? 'January - May' : 'July - December'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filter summary */}
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                  Current Selection:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {exportFilters.semester !== 'all' && (
+                    <span className="px-3 py-1 bg-violet-200 dark:bg-violet-900 text-violet-900 dark:text-violet-100 text-xs font-medium rounded-full">
+                      Semester {exportFilters.semester}
+                    </span>
+                  )}
+                  {exportFilters.academicYear !== 'all' && (
+                    <span className="px-3 py-1 bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-100 text-xs font-medium rounded-full">
+                      {exportFilters.academicYear}
+                    </span>
+                  )}
+                  {exportFilters.session !== 'all' && (
+                    <span className="px-3 py-1 bg-green-200 dark:bg-green-900 text-green-900 dark:text-green-100 text-xs font-medium rounded-full">
+                      {exportFilters.session === 'jan-may' ? 'Jan-May' : 'Jul-Dec'}
+                    </span>
+                  )}
+                  {exportFilters.semester === 'all' && exportFilters.academicYear === 'all' && exportFilters.session === 'all' && (
+                    <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
+                      All Reports
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowFilterModal(false)} 
+                className="btn btn-secondary"
+                disabled={exportingPDF}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleExportPDFWithFilters} 
+                disabled={exportingPDF}
+                className="btn btn-primary flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+              >
+                {exportingPDF ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} />
+                    Export PDF
                   </>
                 )}
               </button>
