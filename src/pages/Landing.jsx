@@ -116,39 +116,39 @@ export default function Landing() {
       </header>
 
       {/* ── HERO ── */}
-      <section id="home" className="relative pt-32 pb-20 overflow-hidden">
+      <section id="home" className="relative pt-32 pb-12 overflow-hidden min-h-[calc(100vh-5rem)]">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-slate-50 to-indigo-50/80" />
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+          <div className="grid lg:grid-cols-2 gap-8 items-center w-full">
 
             {/* Left — Content */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wide mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wide mb-4">
                 <Globe size={14} />
                 MITS Deemed University
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-4">
                 Faculty Feedback<br />
                 <span className="text-blue-600">Management System</span>
               </h1>
 
-              <p className="text-slate-600 text-lg leading-relaxed mb-8 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-slate-600 text-lg leading-relaxed mb-6 max-w-2xl mx-auto lg:mx-0">
                 A comprehensive AI-powered platform for collecting, analyzing, and managing faculty performance feedback. Streamline evaluations with intelligent insights and structured approval workflows.
               </p>
 
               <div className="flex justify-center lg:justify-start">
                 <button
                   onClick={() => navigate("/login")}
-                  className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
+                  className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200">
                   Get Started <ArrowRight size={18} />
                 </button>
               </div>
 
               {/* Trust indicators */}
-              <div className="flex flex-wrap items-center gap-6 mt-8 justify-center lg:justify-start">
+              <div className="flex flex-wrap items-center gap-6 mt-6 justify-center lg:justify-start">
                 {[
                   "Google OAuth Secured",
                   "AI-Powered Analysis",
@@ -170,13 +170,13 @@ export default function Landing() {
                   <img
                     src={campusImg}
                     alt="MITS Campus"
-                    className="w-full h-96 object-cover"
+                    className="w-full h-80 object-cover"
                     onError={e => { e.target.src = "https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80"; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
                   
                   {/* Floating badge */}
-                  <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                         <TrendingUp size={24} className="text-emerald-600" />
@@ -194,46 +194,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── FEATURES ── */}
-      <section className="py-20 bg-gradient-to-br from-white via-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-wide mb-4">
-              <Target size={14} />
-              Key Features
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">
-              Everything You Need for<br />Effective Feedback Management
-            </h2>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Powerful tools designed specifically for academic institutions to streamline faculty evaluation processes.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((feature, i) => {
-              const colorMap = {
-                blue: "from-blue-500 to-blue-600",
-                indigo: "from-indigo-500 to-indigo-600",
-                emerald: "from-emerald-500 to-emerald-600",
-                violet: "from-violet-500 to-violet-600"
-              };
-              return (
-                <div key={i} className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:border-slate-300/50 hover:shadow-lg transition-all duration-200 group">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[feature.color]} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <feature.icon size={28} className="text-white" />
-                  </div>
-                  <h3 className="text-slate-900 font-bold text-lg mb-2">{feature.title}</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">{feature.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* ── FEATURES ── REMOVED - Keeping page compact */}
 
       {/* ── TEAM SECTION ── */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <section className="py-16 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -315,7 +279,7 @@ export default function Landing() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-slate-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
