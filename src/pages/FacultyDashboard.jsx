@@ -83,6 +83,18 @@ function ReportCard({ report, onAcknowledge, acknowledging }) {
           </div>
         </div>
 
+        {/* HOD Action Taken - ALWAYS VISIBLE */}
+        {report?.actionTaken && (
+          <div className="mt-4 pt-4 border-t">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+              <p className="text-xs font-bold text-indigo-700 mb-1.5 uppercase tracking-wide flex items-center gap-1.5">
+                <span>✍️</span> Action Taken by HOD
+              </p>
+              <p className="text-sm text-slate-800 leading-relaxed">{report.actionTaken}</p>
+            </div>
+          </div>
+        )}
+
         {/* Expanded details — AI Analysis Style */}
         {expanded && (
           <div className="mt-4 pt-4 border-t space-y-4">
@@ -158,13 +170,7 @@ function ReportCard({ report, onAcknowledge, acknowledging }) {
               </div>
             </div>
 
-            {/* Action Taken by HOD */}
-            {report?.actionTaken && (
-              <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
-                <p className="text-xs font-bold text-indigo-700 mb-1.5 uppercase tracking-wide">✍️ Action Taken by HOD</p>
-                <p className="text-sm text-slate-800 leading-relaxed">{report.actionTaken}</p>
-              </div>
-            )}
+            {/* Removed duplicate - Action Taken now shown above always */}
           </div>
         )}
       </div>
