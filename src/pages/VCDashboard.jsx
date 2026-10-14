@@ -153,14 +153,15 @@ export default function VCDashboard() {
     setActionSaving(true);
     const numbered = autoNumber(actionComment);
     try {
-      await api.patch(`/api/submissions/${actionModal._id}/status`, {
-        status: actionModal.status,
-        vcComment: numbered,
+      // Dedicated endpoint: saves vcComment on submission AND propagates
+      // actionTaken to every FacultyReport so faculty see it + it appears in PDFs
+      await api.patch(`/api/submissions/${actionModal._id}/action-taken`, {
+        actionTaken: numbered,
       });
-      toast.success("Action taken comment saved");
+      toast.success("Action taken saved — faculty will see it in their dashboard and PDFs ✓");
       setActionModal(null); setActionComment("");
       fetchSubmissions();
-    } catch { toast.error("Failed to save comment"); }
+    } catch { toast.error("Failed to save action taken"); }
     finally { setActionSaving(false); }
   }
 
