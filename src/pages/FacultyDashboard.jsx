@@ -762,7 +762,7 @@ export default function FacultyDashboard() {
                             <th className="px-4 py-3 text-center">Resp.</th>
                             <th className="px-4 py-3 text-left">Appreciation</th>
                             <th className="px-4 py-3 text-left">Needs Attention</th>
-                            <th className="px-4 py-3 text-left">HOD Remarks</th>
+                            <th className="px-4 py-3 text-left">Action Taken by HOD</th>
                             <th className="px-4 py-3 text-center">Status</th>
                             <th className="px-4 py-3 text-center">Action</th>
                           </tr>
@@ -818,8 +818,12 @@ export default function FacultyDashboard() {
                                       ))}</div>
                                     : <span className="text-slate-300 text-xs">No suggestions</span>}
                                 </td>
-                                <td className="px-4 py-3 text-xs text-slate-600 max-w-[140px]">
-                                  {report.hodRemarks||<span className="text-slate-300">—</span>}
+                                <td className="px-4 py-3 max-w-[180px]">
+                                  {report.actionTaken
+                                    ? <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1.5">
+                                        <p className="text-xs text-slate-800 leading-snug">{report.actionTaken}</p>
+                                      </div>
+                                    : <span className="text-slate-300 text-xs">—</span>}
                                 </td>
                                 <td className="px-4 py-3 text-center whitespace-nowrap">
                                   {approved
