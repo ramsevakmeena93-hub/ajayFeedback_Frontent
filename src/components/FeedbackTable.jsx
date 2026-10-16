@@ -144,12 +144,15 @@ function EditableComments({ reportId, field, items, color, commentPercentages, o
   );
 }
 
-function ActionTakenCell({ reportId, value, onSave }) {
+function ActionTakenCell({ reportId, value, onSave, commentsNeedingAttention, token }) {
   const [open, setOpen] = useState(false);
   const [val, setVal] = useState(value || "");
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggested, setSuggested] = useState(null); // stores last AI suggestion
 
   function openModal() {
     setVal(value || "");
+    setSuggested(null);
     setOpen(true);
   }
 
@@ -157,6 +160,30 @@ function ActionTakenCell({ reportId, value, onSave }) {
     onSave && onSave(reportId, "actionTaken", val);
     setOpen(false);
   }
+
+  async function handleSuggest() {
+    setSuggesting(true);
+    try {
+      const res = await fetch(`/api/reports/${reportId}/suggest-action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.suggestion) {
+        setSuggested(data.suggestion);
+        setVal(data.suggestion);
+      }
+    } catch {
+      // silently ignore — HOD can still type manually
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
+  const hasAttention = commentsNeedingAttention && commentsNeedingAttention.length > 0;
 
   return (
     <>
@@ -179,6 +206,7 @@ function ActionTakenCell({ reportId, value, onSave }) {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
           onClick={e => { if (e.target === e.currentTarget) setOpen(false); }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in">
+
             {/* Header */}
             <div className="px-5 py-3.5 flex items-center justify-between bg-indigo-600 text-white">
               <span className="font-bold text-sm tracking-wide">✍️ Action Taken by HOD</span>
@@ -186,25 +214,59 @@ function ActionTakenCell({ reportId, value, onSave }) {
             </div>
 
             <div className="p-5 space-y-3">
+
+              {/* AI Suggest Banner */}
+              <div className="flex items-center gap-3 bg-gradient-to-r from-violet-50 to-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                <span className="text-xl shrink-0">🤖</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-indigo-800">
+                    {hasAttention
+                      ? `AI can analyse ${commentsNeedingAttention.length} need-attention comment${commentsNeedingAttention.length > 1 ? 's' : ''} and draft an action for you`
+                      : 'No need-attention comments — AI will write a default positive action'}
+                  </p>
+                  <p className="text-[10px] text-indigo-500 mt-0.5">You can edit the suggestion before saving</p>
+                </div>
+                <button
+                  onClick={handleSuggest}
+                  disabled={suggesting}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg transition-all"
+                >
+                  {suggesting ? (
+                    <><span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin inline-block"/>Generating...</>
+                  ) : (
+                    <>✨ {suggested ? 'Regenerate' : 'Suggest'}</>
+                  )}
+                </button>
+              </div>
+
               {/* Edit area */}
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Describe the corrective action</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Action Taken</p>
+                  {val.trim() && (
+                    <button onClick={() => setVal("")} className="text-[10px] text-red-400 hover:text-red-600 font-medium">Clear</button>
+                  )}
+                </div>
                 <textarea
                   autoFocus
-                  rows={6}
+                  rows={7}
                   className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 leading-relaxed"
                   value={val}
-                  onChange={e => setVal(e.target.value)}
-                  placeholder="Example: Conducted faculty meeting to discuss teaching methodology improvements. Assigned mentor to work on student engagement techniques."
+                  onChange={e => { setVal(e.target.value); if (suggested && e.target.value !== suggested) setSuggested(null); }}
+                  placeholder="Click '✨ Suggest' to let AI draft an action, or write your own here..."
                 />
-                <p className="text-xs text-slate-400">Explain what steps were taken to address the feedback.</p>
+                <p className="text-[10px] text-slate-400">
+                  {suggested && val === suggested
+                    ? '✅ AI suggestion applied — you can edit before saving'
+                    : 'Describe the corrective steps taken to address student feedback.'}
+                </p>
               </div>
 
               {/* Live Preview */}
               {val.trim() && (
                 <div className="space-y-1.5">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Preview</p>
-                  <div className="border border-indigo-200 rounded-xl px-4 py-3 bg-indigo-50 max-h-[200px] overflow-y-auto">
+                  <div className="border border-indigo-200 rounded-xl px-4 py-3 bg-indigo-50 max-h-[160px] overflow-y-auto">
                     <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{val.trim()}</p>
                   </div>
                 </div>
@@ -249,7 +311,7 @@ function EditableCell({ reportId, field, value, onEdit, cls }) {
 
 const PAGE_SIZE = 40;
 
-export default function FeedbackTable({ reports, selected, onSelect, okReviewed, onInlineOk, onSendToFaculty, onHODApprove, onFieldEdit, onDeleteReport, hodUser, vcUser, submittedIds }) {
+export default function FeedbackTable({ reports, selected, onSelect, okReviewed, onInlineOk, onSendToFaculty, onHODApprove, onFieldEdit, onDeleteReport, hodUser, vcUser, submittedIds, token }) {
   const reviewed = okReviewed || new Set();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -394,7 +456,7 @@ export default function FeedbackTable({ reports, selected, onSelect, okReviewed,
                       onSave={onFieldEdit}
                     />
                   </td>
-                  <td className="px-3 py-3 min-w-[120px]"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} /></td>
+                  <td className="px-3 py-3 min-w-[120px]"><ActionTakenCell reportId={report._id} value={report.actionTaken} onSave={onFieldEdit} commentsNeedingAttention={report.commentsNeedingAttention} token={token} /></td>
                   <td className="px-3 py-3 w-16">
                     <button onClick={() => setViewReport(report)}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors border border-indigo-200">

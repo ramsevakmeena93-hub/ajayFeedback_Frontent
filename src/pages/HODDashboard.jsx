@@ -626,6 +626,7 @@ export default function HODDashboard() {
                 onFieldEdit={handleFieldEdit} onDeleteReport={handleDeleteReport}
                 submittedIds={submittedIds}
                 hodUser={user} vcUser={vcUser}
+                token={token}
               />
             </div>
           )}
