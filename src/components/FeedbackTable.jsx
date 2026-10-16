@@ -2,6 +2,7 @@
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Search, Eye, Trash2, Pencil, X as XIcon, Check } from "lucide-react";
 import ReportDetailModal from "./ReportDetailModal";
+import axios from "axios";
 
 const STATUS_CFG = {
   processed:       { cls:"badge-emerald", label:"Processed" },
@@ -164,14 +165,11 @@ function ActionTakenCell({ reportId, value, onSave, commentsNeedingAttention, to
   async function handleSuggest() {
     setSuggesting(true);
     try {
-      const res = await fetch(`/api/reports/${reportId}/suggest-action`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
+      const { data } = await axios.post(
+        `/api/reports/${reportId}/suggest-action`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       if (data.suggestion) {
         setSuggested(data.suggestion);
         setVal(data.suggestion);
