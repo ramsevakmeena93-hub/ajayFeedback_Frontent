@@ -270,9 +270,9 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 </div>
               </div>
               <div className="p-3 space-y-1.5 max-h-56 overflow-y-auto">
-                {(report.appreciation||[]).filter(t => t.trim().split(/\s+/).length >= 6).length === 0
+                {(report.appreciation||[]).filter(t => t && t.trim().split(/\s+/).length >= 5).length === 0
                   ? <p className="text-xs text-slate-400 italic py-2 text-center">No detailed comments</p>
-                  : (report.appreciation||[]).filter(t => t.trim().split(/\s+/).length >= 6).map((t,i) => (
+                  : (report.appreciation||[]).filter(t => t && t.trim().split(/\s+/).length >= 5).map((t,i) => (
                     <div key={i} className="flex items-start justify-between gap-2 text-sm text-slate-700 leading-relaxed p-2 hover:bg-emerald-50/50 rounded transition-colors">
                       <div className="flex items-start gap-2 flex-1">
                         <span className="mt-1 text-emerald-500 font-bold shrink-0"></span>
@@ -301,9 +301,9 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                 </div>
               </div>
               <div className="p-3 space-y-1.5 max-h-56 overflow-y-auto">
-                {(report.commentsNeedingAttention||[]).length === 0
+                {(report.commentsNeedingAttention||[]).filter(t => t && t.trim().split(/\s+/).length >= 5).length === 0
                   ? <p className="text-xs text-slate-400 italic py-2 text-center">No concerns raised</p>
-                  : (report.commentsNeedingAttention||[]).map((t,i) => (
+                  : (report.commentsNeedingAttention||[]).filter(t => t && t.trim().split(/\s+/).length >= 5).map((t,i) => (
                     <div key={i} className="flex items-start justify-between gap-2 text-sm text-slate-700 leading-relaxed p-2 hover:bg-amber-50/50 rounded transition-colors">
                       <div className="flex items-start gap-2 flex-1">
                         <span className="mt-1 text-amber-500 font-bold shrink-0">•</span>

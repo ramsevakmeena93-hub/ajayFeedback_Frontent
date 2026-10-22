@@ -185,7 +185,7 @@ function ReportPreviewModal({ report, onClose, onSave, isDark }) {
               </h3>
               <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                 {(report.appreciation || []).length > 0
-                  ? (report.appreciation || []).map((c, i) => (
+                  ? (report.appreciation || []).filter(c => c && c.trim().split(/\s+/).length >= 5).map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs text-emerald-900 dark:text-emerald-200">
                       <CheckCircle size={11} className="text-emerald-600 mt-0.5 shrink-0" />
                       <span>{c}</span>
@@ -204,7 +204,7 @@ function ReportPreviewModal({ report, onClose, onSave, isDark }) {
               </h3>
               <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                 {(report.commentsNeedingAttention || []).length > 0
-                  ? (report.commentsNeedingAttention || []).map((c, i) => (
+                  ? (report.commentsNeedingAttention || []).filter(c => c && c.trim().split(/\s+/).length >= 5).map((c, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200">
                       <AlertTriangle size={11} className="text-amber-600 mt-0.5 shrink-0" />
                       <span>{c}</span>

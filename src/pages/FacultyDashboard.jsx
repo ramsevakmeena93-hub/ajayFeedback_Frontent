@@ -800,7 +800,7 @@ export default function FacultyDashboard() {
                                     {pctEntries.map(([label,pct])=>(
                                       <span key={label} className="text-xs bg-emerald-50 border border-emerald-200 text-emerald-700 rounded px-1.5 py-0.5 inline-block mr-1 mb-0.5">{label} {pct}%</span>
                                     ))}
-                                    {(report.appreciation||[]).map((c,i)=>(
+                                    {(report.appreciation||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).map((c,i)=>(
                                       <div key={i} className="flex items-start gap-1 text-xs text-slate-700 leading-snug mt-0.5">
                                         <span className="text-emerald-500 font-bold shrink-0 mt-0.5">•</span><span>{c}</span>
                                       </div>
@@ -809,8 +809,8 @@ export default function FacultyDashboard() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 max-w-[200px]">
-                                  {(report.commentsNeedingAttention||[]).length>0
-                                    ? <div className="space-y-1">{(report.commentsNeedingAttention||[]).map((c,i)=>(
+                                  {(report.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).length>0
+                                    ? <div className="space-y-1">{(report.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).map((c,i)=>(
                                         <div key={i} className="flex items-start gap-1 text-xs leading-snug">
                                           <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
                                           <span className="text-slate-700">{c}</span>
