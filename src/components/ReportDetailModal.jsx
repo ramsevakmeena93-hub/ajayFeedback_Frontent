@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { X, FileText, User, BarChart3, CheckCircle2, Clock, AlertCircle, ExternalLink, ThumbsUp, AlertTriangle, Zap, ChevronDown, Pencil } from "lucide-react";
 import { getPdfUrl, API_BASE } from "../api";
 import toast from "react-hot-toast";
-import MoveCommentButton from "./MoveCommentButton";
 import CommentEditor from "./CommentEditor";
 
 const STATUS_CFG = {
@@ -278,7 +277,6 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                         <span className="mt-1 text-emerald-500 font-bold shrink-0"></span>
                         <span>{t}</span>
                       </div>
-                      <MoveCommentButton comment={t} reportId={report._id} from="appreciation" onMoved={(updatedReport) => setReport(updatedReport)} />
                     </div>
                   ))}
               </div>
@@ -310,7 +308,6 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
                         <span className="mt-1 text-amber-500 font-bold shrink-0">•</span>
                         <span>{t}</span>
                       </div>
-                      <MoveCommentButton comment={t} reportId={report._id} from="attention" onMoved={(updatedReport) => setReport(updatedReport)} />
                     </div>
                   ))}
               </div>
