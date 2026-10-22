@@ -180,9 +180,8 @@ export default function CommentEditor({
             <div className={`border rounded-xl overflow-hidden ${C.previewBg}`}>
               {previewLines.length === 0 ? (
                 <p className="text-xs text-slate-400 italic text-center py-3">No comments yet.</p>
-              ) : previewLines.map((line, i) => {
-                // find the real index in activeList so move/delete work correctly
-                const realIdx = activeList.indexOf(line);
+              ) : activeList.map((line, i) => {
+                if (!line.trim()) return null;
                 return (
                   <div key={i} className={`flex items-center gap-2 px-3 py-2 border-b border-black/5 last:border-b-0 group ${C.rowHover} transition-colors`}>
                     <span className={`text-base font-black shrink-0 leading-none ${C.bullet}`}>•</span>
@@ -190,7 +189,7 @@ export default function CommentEditor({
 
                     {/* Move button */}
                     <button
-                      onClick={() => moveLine(realIdx)}
+                      onClick={() => moveLine(i)}
                       title={`Move to ${showRight ? title : otherTitle}`}
                       className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors opacity-0 group-hover:opacity-100 ${C.moveBtn}`}
                     >
@@ -200,7 +199,7 @@ export default function CommentEditor({
 
                     {/* Delete button */}
                     <button
-                      onClick={() => deleteLine(realIdx)}
+                      onClick={() => deleteLine(i)}
                       title="Remove this comment"
                       className="shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
                     >
