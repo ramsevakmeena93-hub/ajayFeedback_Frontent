@@ -1,11 +1,26 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { X, Save, ArrowRight, ArrowLeft, ThumbsUp, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-/**
- * CommentEditor – Bullet-list editor with live preview + always-visible Move buttons.
- * Each comment = one editable bullet row (no textarea, proper bullet UI).
- */
+// Minimum word count to show a comment — filters out "ok", "good", "nice" etc.
+const MIN_WORDS = 4;
+
+// Single-word filler phrases that add no value
+const FILLER_PHRASES = new Set([
+  'ok', 'okay', 'good', 'nice', 'fine', 'great', 'excellent', 'awesome',
+  'bad', 'poor', 'no', 'yes', 'na', 'n/a', 'nothing', 'none', 'nil',
+  'satisfactory', 'average', 'moderate', 'alright', 'cool', 'okay.',
+  'good.', 'nice.', 'fine.', 'great.', 'thanks', 'thank you', 'thank',
+]);
+
+function filterSmall(list) {
+  return (list || []).filter(l => {
+    const trimmed = l.trim().toLowerCase();
+    if (FILLER_PHRASES.has(trimmed)) return false;
+    return trimmed.split(/\s+/).length >= MIN_WORDS;
+  });
+}
+
 export default function CommentEditor({
   comments,
   otherComments,
@@ -15,66 +30,63 @@ export default function CommentEditor({
   onSave,
   onClose,
 }) {
-  const [leftList,  setLeftList]  = useState([...comments]);
-  const [rightList, setRightList] = useState([...otherComments]);
+  // Filter small comments on load — keep small ones only if user typed them manually
+  const [leftList,  setLeftList]  = useState(filterSmall(comments));
+  const [rightList, setRightList] = useState(filterSmall(otherComments));
   const [showRight, setShowRight] = useState(false);
 
-  const isGreen  = color === 'green';
+  const isGreen       = color === 'green';
   const activeList    = showRight ? rightList    : leftList;
   const setActiveList = showRight ? setRightList : setLeftList;
   const activeTitle   = showRight ? otherTitle   : title;
 
-  // Colours for active side
+  // Active tab colours
+  const isActiveGreen = isGreen === !showRight;
   const C = {
-    header:    isGreen === !showRight ? 'bg-emerald-600' : 'bg-amber-600',
-    tabActive: isGreen === !showRight ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white',
-    tabOther:  'bg-slate-100 text-slate-500 hover:bg-slate-200',
-    bullet:    isGreen === !showRight ? 'text-emerald-500' : 'text-amber-500',
-    inputBorder: isGreen === !showRight ? 'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-100' : 'border-amber-200 focus:border-amber-400 focus:ring-amber-100',
-    rowHover:  isGreen === !showRight ? 'hover:bg-emerald-50' : 'hover:bg-amber-50',
-    previewBg: isGreen === !showRight ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200',
-    moveBtn:   isGreen === !showRight ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-200' : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border border-amber-200',
-    addBtn:    isGreen === !showRight ? 'text-emerald-600 hover:bg-emerald-50 border-emerald-200' : 'text-amber-600 hover:bg-amber-50 border-amber-200',
-    saveBtn:   isGreen === !showRight ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700',
+    header     : isActiveGreen ? 'bg-emerald-600' : 'bg-amber-600',
+    bullet     : isActiveGreen ? 'text-emerald-500' : 'text-amber-500',
+    inputBorder: isActiveGreen
+      ? 'border-emerald-200 focus:border-emerald-400 focus:ring-emerald-100'
+      : 'border-amber-200 focus:border-amber-400 focus:ring-amber-100',
+    rowHover   : isActiveGreen ? 'hover:bg-emerald-50' : 'hover:bg-amber-50',
+    previewBg  : isActiveGreen ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200',
+    moveBtn    : isActiveGreen
+      ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border border-emerald-200'
+      : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border border-amber-200',
+    addBtn     : isActiveGreen ? 'text-emerald-600 hover:bg-emerald-50 border-emerald-200' : 'text-amber-600 hover:bg-amber-50 border-amber-200',
+    saveBtn    : isActiveGreen ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700',
   };
 
-  // Edit a line
-  function updateLine(index, value) {
+  function updateLine(i, value) {
     const updated = [...activeList];
-    updated[index] = value;
+    updated[i] = value;
     setActiveList(updated);
   }
 
-  // Delete a line
-  function deleteLine(index) {
-    setActiveList(activeList.filter((_, i) => i !== index));
+  function deleteLine(i) {
+    setActiveList(activeList.filter((_, idx) => idx !== i));
   }
 
-  // Add new empty line
   function addLine() {
     setActiveList([...activeList, '']);
   }
 
-  // Move from left -> right
-  function moveToRight(index) {
-    const item = leftList[index];
-    setLeftList(leftList.filter((_, i) => i !== index));
-    setRightList([...rightList, item]);
-  }
-
-  // Move from right -> left
-  function moveToLeft(index) {
-    const item = rightList[index];
-    setRightList(rightList.filter((_, i) => i !== index));
-    setLeftList([...leftList, item]);
+  // Move current tab item → other tab
+  function moveLine(i) {
+    const item = activeList[i];
+    setActiveList(activeList.filter((_, idx) => idx !== i));
+    if (showRight) setLeftList(prev  => [...prev,  item]);
+    else           setRightList(prev => [...prev, item]);
   }
 
   function handleSave() {
-    // Filter out blank entries before saving
-    onSave(leftList.filter(l => l.trim()), rightList.filter(l => l.trim()));
+    onSave(
+      leftList.filter(l => l.trim()),
+      rightList.filter(l => l.trim())
+    );
   }
 
-  // Preview lines (non-empty only)
+  // Preview — non-empty only
   const previewLines = activeList.filter(l => l.trim());
 
   const modalContent = (
@@ -84,7 +96,7 @@ export default function CommentEditor({
         {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 ${C.header}`}>
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            {isGreen === !showRight ? <ThumbsUp size={16}/> : <AlertTriangle size={16}/>}
+            {isActiveGreen ? <ThumbsUp size={16}/> : <AlertTriangle size={16}/>}
             {activeTitle}
           </h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 text-white transition-colors">
@@ -96,13 +108,19 @@ export default function CommentEditor({
         <div className="flex border-b border-slate-200 px-4 pt-3 gap-2 shrink-0 bg-white">
           <button
             onClick={() => setShowRight(false)}
-            className={`px-4 py-1.5 rounded-t-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${!showRight ? (isGreen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white') : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+            className={`px-4 py-1.5 rounded-t-lg text-xs font-bold transition-colors flex items-center gap-1.5
+              ${!showRight
+                ? (isGreen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white')
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
           >
             <ThumbsUp size={11}/> {title} ({leftList.filter(l=>l.trim()).length})
           </button>
           <button
             onClick={() => setShowRight(true)}
-            className={`px-4 py-1.5 rounded-t-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${showRight ? (!isGreen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white') : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+            className={`px-4 py-1.5 rounded-t-lg text-xs font-bold transition-colors flex items-center gap-1.5
+              ${showRight
+                ? (!isGreen ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white')
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
           >
             <AlertTriangle size={11}/> {otherTitle} ({rightList.filter(l=>l.trim()).length})
           </button>
@@ -111,7 +129,7 @@ export default function CommentEditor({
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
 
-          {/* ── Bullet-list editable section ── */}
+          {/* ── Editable bullet list ── */}
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">ONE COMMENT PER LINE</p>
             <div className="border border-slate-200 rounded-xl overflow-hidden">
@@ -123,8 +141,9 @@ export default function CommentEditor({
                   key={i}
                   className={`flex items-center gap-2 px-3 py-2 border-b border-slate-100 last:border-b-0 bg-white ${C.rowHover} transition-colors`}
                 >
-                  {/* Bullet dot */}
+                  {/* Bullet */}
                   <span className={`text-lg font-black shrink-0 leading-none ${C.bullet}`}>•</span>
+
                   {/* Editable input */}
                   <input
                     type="text"
@@ -133,6 +152,7 @@ export default function CommentEditor({
                     placeholder="Type comment here..."
                     className={`flex-1 text-sm text-slate-700 bg-transparent border border-transparent rounded-lg px-2 py-1 focus:outline-none focus:border focus:ring-2 ${C.inputBorder} transition`}
                   />
+
                   {/* Delete button */}
                   <button
                     onClick={() => deleteLine(i)}
@@ -144,7 +164,8 @@ export default function CommentEditor({
                 </div>
               ))}
             </div>
-            {/* Add new line button */}
+
+            {/* Add new line */}
             <button
               onClick={addLine}
               className={`mt-2 w-full flex items-center justify-center gap-1.5 py-2 border border-dashed rounded-xl text-xs font-semibold transition-colors ${C.addBtn}`}
@@ -153,39 +174,42 @@ export default function CommentEditor({
             </button>
           </div>
 
-          {/* ── Preview with always-visible Move buttons ── */}
+          {/* ── Preview — with move + delete buttons ── */}
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">PREVIEW</p>
-            <div className={`border rounded-xl p-3 ${C.previewBg} space-y-2`}>
+            <div className={`border rounded-xl overflow-hidden ${C.previewBg}`}>
               {previewLines.length === 0 ? (
                 <p className="text-xs text-slate-400 italic text-center py-3">No comments yet.</p>
               ) : previewLines.map((line, i) => {
-                // find the actual index in activeList (skip blanks)
-                const realIndex = activeList.findIndex((l, idx) => {
-                  let count = -1;
-                  for (let j = 0; j <= idx; j++) {
-                    if (activeList[j].trim()) count++;
-                  }
-                  return count === i && activeList[idx].trim();
-                });
+                // find the real index in activeList so move/delete work correctly
+                const realIdx = activeList.indexOf(line);
                 return (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className={`text-base font-black shrink-0 mt-0.5 leading-none ${C.bullet}`}>•</span>
+                  <div key={i} className={`flex items-center gap-2 px-3 py-2 border-b border-black/5 last:border-b-0 group ${C.rowHover} transition-colors`}>
+                    <span className={`text-base font-black shrink-0 leading-none ${C.bullet}`}>•</span>
                     <span className="flex-1 text-sm text-slate-700 leading-relaxed">{line}</span>
-                    {/* Always-visible Move button */}
+
+                    {/* Move button */}
                     <button
-                      onClick={() => showRight ? moveToLeft(realIndex) : moveToRight(realIndex)}
+                      onClick={() => moveLine(realIdx)}
                       title={`Move to ${showRight ? title : otherTitle}`}
-                      className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${C.moveBtn}`}
+                      className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-colors opacity-0 group-hover:opacity-100 ${C.moveBtn}`}
                     >
                       {showRight ? <ArrowLeft size={11}/> : <ArrowRight size={11}/>}
                       <span className="hidden sm:inline">{showRight ? title : otherTitle}</span>
+                    </button>
+
+                    {/* Delete button */}
+                    <button
+                      onClick={() => deleteLine(realIdx)}
+                      title="Remove this comment"
+                      className="shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 size={13}/>
                     </button>
                   </div>
                 );
               })}
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Click the arrow button to move any comment to the other section.</p>
           </div>
 
         </div>
