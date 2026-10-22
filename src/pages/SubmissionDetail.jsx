@@ -218,8 +218,8 @@ export default function SubmissionDetail() {
                   {uniqueReports.map((r, idx) => {
                     const pcts    = r.commentPercentages || {};
                     const pctList = Object.entries(pcts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-                    const appAll  = r.appreciation || [];
-                    const attList = r.commentsNeedingAttention || [];
+                    const appAll  = (r.appreciation || []).filter(c => c && c.trim().split(/\s+/).length >= 5);
+                    const attList = (r.commentsNeedingAttention || []).filter(c => c && c.trim().split(/\s+/).length >= 5);
                     return (
                       <tr key={r._id} className="hover:bg-slate-50 align-top transition-colors">
                         <td className="px-4 py-3 text-slate-400 text-xs">{idx+1}</td>

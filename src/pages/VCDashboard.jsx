@@ -213,7 +213,7 @@ function InlineAnalysis({ sub }) {
                   </span>
                 </div>
                 <div className="space-y-1">
-                  {(r.commentsNeedingAttention||[]).slice(0,3).map((c,j)=>(
+                  {(r.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).slice(0,3).map((c,j)=>(
                     <div key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
                       <span className="text-amber-500 font-bold mt-0.5 shrink-0">•</span>
                       <span>{c}</span>
