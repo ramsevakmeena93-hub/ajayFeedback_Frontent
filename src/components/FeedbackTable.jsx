@@ -122,17 +122,75 @@ function ActionTakenCell({ reportId, value, onSave, commentsNeedingAttention, to
   async function handleSuggest() {
     setSuggesting(true);
     try {
-      const { data } = await axios.post(
-        `/api/reports/${reportId}/suggest-action`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (data.suggestion) {
-        setSuggested(data.suggestion);
-        setVal(data.suggestion);
+      const HF_TOKEN = import.meta.env.VITE_HF_API_TOKEN || '';
+      const comments = (commentsNeedingAttention || []).filter(Boolean).slice(0, 20);
+
+      if (comments.length === 0) {
+        setVal('Ensure consistent delivery of quality lectures and maintain active student engagement throughout the semester.');
+        setSuggested('default');
+        return;
       }
-    } catch {
-      // silently ignore — HOD can still type manually
+
+      const commentsList = comments.map((c, i) => `${i + 1}. ${c}`).join('\n');
+      const prompt = `<s>[INST] You are a Head of Department giving written improvement instructions to a faculty member.
+
+Student complaints:
+${commentsList}
+
+Write 3-4 direct improvement instructions to the faculty. Rules:
+- Start directly with the instruction, no intro sentence
+- Each instruction on a new line
+- Use direct tone: "Ensure...", "Upload...", "Conduct...", "Improve...", "Provide..."
+- Be specific to the actual complaints
+- No bullet points, no numbering
+
+[/INST]`;
+
+      const res = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${HF_TOKEN}`,
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { max_new_tokens: 200, temperature: 0.4, do_sample: true, return_full_text: false }
+        })
+      });
+
+      const data = await res.json();
+      let text = '';
+      if (Array.isArray(data) && data[0]?.generated_text) {
+        text = data[0].generated_text.trim();
+      } else if (data?.generated_text) {
+        text = data.generated_text.trim();
+      } else if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Clean up any leftover instruction markers
+      text = text.replace(/<\/s>|<s>|\[INST\]|\[\/INST\]/g, '').trim();
+
+      if (text) {
+        setSuggested(text);
+        setVal(text);
+      } else {
+        throw new Error('empty');
+      }
+    } catch (err) {
+      // Fallback: rule-based direct instructions
+      const c = (commentsNeedingAttention || []).join(' ').toLowerCase();
+      const lines = [];
+      if (/notes?|slides?|material|upload|share/.test(c))   lines.push('Upload complete notes, slides, and solved examples to the portal before each class.');
+      if (/fast|slow|pace|speed|rush/.test(c))              lines.push('Moderate your teaching pace to ensure students can follow and take notes comfortably.');
+      if (/doubt|question|hesitat|unclear|understand/.test(c)) lines.push('Conduct dedicated doubt-clearing sessions and encourage students to ask questions freely.');
+      if (/boring|interact|engage|example/.test(c))         lines.push('Use real-world examples and interactive Q&A to make lectures more engaging.');
+      if (/lab|practical|code|hands.?on/.test(c))           lines.push('Ensure every lab session includes hands-on coding practice with live demonstrations.');
+      if (/voice|audible|loud|hear/.test(c))                lines.push('Speak clearly and at sufficient volume so all students can hear you properly.');
+      if (lines.length === 0) lines.push('Improve overall teaching effectiveness based on student feedback and maintain regular interaction with students.');
+      const suggestion = lines.slice(0, 4).join('\n');
+      setSuggested(suggestion);
+      setVal(suggestion);
     } finally {
       setSuggesting(false);
     }
