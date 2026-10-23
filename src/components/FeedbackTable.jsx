@@ -178,16 +178,77 @@ Write 3-4 direct improvement instructions to the faculty. Rules:
         throw new Error('empty');
       }
     } catch (err) {
-      // Fallback: rule-based direct instructions
-      const c = (commentsNeedingAttention || []).join(' ').toLowerCase();
+      // Smart fallback — builds instructions from actual comment content
+      const comments = (commentsNeedingAttention || []).filter(Boolean);
+      const combined = comments.join(' ').toLowerCase();
       const lines = [];
-      if (/notes?|slides?|material|upload|share/.test(c))   lines.push('Upload complete notes, slides, and solved examples to the portal before each class.');
-      if (/fast|slow|pace|speed|rush/.test(c))              lines.push('Moderate your teaching pace to ensure students can follow and take notes comfortably.');
-      if (/doubt|question|hesitat|unclear|understand/.test(c)) lines.push('Conduct dedicated doubt-clearing sessions and encourage students to ask questions freely.');
-      if (/boring|interact|engage|example/.test(c))         lines.push('Use real-world examples and interactive Q&A to make lectures more engaging.');
-      if (/lab|practical|code|hands.?on/.test(c))           lines.push('Ensure every lab session includes hands-on coding practice with live demonstrations.');
-      if (/voice|audible|loud|hear/.test(c))                lines.push('Speak clearly and at sufficient volume so all students can hear you properly.');
-      if (lines.length === 0) lines.push('Improve overall teaching effectiveness based on student feedback and maintain regular interaction with students.');
+
+      // Extract the most mentioned subject/topic from comments for specificity
+      const subjectMatch = combined.match(/\b(os|dbms|java|python|c\+\+|data structure|network|web|algorithm|mathematics|physics|chemistry|english|cloud|machine learning|ai|cn|se|toc|flat|dsa)\b/i);
+      const subject = subjectMatch ? subjectMatch[1].toUpperCase() : null;
+      const subjectHint = subject ? ` for ${subject}` : '';
+
+      // Notes / material
+      if (/notes?|slides?|material|ppt|pdf|upload|share|provide/.test(combined)) {
+        const late = /late|not (on )?time|delay|after class|before/.test(combined);
+        lines.push(late
+          ? `Upload lecture notes and slides${subjectHint} to the portal at least one day before the class, not after.`
+          : `Provide complete notes, slides, and reference material${subjectHint} to students on the portal regularly.`);
+      }
+
+      // Speed / pace
+      if (/too fast|very fast|fast pace|speak.*fast|teach.*fast|slow down|rushing|jaldi/.test(combined)) {
+        lines.push(`Slow down the lecture delivery${subjectHint} — students are unable to keep up with the current pace of teaching.`);
+      } else if (/too slow|very slow|slow pace/.test(combined)) {
+        lines.push(`Increase the lecture pace${subjectHint} to ensure the syllabus is covered within the scheduled timeline.`);
+      }
+
+      // Clarity / understanding
+      if (/not clear|unclear|don.?t understand|difficult to (follow|understand)|concept.*not|confus/.test(combined)) {
+        lines.push(`Explain concepts${subjectHint} step by step from basics — multiple students have reported difficulty in understanding the current approach.`);
+      }
+
+      // Doubt sessions
+      if (/doubt|question.*not|not.*answer|hesitat|fear|scared|can.?t ask/.test(combined)) {
+        lines.push(`Conduct regular doubt-clearing sessions${subjectHint} and create an open environment where students feel comfortable asking questions.`);
+      }
+
+      // Interaction / engagement
+      if (/boring|monoton|not interact|one.?way|no interact|dull|no discussion/.test(combined)) {
+        lines.push(`Make classes${subjectHint} more interactive by incorporating discussions, real-world examples, and student participation activities.`);
+      }
+
+      // Lab / practical
+      if (/lab|practical|coding|hands.?on|program|implement|run|debug/.test(combined)) {
+        lines.push(`Ensure lab sessions${subjectHint} include hands-on practice — students should write and execute code themselves, not just observe.`);
+      }
+
+      // Voice / audibility
+      if (/voice|loud|audible|hear|mic|sound|volume/.test(combined)) {
+        lines.push(`Speak at a higher volume and more clearly${subjectHint} so that students sitting at the back can also hear properly.`);
+      }
+
+      // Reading from slides
+      if (/read.*slide|only slide|just read|reads? (the )?(ppt|slide|screen|pdf)/.test(combined)) {
+        lines.push(`Avoid reading directly from slides${subjectHint} — explain concepts in your own words with examples and board work.`);
+      }
+
+      // Syllabus completion
+      if (/syllabus|not.*complet|incomplete|behind|rush.*end|last.*minute/.test(combined)) {
+        lines.push(`Ensure the ${subject || 'course'} syllabus is completed well before examinations — plan and follow a weekly teaching schedule.`);
+      }
+
+      // Assessment / marks
+      if (/quiz|marks?|assessment|unfair|criteria|answer key/.test(combined)) {
+        lines.push(`Share assessment criteria and quiz answer keys with students${subjectHint} and ensure evaluation is transparent and fair.`);
+      }
+
+      // If nothing matched, use the actual comment text as context
+      if (lines.length === 0 && comments.length > 0) {
+        lines.push(`Address the following student concerns: "${comments[0].trim()}".`);
+        if (comments.length > 1) lines.push(`Also resolve: "${comments[1].trim()}".`);
+      }
+
       const suggestion = lines.slice(0, 4).join('\n');
       setSuggested(suggestion);
       setVal(suggestion);
