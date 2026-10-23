@@ -66,11 +66,22 @@ function ProtectedRoute({ children, role, workspace }) {
     userRoles.add('faculty');
   }
 
-  // Normalise allowed roles to array
+  // Normalise allowed roles to array and check
   if (role) {
     const allowedRoles = Array.isArray(role) ? role : [role];
     const hasRole = allowedRoles.some(r => userRoles.has(r));
-    if (!hasRole) return <Navigate to="/login" replace />;
+    if (!hasRole) return <Navigate to="/dashboard" replace />;
+  }
+
+  // Enforce workspace: user's activeWorkspace must match one of the allowed workspaces.
+  // This prevents e.g. a provc user from landing on /hod even if they somehow have
+  // a stale cached role. Skip check if no workspace constraint is given.
+  if (workspace) {
+    const allowedWorkspaces = Array.isArray(workspace) ? workspace : [workspace];
+    const activeWs = user.activeWorkspace || user.role;
+    if (!allowedWorkspaces.includes(activeWs)) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return children;

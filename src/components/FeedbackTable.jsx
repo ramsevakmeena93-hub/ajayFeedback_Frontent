@@ -122,130 +122,78 @@ function ActionTakenCell({ reportId, value, onSave, commentsNeedingAttention, to
   async function handleSuggest() {
     setSuggesting(true);
     try {
-      const HF_TOKEN = import.meta.env.VITE_HF_API_TOKEN || '';
-      const comments = (commentsNeedingAttention || []).filter(Boolean).slice(0, 20);
+      const comments = (commentsNeedingAttention || []).filter(Boolean);
 
       if (comments.length === 0) {
-        setVal('Ensure consistent delivery of quality lectures and maintain active student engagement throughout the semester.');
-        setSuggested('default');
+        const suggestion = 'Ensure consistent delivery of quality lectures and maintain active student engagement throughout the semester.';
+        setSuggested(suggestion);
+        setVal(suggestion);
         return;
       }
 
-      const commentsList = comments.map((c, i) => `${i + 1}. ${c}`).join('\n');
-      const prompt = `<s>[INST] You are a Head of Department giving written improvement instructions to a faculty member.
-
-Student complaints:
-${commentsList}
-
-Write 3-4 direct improvement instructions to the faculty. Rules:
-- Start directly with the instruction, no intro sentence
-- Each instruction on a new line
-- Use direct tone: "Ensure...", "Upload...", "Conduct...", "Improve...", "Provide..."
-- Be specific to the actual complaints
-- No bullet points, no numbering
-
-[/INST]`;
-
-      const res = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${HF_TOKEN}`,
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { max_new_tokens: 200, temperature: 0.4, do_sample: true, return_full_text: false }
-        })
-      });
-
-      const data = await res.json();
-      let text = '';
-      if (Array.isArray(data) && data[0]?.generated_text) {
-        text = data[0].generated_text.trim();
-      } else if (data?.generated_text) {
-        text = data.generated_text.trim();
-      } else if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      // Clean up any leftover instruction markers
-      text = text.replace(/<\/s>|<s>|\[INST\]|\[\/INST\]/g, '').trim();
-
-      if (text) {
-        setSuggested(text);
-        setVal(text);
-      } else {
-        throw new Error('empty');
-      }
-    } catch (err) {
-      // Smart fallback — builds instructions from actual comment content
-      const comments = (commentsNeedingAttention || []).filter(Boolean);
+      // Smart rule-based suggestions — unique per faculty based on actual comment content
       const combined = comments.join(' ').toLowerCase();
       const lines = [];
 
-      // Extract the most mentioned subject/topic from comments for specificity
+      // Detect subject from comments for specificity
       const subjectMatch = combined.match(/\b(os|dbms|java|python|c\+\+|data structure|network|web|algorithm|mathematics|physics|chemistry|english|cloud|machine learning|ai|cn|se|toc|flat|dsa)\b/i);
       const subject = subjectMatch ? subjectMatch[1].toUpperCase() : null;
       const subjectHint = subject ? ` for ${subject}` : '';
 
-      // Notes / material
       if (/notes?|slides?|material|ppt|pdf|upload|share|provide/.test(combined)) {
-        const late = /late|not (on )?time|delay|after class|before/.test(combined);
+        const late = /late|not (on )?time|delay|after class/.test(combined);
         lines.push(late
           ? `Upload lecture notes and slides${subjectHint} to the portal at least one day before the class, not after.`
           : `Provide complete notes, slides, and reference material${subjectHint} to students on the portal regularly.`);
       }
 
-      // Speed / pace
-      if (/too fast|very fast|fast pace|speak.*fast|teach.*fast|slow down|rushing|jaldi/.test(combined)) {
+      if (/too fast|very fast|fast pace|speak.*fast|teach.*fast|rushing|jaldi/.test(combined)) {
         lines.push(`Slow down the lecture delivery${subjectHint} — students are unable to keep up with the current pace of teaching.`);
       } else if (/too slow|very slow|slow pace/.test(combined)) {
         lines.push(`Increase the lecture pace${subjectHint} to ensure the syllabus is covered within the scheduled timeline.`);
+      } else if (/fast|slow|pace|speed/.test(combined)) {
+        lines.push(`Moderate the teaching pace${subjectHint} so that all students can follow the lectures comfortably.`);
       }
 
-      // Clarity / understanding
       if (/not clear|unclear|don.?t understand|difficult to (follow|understand)|concept.*not|confus/.test(combined)) {
-        lines.push(`Explain concepts${subjectHint} step by step from basics — multiple students have reported difficulty in understanding the current approach.`);
+        lines.push(`Explain concepts${subjectHint} step by step from basics — multiple students have reported difficulty in understanding.`);
       }
 
-      // Doubt sessions
       if (/doubt|question.*not|not.*answer|hesitat|fear|scared|can.?t ask/.test(combined)) {
         lines.push(`Conduct regular doubt-clearing sessions${subjectHint} and create an open environment where students feel comfortable asking questions.`);
       }
 
-      // Interaction / engagement
       if (/boring|monoton|not interact|one.?way|no interact|dull|no discussion/.test(combined)) {
-        lines.push(`Make classes${subjectHint} more interactive by incorporating discussions, real-world examples, and student participation activities.`);
+        lines.push(`Make classes${subjectHint} more interactive by incorporating discussions, real-world examples, and student participation.`);
       }
 
-      // Lab / practical
       if (/lab|practical|coding|hands.?on|program|implement|run|debug/.test(combined)) {
         lines.push(`Ensure lab sessions${subjectHint} include hands-on practice — students should write and execute code themselves, not just observe.`);
       }
 
-      // Voice / audibility
       if (/voice|loud|audible|hear|mic|sound|volume/.test(combined)) {
-        lines.push(`Speak at a higher volume and more clearly${subjectHint} so that students sitting at the back can also hear properly.`);
+        lines.push(`Speak at a higher volume and more clearly${subjectHint} so that students at the back of the room can hear properly.`);
       }
 
-      // Reading from slides
       if (/read.*slide|only slide|just read|reads? (the )?(ppt|slide|screen|pdf)/.test(combined)) {
         lines.push(`Avoid reading directly from slides${subjectHint} — explain concepts in your own words with examples and board work.`);
       }
 
-      // Syllabus completion
-      if (/syllabus|not.*complet|incomplete|behind|rush.*end|last.*minute/.test(combined)) {
-        lines.push(`Ensure the ${subject || 'course'} syllabus is completed well before examinations — plan and follow a weekly teaching schedule.`);
+      if (/syllabus|not.*complet|incomplete|behind|rush.*end/.test(combined)) {
+        lines.push(`Ensure the ${subject || 'course'} syllabus is completed well before examinations — plan and follow a weekly schedule.`);
       }
 
-      // Assessment / marks
       if (/quiz|marks?|assessment|unfair|criteria|answer key/.test(combined)) {
-        lines.push(`Share assessment criteria and quiz answer keys with students${subjectHint} and ensure evaluation is transparent and fair.`);
+        lines.push(`Share assessment criteria and quiz answers with students${subjectHint} to ensure transparency in evaluation.`);
       }
 
-      // If nothing matched, use the actual comment text as context
-      if (lines.length === 0 && comments.length > 0) {
-        lines.push(`Address the following student concerns: "${comments[0].trim()}".`);
+      if (/2.?way|two.?way|interact|communicate|discuss/.test(combined)) {
+        lines.push(`Encourage two-way communication${subjectHint} by asking questions, taking student input, and making classes participatory.`);
+      }
+
+      // Last resort — use actual comment text
+      if (lines.length === 0) {
+        lines.push(`Address the student concern: "${comments[0].trim()}".`);
         if (comments.length > 1) lines.push(`Also resolve: "${comments[1].trim()}".`);
       }
 
