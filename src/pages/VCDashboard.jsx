@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -377,247 +377,297 @@ export default function VCDashboard() {
       <Navbar title="Pro-VC Dashboard" subtitle="MITS Gwalior" />
       <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-        {/* ── Banner ── */}
-        <div className="rounded-2xl overflow-hidden shadow-md" style={{background:"linear-gradient(120deg,#1e3a5f 0%,#1e4d8c 60%,#1a3a6e 100%)"}}>
-          <div className="px-8 py-6 flex flex-col gap-5">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <p className="text-blue-200 text-sm font-medium">Pro-Vice-Chancellor Portal</p>
-                <h1 className="text-white text-2xl font-bold mt-0.5">Welcome, {user?.name||"Pro-VC"}</h1>
-                <p className="text-blue-300 text-xs mt-1">MITS Gwalior · Madhav Institute of Technology & Science</p>
-              </div>
-              <div className="flex gap-3 flex-wrap">
-                <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
-                  <p className="text-white text-xl font-black">{approvedCount}</p>
-                  <p className="text-blue-200 text-xs">Approved</p>
-                </div>
-                <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
-                  <p className="text-amber-300 text-xl font-black">{pendingCount}</p>
-                  <p className="text-blue-200 text-xs">Pending</p>
-                </div>
-                {analytics && (
-                  <>
-                    <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
-                      <p className="text-red-300 text-xl font-black">{analytics.summary.criticalCount}</p>
-                      <p className="text-blue-200 text-xs">Critical</p>
-                    </div>
-                    <div className="bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-center">
-                      <p className="text-emerald-300 text-xl font-black">{analytics.summary.overallAvgFFI}</p>
-                      <p className="text-blue-200 text-xs">Avg FFI</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-            {/* HOD status pills */}
-            {allHods.length > 0 && (
-              <div>
-                <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-2">HOD Submission Status</p>
-                <div className="flex flex-wrap gap-2">
-                  {allHods.map(hod => {
-                    const sub = hodStatusMap[hod._id?.toString()];
-                    const isApproved = sub?.status==="approved";
-                    const isPending  = sub&&["submitted","conflict","escalated"].includes(sub.status);
-                    const isRejected = sub?.status==="rejected";
-                    return (
-                      <div key={hod._id} className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium"
-                        style={{
-                          background: isApproved?"rgba(20,184,166,0.15)":isPending?"rgba(251,191,36,0.15)":isRejected?"rgba(239,68,68,0.15)":"rgba(255,255,255,0.08)",
-                          border: isApproved?"1px solid rgba(20,184,166,0.4)":isPending?"1px solid rgba(251,191,36,0.4)":isRejected?"1px solid rgba(239,68,68,0.4)":"1px solid rgba(255,255,255,0.15)",
-                        }}>
-                        <div className="w-2 h-2 rounded-full" style={{background:isApproved?"#14b8a6":isPending?"#fbbf24":isRejected?"#ef4444":"#94a3b8"}}/>
-                        <div>
-                          <p className="text-white font-semibold truncate max-w-[120px]">{hod.name}</p>
-                          <p className="text-blue-300 text-[10px] truncate max-w-[120px]">{hod.department||"—"}</p>
-                        </div>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md" style={{
-                          background:isApproved?"rgba(20,184,166,0.3)":isPending?"rgba(251,191,36,0.3)":isRejected?"rgba(239,68,68,0.3)":"rgba(255,255,255,0.1)",
-                          color:isApproved?"#5eead4":isPending?"#fde68a":isRejected?"#fca5a5":"#94a3b8",
-                        }}>
-                          {isApproved?"✓ Approved":isPending?"⏳ Pending":isRejected?"✗ Rejected":"Not Sent"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+        {/* ── Page Header ── */}
+        <div className="px-0 pt-2 pb-0">
+          <h1 className="text-2xl font-bold text-slate-900">Pro-VC Dashboard</h1>
+          <p className="text-sm text-slate-500 mt-0.5">MITS Gwalior</p>
+        </div>
+
+        {/* ── Welcome Banner ── */}
+        <div
+          className="relative rounded-2xl overflow-hidden shadow-md"
+          style={{ background: "linear-gradient(135deg, #1a2f5e 0%, #1e3f7a 60%, #162550 100%)", minHeight: "180px" }}
+        >
+          {/* Building silhouette — right side decoration */}
+          <div className="absolute inset-y-0 right-0 w-72 flex items-end justify-end pointer-events-none select-none overflow-hidden opacity-20">
+            <svg viewBox="0 0 300 180" className="w-full h-full" fill="currentColor" style={{ color: "#93c5fd" }}>
+              <rect x="160" y="40" width="50" height="140" rx="2"/>
+              <rect x="168" y="50" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="184" y="50" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="168" y="70" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="184" y="70" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="168" y="90" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="184" y="90" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="168" y="110" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="184" y="110" width="10" height="12" rx="1" fill="#1e3f7a"/>
+              <rect x="110" y="70" width="40" height="110" rx="2"/>
+              <rect x="118" y="80" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="132" y="80" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="118" y="98" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="132" y="98" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="118" y="116" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="132" y="116" width="8" height="10" rx="1" fill="#1e3f7a"/>
+              <rect x="220" y="80" width="35" height="100" rx="2"/>
+              <rect x="227" y="90" width="8" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="239" y="90" width="8" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="227" y="106" width="8" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="239" y="106" width="8" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="262" y="30" width="25" height="150" rx="2"/>
+              <polygon points="274,10 262,30 286,30"/>
+              <rect x="267" y="45" width="7" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="267" y="61" width="7" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="267" y="77" width="7" height="8" rx="1" fill="#1e3f7a"/>
+              <rect x="80" y="178" width="220" height="2"/>
+            </svg>
           </div>
-          <div className="h-1" style={{background:"linear-gradient(90deg,#d4a017,#f0c040,#d4a017)"}}/>
+          {/* Content */}
+          <div className="relative z-10 px-8 py-8">
+            <p className="text-blue-300 text-xs font-medium tracking-wide">Pro-Vice-Chancellor Portal</p>
+            <h2 className="text-white text-3xl font-bold mt-2">Welcome, {user?.name || "Pro-VC"}</h2>
+            <p className="text-blue-300 text-sm mt-1.5">MITS Gwalior - Madhav Institute of Technology &amp; Science</p>
+          </div>
         </div>
 
         {/* ── KPI Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label:"Total Submissions", value:submissions.length, icon:FileText, accent:"#1e3a5f" },
-            { label:"Total Reports",     value:totalReports,       icon:Users,    accent:"#0f766e" },
-            { label:"Avg FFI Score",     value:avgFFI,             icon:TrendingUp,accent:"#92400e" },
-            { label:"Pending Review",    value:pendingCount,       icon:AlertTriangle,accent:"#9f1239" },
-          ].map(({ label, value, icon:Icon, accent }) => (
-            <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-all">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{background:`${accent}18`}}>
-                <Icon size={18} style={{color:accent}}/>
+            { label: "Total Submissions", value: submissions.length, icon: FileText,      iconBg: "bg-blue-50",   iconColor: "text-blue-600"   },
+            { label: "Total Reports",     value: totalReports,       icon: Users,         iconBg: "bg-green-50",  iconColor: "text-green-600"  },
+            { label: "Avg FEI Score",     value: avgFFI,             icon: TrendingUp,    iconBg: "bg-orange-50", iconColor: "text-orange-500" },
+            { label: "Pending Review",    value: pendingCount,       icon: AlertTriangle, iconBg: "bg-red-50",    iconColor: "text-red-500"    },
+          ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
+            <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+              <div className={`rounded-xl flex items-center justify-center shrink-0 ${iconBg}`} style={{ width: 52, height: 52 }}>
+                <Icon size={24} className={iconColor} />
               </div>
-              <p className="text-2xl font-black text-slate-800">{value}</p>
-              <p className="text-slate-500 text-xs font-medium mt-1">{label}</p>
+              <div>
+                <p className="text-2xl font-black text-slate-800 leading-tight">{value}</p>
+                <p className="text-slate-500 text-sm mt-0.5">{label}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* ── Tabs ── */}
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit flex-wrap">
-          {[
-            { id:"submissions", label:"📋 Submissions" },
-            { id:"hod_status",  label:"👥 HOD Status" },
-            { id:"analysis",    label:"🧠 Intelligence" },
-          ].map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab===t.id?"bg-white shadow text-slate-800":"text-slate-500 hover:text-slate-700"}`}>
-              {t.label}
-            </button>
-          ))}
+        {/* ── Tab Bar ── */}
+        <div className="border-b border-slate-200">
+          <div className="flex gap-0">
+            {[
+              { id: "submissions", label: "📋 Submissions" },
+              { id: "hod_status",  label: "👥 HOD Status"  },
+              { id: "analysis",    label: "📊 Intelligence" },
+            ].map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`px-5 py-3 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                  activeTab === t.id
+                    ? "text-blue-600 border-blue-600"
+                    : "text-slate-500 border-transparent hover:text-slate-700"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
-            SUBMISSIONS TAB — with inline analysis expand
+            SUBMISSIONS TAB — table layout
         ══════════════════════════════════════════════════════════════════ */}
         {activeTab === "submissions" && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/60">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="font-bold text-slate-800 text-base">HOD Submissions</h2>
-                <p className="text-xs text-slate-400 mt-0.5">{filtered.length} record{filtered.length!==1?"s":""}</p>
+                <h2 className="font-bold text-slate-800 text-lg">HOD Submissions</h2>
+                <p className="text-xs text-slate-400 mt-0.5">{filtered.length} record{filtered.length !== 1 ? "s" : ""}</p>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
                 <div className="relative">
-                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-                  <input type="text" placeholder="Search HOD or dept..."
-                    className="pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-48"
-                    value={search} onChange={e=>setSearch(e.target.value)}/>
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search HOD or department..."
+                    className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 w-56"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
                 </div>
-                <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
-                  className="px-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200">
+                <select
+                  value={filterStatus}
+                  onChange={e => setFilterStatus(e.target.value)}
+                  className="px-4 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
                   <option value="">All Status</option>
                   <option value="submitted">Pending</option>
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
-                {(search||filterStatus) && <button onClick={()=>{setSearch("");setFilterStatus("");}} className="text-xs text-red-400 hover:text-red-600 font-medium">Clear</button>}
+                {(search || filterStatus) && (
+                  <button onClick={() => { setSearch(""); setFilterStatus(""); }} className="text-xs text-red-400 hover:text-red-600 font-medium">
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
 
             {loading ? (
               <div className="p-20 text-center">
-                <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"/>
+                <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-slate-400 text-sm">Loading submissions...</p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-20 text-center">
-                <FileText size={28} className="text-slate-300 mx-auto mb-3"/>
-                <p className="text-slate-500 font-semibold">{submissions.length===0?"No submissions yet":"No results found"}</p>
+                <FileText size={28} className="text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500 font-semibold">{submissions.length === 0 ? "No submissions yet" : "No results found"}</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-50">
-                {filtered.map(sub => {
-                  const ffis = (sub.reports||[]).map(r=>r.ffiScore).filter(Boolean);
-                  const avg  = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "—";
-                  const avgN = parseFloat(avg);
-                  const sc   = STATUS_CFG[sub.status]||STATUS_CFG.submitted;
-                  const hodName  = sub.hodId?.name||"—";
-                  const initials = hodName.split(" ").map(w=>w[0]||"").join("").toUpperCase().slice(0,2)||"H";
-                  const isPending  = ["submitted","conflict","escalated"].includes(sub.status);
-                  const isApproved = sub.status==="approved";
-                  const isExpanded = expandedSub===sub._id;
-                  const attentionTotal = (sub.reports||[]).reduce((s,r)=>s+(r.attentionCount||0),0);
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/60">
+                      {["HOD / Department", "Academic Year", "Reports", "Avg FEI Score", "Issues", "Submission Date", "Status", "Actions"].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map(sub => {
+                      const ffis           = (sub.reports || []).map(r => r.ffiScore).filter(Boolean);
+                      const avg            = ffis.length ? (ffis.reduce((s, v) => s + v, 0) / ffis.length).toFixed(2) : "—";
+                      const avgN           = parseFloat(avg);
+                      const sc             = STATUS_CFG[sub.status] || STATUS_CFG.submitted;
+                      const hodName        = sub.hodId?.name || "—";
+                      const initials       = hodName.split(" ").map(w => w[0] || "").join("").toUpperCase().slice(0, 2) || "H";
+                      const isExpanded     = expandedSub === sub._id;
+                      const attentionTotal = (sub.reports || []).reduce((s, r) => s + (r.attentionCount || 0), 0);
+                      const submittedDate  = sub.createdAt
+                        ? new Date(sub.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                        : "—";
 
-                  return (
-                    <div key={sub._id}>
-                      <div className="flex flex-wrap items-center gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors">
-                        {/* HOD */}
-                        <div className="flex items-center gap-3 min-w-[180px] flex-1">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0"
-                            style={{background:"linear-gradient(135deg,#1e3a5f,#2563eb)"}}>
-                            {initials}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-slate-800 text-sm">{hodName}</p>
-                            <p className="text-xs text-slate-400">{sub.hodId?.department||sub.department||"—"}</p>
-                          </div>
-                        </div>
+                      return (
+                        <React.Fragment key={sub._id}>
+                          <tr className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                            {/* HOD / Department */}
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                  style={{ background: "linear-gradient(135deg, #1e3a5f, #2563eb)" }}
+                                >
+                                  {initials}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-slate-800 text-sm">{hodName}</p>
+                                  <p className="text-xs text-slate-400">{sub.hodId?.department || sub.department || "—"}</p>
+                                </div>
+                              </div>
+                            </td>
 
-                        {/* Session */}
-                        <div className="text-xs text-slate-500 whitespace-nowrap">
-                          <p>{sub.session==="jan-may"?"Jan–Jun":sub.session==="jul-dec"?"Jul–Dec":sub.session||"—"}</p>
-                          {sub.academicYear&&<p className="text-slate-400">{sub.academicYear}</p>}
-                        </div>
+                            {/* Academic Year */}
+                            <td className="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
+                              {sub.academicYear || "2026-2027"}
+                            </td>
 
-                        {/* Reports count */}
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100">
-                          {sub.reports?.length||0}
-                        </span>
+                            {/* Reports */}
+                            <td className="px-4 py-4">
+                              <span className="inline-flex items-center justify-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold border border-blue-200">
+                                {sub.reports?.length || 0}
+                              </span>
+                            </td>
 
-                        {/* Avg FFI */}
-                        {avg!=="—" ? (
-                          <span className={`text-sm font-bold ${avgN>=4?"text-teal-600":avgN>=3?"text-amber-600":"text-rose-600"}`}>{avg}</span>
-                        ) : <span className="text-slate-300 text-sm">—</span>}
+                            {/* Avg FEI Score */}
+                            <td className="px-4 py-4">
+                              {avg !== "—" ? (
+                                <span className={`text-sm font-bold ${avgN >= 4 ? "text-teal-600" : avgN >= 3 ? "text-orange-500" : "text-rose-600"}`}>
+                                  {avg}
+                                </span>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
 
-                        {/* Attention count */}
-                        {attentionTotal > 0 && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            {attentionTotal} issues
-                          </span>
-                        )}
+                            {/* Issues */}
+                            <td className="px-4 py-4">
+                              {attentionTotal > 0 ? (
+                                <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-600 border border-red-200 rounded-full text-xs font-bold">
+                                  {attentionTotal} Issues
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 text-sm">—</span>
+                              )}
+                            </td>
 
-                        {/* Submitted date */}
-                        <span className="text-xs text-slate-400 whitespace-nowrap hidden sm:block">
-                          {sub.createdAt?new Date(sub.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"}
-                        </span>
+                            {/* Submission Date */}
+                            <td className="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
+                              {submittedDate}
+                            </td>
 
-                        {/* Status */}
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}/>
-                          {sc.label}
-                        </span>
+                            {/* Status */}
+                            <td className="px-4 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                                {sc.label}
+                              </span>
+                            </td>
 
-                        {/* Actions */}
-                        <div className="flex flex-wrap gap-1.5 ml-auto">
-                          {/* Inline Analysis toggle */}
-                          <button
-                            onClick={() => setExpandedSub(isExpanded ? null : sub._id)}
-                            className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors border ${isExpanded?"bg-indigo-600 text-white border-indigo-600":"bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"}`}>
-                            <BarChart2 size={11}/> {isExpanded ? "Close" : "Analyse"}
-                          </button>
+                            {/* Actions */}
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-1.5 flex-nowrap">
+                                {/* Analyse */}
+                                <button
+                                  onClick={() => setExpandedSub(isExpanded ? null : sub._id)}
+                                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                                    isExpanded
+                                      ? "bg-blue-600 text-white border-blue-600"
+                                      : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
+                                  }`}
+                                >
+                                  <BarChart2 size={12} /> Analyse
+                                </button>
 
-                          {/* Navigate to full detail */}
-                          <button onClick={() => navigate(`/vc/submission/${sub._id}`)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                            <Eye size={11}/> Full View
-                          </button>
+                                {/* Full View */}
+                                <button
+                                  onClick={() => navigate(`/vc/submission/${sub._id}`)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg border border-slate-900 transition-colors"
+                                >
+                                  <Eye size={12} /> Full View
+                                </button>
 
-                          {isPending && (
-                            <button onClick={() => { setApproveModal(sub._id); setApproveComment(""); }}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-colors">
-                              <BadgeCheck size={11}/> Approve
-                            </button>
+                                {/* Summary */}
+                                <button
+                                  onClick={() => navigate(`/vc/submission/${sub._id}`)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                  <FileText size={12} /> Summary
+                                </button>
+
+                                {/* Action Taken */}
+                                <button
+                                  onClick={() => { setActionModal(sub); setActionComment(sub.vcComment || ""); }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-amber-600 border border-amber-500 hover:bg-amber-50 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                  <ClipboardList size={12} /> Action Taken
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* Inline analysis expand row */}
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={8} className="p-0">
+                                <InlineAnalysis sub={sub} />
+                              </td>
+                            </tr>
                           )}
-                          {isPending && (
-                            <button onClick={() => { setRejectModal(sub._id); setRejectComment(""); }}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold rounded-lg transition-colors">
-                              <XCircle size={11}/> Reject
-                            </button>
-                          )}
-                          <button onClick={() => { setActionModal(sub); setActionComment(sub.vcComment||""); }}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold rounded-lg border border-amber-200 transition-colors">
-                            <ClipboardList size={11}/> Action
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Inline analysis panel */}
-                      {isExpanded && <InlineAnalysis sub={sub}/>}
-                    </div>
-                  );
-                })}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
