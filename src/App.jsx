@@ -92,6 +92,7 @@ function RoleRedirect() {
   // fall back to legacy role field for old sessions.
   const ws = user.activeWorkspace || user.role;
   const dest = ws === 'vc'      ? '/vc'
+             : ws === 'provc'   ? '/vc'
              : ws === 'faculty' ? '/faculty'
              : ws === 'admin'   ? '/admin'
              : '/hod';                    // default: HOD workspace
@@ -145,21 +146,21 @@ export default function App() {
         {/* VC workspace */}
         <Route path="/vc"
           element={
-            <ProtectedRoute role="vc" workspace="vc">
+            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
               <VCDashboard />
             </ProtectedRoute>
           }
         />
         <Route path="/vc/submission/:id"
           element={
-            <ProtectedRoute role="vc" workspace="vc">
+            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
               <SubmissionDetail />
             </ProtectedRoute>
           }
         />
         <Route path="/vc/history"
           element={
-            <ProtectedRoute role="vc" workspace="vc">
+            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
               <History />
             </ProtectedRoute>
           }

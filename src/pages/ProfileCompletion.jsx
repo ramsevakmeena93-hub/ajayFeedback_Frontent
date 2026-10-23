@@ -49,7 +49,7 @@ export default function ProfileCompletion() {
 
   function redirect(role) {
     const ws = role || user?.role || "faculty";
-    const dest = ws === "vc"      ? "/vc"
+    const dest = ws === "vc" || ws === "provc" ? "/vc"
                : ws === "faculty" ? "/faculty"
                : ws === "admin"   ? "/admin"
                : "/hod";

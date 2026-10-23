@@ -46,7 +46,7 @@ export default function Landing() {
 
   useEffect(() => {
     if (user) {
-      const dest = user.role === "vc" ? "/vc"
+      const dest = user.role === "vc" || user.role === "provc" ? "/vc"
         : user.role === "faculty" ? "/faculty"
         : user.role === "admin" ? "/admin" : "/hod";
       navigate(dest, { replace: true });

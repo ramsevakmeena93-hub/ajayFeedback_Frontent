@@ -305,7 +305,7 @@ export default function History() {
   // Role-based dashboard path
   const dashboardPath = user?.role === "faculty" ? "/faculty"
     : user?.role === "hod" || user?.activeWorkspace === "hod" ? "/hod"
-    : user?.role === "vc"  || user?.activeWorkspace === "vc"  ? "/vc"
+    : user?.role === "vc"  || user?.role === "provc" || user?.activeWorkspace === "vc" || user?.activeWorkspace === "provc" ? "/vc"
     : user?.role === "admin" ? "/admin"
     : "/";
 
@@ -314,7 +314,7 @@ export default function History() {
   async function fetchHistory() {
     setLoading(true);
     try {
-      const url = user?.role === "vc"
+      const url = user?.role === "vc" || user?.role === "provc"
         ? "/api/submissions/all"
         : user?.role === "faculty"
         ? "/api/submissions/faculty"
@@ -470,7 +470,7 @@ export default function History() {
             </div>
 
             {/* Department — VC and HOD */}
-            {(user?.role === "vc" || user?.role === "hod" || user?.activeWorkspace === "hod") && depts.length > 0 && (
+            {(user?.role === "vc" || user?.role === "provc" || user?.role === "hod" || user?.activeWorkspace === "hod") && depts.length > 0 && (
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Department</label>
                 <select value={filterDept} onChange={e => setFilterDept(e.target.value)}

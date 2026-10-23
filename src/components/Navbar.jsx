@@ -13,16 +13,18 @@ import mitsLogo from "../assets/mits-logo.png";
 // import WorkspaceSwitcher from "./WorkspaceSwitcher"; // Not needed
 
 const ROLE_CFG = {
-  hod:     { label: "HOD",     color: "from-blue-600 to-blue-700",    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",     home: "/hod"     },
-  vc:      { label: "VC",      color: "from-violet-600 to-purple-700", badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300", home: "/vc"      },
-  faculty: { label: "Faculty", color: "from-emerald-600 to-emerald-700",badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",home: "/faculty" },
-  admin:   { label: "Admin",   color: "from-rose-600 to-rose-700",    badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",       home: "/admin"   },
+  hod:     { label: "HOD",      color: "from-blue-600 to-blue-700",    badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",     home: "/hod"     },
+  vc:      { label: "VC",       color: "from-violet-600 to-purple-700", badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300", home: "/vc"      },
+  provc:   { label: "Pro VC",   color: "from-violet-600 to-purple-700", badge: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300", home: "/vc"      },
+  faculty: { label: "Faculty",  color: "from-emerald-600 to-emerald-700",badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",home: "/faculty" },
+  admin:   { label: "Admin",    color: "from-rose-600 to-rose-700",    badge: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",       home: "/admin"   },
 };
 
 const NAV_LINKS = {
   hod:     [{ label: "Dashboard", href: "/hod", icon: LayoutDashboard }, { label: "History", href: "/hod/history", icon: History }],
   faculty: [{ label: "Dashboard", href: "/faculty", icon: LayoutDashboard }, { label: "History", href: "/faculty/history", icon: History }],
   vc:      [{ label: "Dashboard", href: "/vc", icon: LayoutDashboard }, { label: "History", href: "/vc/history", icon: History }],
+  provc:   [{ label: "Dashboard", href: "/vc", icon: LayoutDashboard }, { label: "History", href: "/vc/history", icon: History }],
   admin:   [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
 };
 
@@ -398,7 +400,7 @@ export default function Navbar({ title, subtitle }) {
                   </div>
 
                   {/* Actions */}
-                  {(user?.role === "hod" || user?.role === "faculty" || user?.role === "vc") && (
+                  {(user?.role === "hod" || user?.role === "faculty" || user?.role === "vc" || user?.role === "provc") && (
                     <div className="p-2">
                       <button
                         onClick={() => { setSigPreview(user?.signatureImage || null); setShowSigModal(true); setUserMenuOpen(false); }}
@@ -408,7 +410,7 @@ export default function Navbar({ title, subtitle }) {
                     </div>
                   )}
 
-                  <div className={`p-2 ${(user?.role === "hod" || user?.role === "faculty" || user?.role === "vc") ? "border-t border-slate-100 dark:border-slate-800" : ""}`}>
+                  <div className={`p-2 ${(user?.role === "hod" || user?.role === "faculty" || user?.role === "vc" || user?.role === "provc") ? "border-t border-slate-100 dark:border-slate-800" : ""}`}>
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors w-full text-left font-semibold">
@@ -436,7 +438,7 @@ export default function Navbar({ title, subtitle }) {
     </nav>
 
     {/* Signature Modal — HOD/Faculty, triggered from Navbar */}
-    {showSigModal && (user?.role === "hod" || user?.role === "faculty" || user?.role === "vc") && (
+    {showSigModal && (user?.role === "hod" || user?.role === "faculty" || user?.role === "vc" || user?.role === "provc") && (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
           <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50">

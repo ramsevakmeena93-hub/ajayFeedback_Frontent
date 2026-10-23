@@ -67,7 +67,7 @@ export default function Register() {
       login(data.user, data.token);
       toast.success(`Account created! Welcome, ${data.user.name?.split(" ")[0]}! 🎉`);
       const dest =
-        data.user.role === "vc"      ? "/vc"
+        data.user.role === "vc" || data.user.role === "provc" ? "/vc"
         : data.user.role === "faculty" ? "/faculty"
         : data.user.role === "admin"   ? "/admin"
         : "/hod";

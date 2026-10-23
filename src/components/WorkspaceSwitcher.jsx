@@ -56,6 +56,16 @@ const WORKSPACE_CONFIG = {
     dot:        'bg-violet-500',
     gradient:   'from-violet-600 to-purple-700',
   },
+  provc: {
+    label:      'Pro VC Workspace',
+    shortLabel: 'Pro VC',
+    icon:       Shield,
+    home:       '/vc',
+    badge:      'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+    ring:       'ring-violet-400',
+    dot:        'bg-violet-500',
+    gradient:   'from-violet-600 to-purple-700',
+  },
   admin: {
     label:      'Admin Workspace',
     shortLabel: 'Admin',
