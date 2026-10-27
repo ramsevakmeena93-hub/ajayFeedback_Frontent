@@ -1,0 +1,10 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Download endpoint authorization gap — Non-HOD, non-privileged authenticated users (e.g. faculty role) bypass the department check entirely in GET /:id/download because the guard only fires when callerRoles.has('hod'). Add an explicit allowlist (vc/provc/admin/hod-own-dept) and return 403 for all other roles.",
+    "actionTaken field never written to ProVCReport — both generate-faculty and generate-department save actionTaken as empty string. Populate it from submission.vcComment or the per-report actionTaken field at save time so the history record carries the correct snapshot.",
+    "vcUser lookup is undeterministic — User.findOne({ $or: [{ role: 'vc' }, { role: 'provc' }] }) returns whichever document MongoDB scans first. If both a vc and a provc account exist the wrong name/signature appears on the generated PDF. Query provc first with a fallback to vc.",
+    "Binary PDF storage without BSON size guard — the existing MongoServerError code 11000 catch will not fire for documents exceeding the 16 MB BSON limit; a large department report could throw an unhandled BSONError. Add a buffer size check before ProVCReport.create and return 413 with a clear message."
+  ],
+  "reviewDoc": "c:\\Users\\Hp\\OneDrive\\Desktop\\Feedback3,o\\.agents\\tasks\\vc-provc-comments\\review.md"
+}

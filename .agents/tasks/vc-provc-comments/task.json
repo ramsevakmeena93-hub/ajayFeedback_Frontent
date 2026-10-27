@@ -1,0 +1,7 @@
+{
+  "task_id": "task-vc-provc-comments",
+  "task_description": "Pro-VC Dashboard improvements: full faculty names + 2-band legend in the FFI charts, a Pro-VC Comments thread (view/write/save to MongoDB) keyed by faculty+course via a new backend API, wired into the Analytics Need-Attention rows and the Full View (header + per-row buttons), plus a modern Full View redesign and an Action Taken button in the Full View actions row. Reuse existing APIs; no dummy data; React + Tailwind only; verify with `npm run build`.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}

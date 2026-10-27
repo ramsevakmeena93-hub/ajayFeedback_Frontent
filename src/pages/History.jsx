@@ -9,7 +9,7 @@ import Footer from "../components/Footer";
 import ReportDetailModal from "../components/ReportDetailModal";
 import {
   Archive, Download, Filter, Eye, Search,
-  BookOpen, Users, TrendingUp, CheckCircle, ChevronDown, ChevronUp, FileText, ArrowLeft
+  BookOpen, Users, TrendingUp, CheckCircle, ChevronDown, ChevronUp, FileText, ArrowLeft, FileDown
 } from "lucide-react";
 
 const currentYear = new Date().getFullYear();
@@ -41,6 +41,118 @@ function buildFilename(sub, semFilter) {
   const session = sub.session === "jan-may" ? "Jan-Jun" : sub.session === "jul-dec" ? "Jul-Dec" : (sub.session || "All");
   if (semFilter) return `${dept}_${year}_${session}_Sem${semFilter}.pdf`;
   return `${dept}_${year}_${session}.pdf`;
+}
+
+// ── Pro-VC Report Download Button ─────────────────────────────────────────
+function ProVCReportButton({ sub, report, token }) {
+  const [loading, setLoading] = useState(false);
+
+  // Only show if a Pro-VC comment exists for this faculty+course
+  const hasComment = (sub.provcComments || []).some(
+    c => c.facultyName?.toLowerCase() === (report.facultyName || "").toLowerCase()
+  );
+  if (!hasComment) return null;
+
+  async function handleDownload() {
+    if (loading) return;
+    setLoading(true);
+    const tid = toast.loading("Generating Pro-VC Report…");
+    try {
+      const encodedName = encodeURIComponent(report.facultyName || "");
+      const url = `${API_BASE}/api/reports/provc-report/${sub._id}/${encodedName}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        let msg = "Failed to generate report";
+        try { const j = await res.json(); msg = j.error || msg; } catch {}
+        toast.error(msg, { id: tid });
+        return;
+      }
+      const blob = await res.blob();
+      if (blob.size < 200) { toast.error("PDF generation failed", { id: tid }); return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `ProVC_Report_${(report.facultyName || "Faculty").replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast.success("Pro-VC Report downloaded!", { id: tid });
+    } catch {
+      toast.error("Download failed", { id: tid });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={loading}
+      title="Download Pro-VC Comments Report"
+      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-bold rounded-lg transition-colors border border-blue-200 flex items-center gap-1 disabled:opacity-60"
+    >
+      {loading
+        ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+        : <FileDown size={11}/>}
+      Pro-VC Report
+    </button>
+  );
+}
+
+// ── Overall Pro-VC Report Download Button (department-level) ──────────────
+function OverallProVCReportButton({ sub, token }) {
+  const [loading, setLoading] = useState(false);
+
+  // Only show if any Pro-VC comment or overall VC comment exists for this submission
+  const hasContent = (sub.provcComments && sub.provcComments.length > 0)
+    || (sub.vcComment && sub.vcComment.trim());
+  if (!hasContent) return null;
+
+  async function handleDownload() {
+    if (loading) return;
+    setLoading(true);
+    const tid = toast.loading("Generating Overall Pro-VC Report…");
+    try {
+      const res = await fetch(`${API_BASE}/api/submissions/${sub._id}/provc-department-report`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        let msg = "Failed to generate report";
+        try { const j = await res.json(); msg = j.error || msg; } catch {}
+        toast.error(msg, { id: tid });
+        return;
+      }
+      const blob = await res.blob();
+      if (blob.size < 200) { toast.error("PDF generation failed", { id: tid }); return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const dept = (sub.hodId?.department || sub.department || "Department").replace(/\s+/g, "_");
+      a.download = `ProVC_Dept_Report_${dept}_${sub.academicYear || ""}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      toast.success("Overall Pro-VC Report downloaded!", { id: tid });
+    } catch {
+      toast.error("Download failed", { id: tid });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={loading}
+      title="Download Department Overall Pro-VC Comments Report"
+      className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-60"
+    >
+      {loading
+        ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+        : <FileDown size={12}/>}
+      Overall Pro-VC Report
+    </button>
+  );
 }
 
 // ── Submission card with semester-wise download ───────────────
@@ -144,6 +256,7 @@ function SubmissionCard({ sub, token, onViewReport, filterFaculty }) {
               : <Download size={12}/>}
             Download All
           </button>
+          <OverallProVCReportButton sub={sub} token={token} />
           {semesters.length > 0 && (
             <button onClick={() => setExpanded(e => !e)}
               className="flex items-center gap-1 px-3 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/60 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors">
@@ -263,9 +376,12 @@ function SubmissionCard({ sub, token, onViewReport, filterFaculty }) {
                               </div>
                             </td>
                             <td className="px-4 py-3 text-center whitespace-nowrap">
-                              <button onClick={() => onViewReport(r)} className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-lg transition-colors border border-indigo-100 flex items-center gap-1 mx-auto">
-                                <Eye size={11}/> View
-                              </button>
+                              <div className="flex flex-col items-center gap-1.5">
+                                <button onClick={() => onViewReport(r)} className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-lg transition-colors border border-indigo-100 flex items-center gap-1">
+                                  <Eye size={11}/> View
+                                </button>
+                                <ProVCReportButton sub={sub} report={r} token={token} />
+                              </div>
                             </td>
                             {user?.role === "faculty" && (
                               <td className="px-4 py-3 text-center whitespace-nowrap">

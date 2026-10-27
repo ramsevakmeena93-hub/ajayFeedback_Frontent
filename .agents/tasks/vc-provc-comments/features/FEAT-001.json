@@ -1,0 +1,25 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Backend Pro-VC Comment API. No existing model/route supports Pro-VC comments keyed by faculty+course (HODComment is department-level; Submission.vcComment is one submission-level string; FacultyReport has no Pro-VC field). Add a minimal new Mongoose model keyed by reportId (FacultyReport._id = one faculty+course in one cycle, available in both the Analytics and Full View) plus GET/POST endpoints that store an append-only comment thread in MongoDB. This FEAT touches backend only (disjoint from FEAT-002's frontend files). FEAT-002 depends on it at runtime.",
+  "status": "pending",
+  "steps": [
+    "Create backend/models/ProVCComment.js: mongoose schema, collection 'provc_comments'. Fields: reportId { ObjectId ref 'FacultyReport', required, unique, index:true }, facultyName {String,default:''}, subjectCode {String,default:''}, courseName {String,default:''}, academicYear {String,default:''}, authorUserId {ObjectId ref 'User'}, authorName {String,default:''}, comments [{ text {String,required:true}, authorName {String,default:''}, createdAt {Date,default:Date.now} }]. Use { timestamps: true }. Add a pre-save hook only if needed (not required). Export mongoose.model('ProVCComment', schema). Mirror the style of backend/models/HODComment.js and backend/models/FacultyReport.js.",
+    "Create backend/routes/provcComments.js: `const express = require('express'); const router = express.Router(); const ProVCComment = require('../models/ProVCComment'); const { authMiddleware, requireAnyRole } = require('./middleware');`. Implement GET /:reportId (authMiddleware, requireAnyRole('vc','provc','admin')) -> find one doc by reportId; return { reportId, facultyName, subjectCode, courseName, academicYear, comments: doc?.comments || [] } (never null). Implement POST /:reportId (same auth) -> read { text, facultyName, subjectCode, courseName, academicYear } from req.body; if !text?.trim() return 400 { error: 'Comment text is required' }; findOneAndUpdate({ reportId }, { $setOnInsert: { facultyName, subjectCode, courseName, academicYear, authorUserId: req.user.id, authorName: req.user.name || '' }, $push: { comments: { text: text.trim(), authorName: req.user.name || '', createdAt: new Date() } } }, { upsert: true, new: true }); return the updated { reportId, facultyName, subjectCode, courseName, academicYear, comments }. Wrap in try/catch returning res.status(500).json({ error: err.message }).",
+    "Mount in backend/server.js: add `app.use('/api/provc-comments', require('./routes/provcComments'));` alongside the other app.use('/api/...', ...) mounts (insert after the `app.use('/api/submissions', require('./routes/submissions'));` line). Do not change any other mount.",
+    "Commit locally (never push): stage ONLY the three files touched in the backend repo: `git -C backend add backend/models/ProVCComment.js backend/routes/provcComments.js backend/server.js` — NOTE these paths are relative to repo root; since backend/ is a separate nested git repo, the correct command from repo root is `git -C ./backend add models/ProVCComment.js routes/provcComments.js server.js && git -C ./backend commit -m \"feat: add Pro-VC comment API keyed by reportId\"`. Do NOT git add . (backend has other uncommitted WIP and the root .gitignore excludes backend/)."
+  ],
+  "acceptance_criteria": [
+    "backend/models/ProVCComment.js defines a ProVCComment mongoose model with a unique reportId field and a comments array of {text, authorName, createdAt}.",
+    "backend/routes/provcComments.js exposes GET /:reportId and POST /:reportId, both guarded by authMiddleware + requireAnyRole('vc','provc','admin'); POST appends to comments and never stores dummy/hardcoded text (it stores req.body.text).",
+    "backend/server.js mounts /api/provc-comments and the server still starts (route loading does not throw).",
+    "`node --check` on the three backend files exits 0 and `node -e \"require('./backend/routes/provcComments')\"` loads without throwing."
+  ],
+  "verification": [
+    "From repo root run: node --check backend/models/ProVCComment.js && node --check backend/routes/provcComments.js && node --check backend/server.js  (all exit 0)",
+    "From repo root run: node -e \"require('./backend/routes/provcComments')\"  (loads without throwing — confirms the module and its model/middleware imports resolve)",
+    "From repo root run: npm run build  (frontend untouched by this FEAT; build must still exit 0)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
