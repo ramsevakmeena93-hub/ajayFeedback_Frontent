@@ -73,9 +73,24 @@ export default function HODDashboard() {
     totalReports: 0
   });
 
+  // Pro-VC Reports (read-only for HOD)
+  const [hodProvcReports, setHodProvcReports]               = useState([]);
+  const [hodProvcReportsLoading, setHodProvcReportsLoading] = useState(false);
+
   const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
 
-  useEffect(() => { fetchReports(); fetchSubmissions(); fetchVCUser(); }, []);
+  useEffect(() => { fetchReports(); fetchSubmissions(); fetchVCUser(); fetchHodProvcReports(); }, []);
+
+  async function fetchHodProvcReports() {
+    if (!user?.department) return;
+    setHodProvcReportsLoading(true);
+    try {
+      const encoded = encodeURIComponent(user.department);
+      const { data } = await api.get(`/api/provc-reports/department/${encoded}`);
+      setHodProvcReports(data);
+    } catch {}
+    finally { setHodProvcReportsLoading(false); }
+  }
 
   async function fetchSubmissions() {
     try { const { data } = await api.get("/api/submissions/my"); setSubmissions(data); } catch { }
@@ -617,6 +632,46 @@ export default function HODDashboard() {
                   </button>
                 </div>
               </div>
+
+              {/* Pro-VC Reports for this department (read-only) */}
+              {(hodProvcReports.length > 0 || hodProvcReportsLoading) && (
+                <div className="card p-4 mt-4">
+                  <p className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <FileText size={15} className="text-purple-600" />
+                    Pro-VC Reports for {user?.department}
+                  </p>
+                  {hodProvcReportsLoading ? (
+                    <p className="text-xs text-slate-400">Loading…</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {hodProvcReports.map(r => (
+                        <div key={r._id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-xl px-4 py-2 bg-slate-50 text-xs">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`font-semibold px-2.5 py-0.5 rounded-full ${r.reportType === 'faculty-wise' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {r.reportType === 'faculty-wise' ? 'Pro-VC Comments Report' : 'Overall Pro-VC Report'}
+                            </span>
+                            {r.facultyName && <span className="text-slate-600">{r.facultyName}</span>}
+                            <span className="text-slate-400">{new Date(r.generatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            <span className="text-slate-400">{r.generatedByName}</span>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await api.get(`/api/provc-reports/${r._id}/download`, { responseType: 'blob' });
+                                const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                                window.open(url, '_blank');
+                              } catch { toast.error('Failed to download report'); }
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-white rounded-lg shrink-0"
+                          >
+                            <Download size={11} /> Download
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <FeedbackTable
                 reports={visibleReports}

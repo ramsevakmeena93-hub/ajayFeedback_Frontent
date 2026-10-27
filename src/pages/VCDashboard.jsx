@@ -7,14 +7,12 @@ import SignatureUpload from '../components/SignatureUpload';
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine,
 } from "recharts";
 import {
   CheckCircle, XCircle, Eye, TrendingUp, Users, FileText,
   AlertTriangle, Search, ClipboardList, BadgeCheck, ChevronDown,
-  ChevronUp, Lightbulb, Activity, Star, Target, BookOpen,
-  TrendingDown, Zap, Shield, BarChart2,
+  ChevronUp, BarChart2, MessageSquare, X, Save, FileDown,
 } from "lucide-react";
 
 function autoNumber(text) {
@@ -150,17 +148,152 @@ function FacultyCard({ f }) {
   );
 }
 
+// ── Custom tooltip for FFI chart ──────────────────────────────────────────
+function FFITooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  const ffi = d.FFI;
+  const color = ffi >= 4 ? "#10b981" : ffi >= 3.5 ? "#6366f1" : ffi >= 3 ? "#f59e0b" : "#ef4444";
+  const label = ffi >= 4 ? "Excellent" : ffi >= 3.5 ? "Good" : ffi >= 3 ? "Monitor" : "Critical";
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2.5 text-xs min-w-[160px]">
+      <p className="font-bold text-slate-800 mb-1 leading-snug">{d.full}</p>
+      <p className="text-slate-400 mb-1.5">{d.subject}</p>
+      <div className="flex items-center gap-2">
+        <span className="text-lg font-black" style={{ color }}>{ffi?.toFixed(2)}</span>
+        <span className="font-semibold px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: `${color}18`, color }}>
+          {label}
+        </span>
+      </div>
+      {d.responseCount && (
+        <p className="text-slate-400 mt-1">{d.responseCount} responses · {d.responsePercent?.toFixed(0)}%</p>
+      )}
+      <p className="text-blue-500 mt-1.5 font-semibold">Click to view full report →</p>
+    </div>
+  );
+}
+
+// ── Pro-VC Comment Panel (slide-in from right) ────────────────────────────
+function ProVCCommentPanel({ facultyName, subjectCode, ffi, submissionId, existingComment, token, onClose, onSaved }) {
+  const [text, setText] = useState(existingComment || "");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    if (!text.trim()) return toast.error("Please write a comment first");
+    setSaving(true);
+    try {
+      await axios.post(
+        `/api/submissions/${submissionId}/provc-comment`,
+        { facultyName, subjectCode, comment: text.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Pro-VC comment saved ✓");
+      onSaved(text.trim());
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to save comment");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex justify-end" onClick={onClose}>
+      <div
+        className="w-full max-w-sm h-full bg-white shadow-2xl flex flex-col border-l border-slate-200"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 bg-blue-600 text-white shrink-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold opacity-80 uppercase tracking-wide">Pro-VC Comment</p>
+            <p className="font-bold text-sm truncate mt-0.5">{facultyName}</p>
+            <p className="text-xs opacity-70 mt-0.5">{subjectCode}{ffi ? ` · FFI ${ffi}` : ""}</p>
+          </div>
+          <button onClick={onClose} className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition ml-3">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Existing comment preview */}
+        {existingComment && (
+          <div className="mx-4 mt-4 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5 text-xs text-blue-800">
+            <p className="font-semibold mb-1 text-blue-600">Current comment:</p>
+            <p className="leading-relaxed">{existingComment}</p>
+          </div>
+        )}
+
+        {/* Textarea */}
+        <div className="flex-1 p-4 flex flex-col gap-3 overflow-auto">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {existingComment ? "Update comment" : "Write comment"}
+          </label>
+          <textarea
+            className="flex-1 w-full min-h-[180px] text-sm text-slate-700 border border-slate-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 leading-relaxed"
+            placeholder={`Write your observation for ${facultyName}…`}
+            value={text}
+            onChange={e => setText(e.target.value)}
+          />
+          <p className="text-[10px] text-slate-400">{text.trim().split(/\s+/).filter(Boolean).length} words</p>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-4 border-t border-slate-100 bg-slate-50 flex gap-2 shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl transition">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
+          >
+            <Save size={14} />
+            {saving ? "Saving…" : "Save Comment"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Inline submission analysis panel ──────────────────────────────────────
-function InlineAnalysis({ sub }) {
+function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
   const allComments  = (sub.reports||[]).flatMap(r => r.commentsNeedingAttention||[]);
   const allPraise    = (sub.reports||[]).flatMap(r => r.appreciation||[]);
   const ffis         = (sub.reports||[]).map(r=>r.ffiScore).filter(Boolean);
   const avg          = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : null;
-  const chartData    = (sub.reports||[]).filter(r=>r.ffiScore).map(r=>({
-    name: (r.facultyName||"").split(" ").slice(-1)[0],
-    FFI: r.ffiScore,
-    full: r.facultyName,
-  }));
+
+  // Chart data — full name, subject code, click-navigable
+  const chartData = (sub.reports||[])
+    .filter(r => r.ffiScore)
+    .map(r => ({
+      name: (r.facultyName || "Unknown")
+        .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "").trim(),
+      full: r.facultyName || "Unknown",
+      subject: r.subjectCode || "",
+      FFI: parseFloat((r.ffiScore||0).toFixed(2)),
+      reportId: r._id,
+      responseCount: r.responseCount,
+      responsePercent: r.responsePercent,
+      attention: (r.commentsNeedingAttention||[]).length,
+    }));
+
+  // Dynamic Y-axis: zoom in on actual score range for more realistic look
+  const ffiValues = chartData.map(d => d.FFI);
+  const minFFI = ffiValues.length ? Math.max(0, Math.min(...ffiValues) - 0.5) : 0;
+  const maxFFI = ffiValues.length ? Math.min(5, Math.max(...ffiValues) + 0.3) : 5;
+  const avgNum = avg ? parseFloat(avg) : null;
+
+  // Dynamic bar height: more bars → shorter height, fewer → taller
+  const chartHeight = Math.max(180, Math.min(300, 160 + chartData.length * 4));
+  // Bottom margin for angled labels — full names need more room
+  const bottomMargin = chartData.length > 10 ? 100 : chartData.length > 5 ? 85 : 65;
+
+  const handleBarClick = (data) => {
+    const payload = data?.activePayload?.[0]?.payload;
+    if (payload?.reportId && onNavigate) {
+      onNavigate(sub._id, payload.reportId);
+    }
+  };
 
   return (
     <div className="bg-slate-50 border-t border-slate-100 px-5 py-4 space-y-4">
@@ -182,16 +315,70 @@ function InlineAnalysis({ sub }) {
 
       {/* FFI Chart */}
       {chartData.length > 0 && (
-        <div>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">FFI by Faculty</p>
-          <ResponsiveContainer width="100%" height={130}>
-            <BarChart data={chartData} margin={{top:0,right:0,left:-25,bottom:0}}>
-              <XAxis dataKey="name" tick={{fontSize:10}}/>
-              <YAxis domain={[0,5]} tick={{fontSize:10}}/>
-              <Tooltip formatter={(v,_,p)=>[v,p.payload.full]}/>
-              <Bar dataKey="FFI" radius={[4,4,0,0]}>
-                {chartData.map((e,i)=>(
-                  <Cell key={i} fill={e.FFI>=4?"#10b981":e.FFI>=3?"#f59e0b":"#ef4444"}/>
+        <div className="bg-white rounded-xl border border-slate-200 p-4">
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">FFI Score by Faculty</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Click any bar to view full report</p>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-semibold">
+              {avgNum && (
+                <span className={`px-2 py-0.5 rounded-full ${avgNum>=4?"bg-emerald-100 text-emerald-700":avgNum>=3?"bg-amber-100 text-amber-700":"bg-red-100 text-red-700"}`}>
+                  Avg: {avg}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block"/>≥4.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block"/>3.5–4.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block"/>3.0–3.5</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500 inline-block"/>&lt;3.0</span>
+              </div>
+            </div>
+          </div>
+
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <BarChart
+              data={chartData}
+              margin={{ top: 8, right: 10, left: 0, bottom: bottomMargin }}
+              onClick={handleBarClick}
+              style={{ cursor: "pointer" }}
+            >
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: "#475569" }}
+                angle={-40}
+                textAnchor="end"
+                interval={0}
+                tickLine={false}
+                axisLine={{ stroke: "#e2e8f0" }}
+              />
+              <YAxis
+                domain={[minFFI, maxFFI]}
+                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={v => v.toFixed(1)}
+                width={32}
+              />
+              <Tooltip content={<FFITooltip />} cursor={{ fill: "rgba(99,102,241,0.06)" }} />
+              {/* Average reference line */}
+              {avgNum && (
+                <ReferenceLine
+                  y={avgNum}
+                  stroke="#6366f1"
+                  strokeDasharray="4 3"
+                  strokeWidth={1.5}
+                  label={{ value: `avg ${avg}`, position: "right", fontSize: 9, fill: "#6366f1" }}
+                />
+              )}
+              <Bar dataKey="FFI" radius={[5, 5, 0, 0]} maxBarSize={40}>
+                {chartData.map((e, i) => (
+                  <Cell
+                    key={i}
+                    fill={e.FFI >= 4 ? "#10b981" : e.FFI >= 3.5 ? "#6366f1" : e.FFI >= 3 ? "#f59e0b" : "#ef4444"}
+                    opacity={0.88}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -199,32 +386,65 @@ function InlineAnalysis({ sub }) {
         </div>
       )}
 
-      {/* Per-faculty attention comments */}
+      {/* Need Attention — by Faculty with Pro-VC Comments buttons */}
       {(sub.reports||[]).filter(r=>(r.commentsNeedingAttention||[]).length>0).length > 0 && (
-        <div>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Need Attention — by Faculty</p>
-          <div className="space-y-2">
-            {(sub.reports||[]).filter(r=>(r.commentsNeedingAttention||[]).length>0).map((r,i)=>(
-              <div key={i} className="bg-white rounded-xl border border-amber-200 p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-slate-700">{r.facultyName||"—"}</p>
-                  <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
-                    {r.subjectCode} · FFI {r.ffiScore?.toFixed(2)||"—"}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {(r.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).slice(0,3).map((c,j)=>(
-                    <div key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
-                      <span className="text-amber-500 font-bold mt-0.5 shrink-0">•</span>
-                      <span>{c}</span>
+        <div className="bg-white rounded-xl border border-amber-200 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border-b border-amber-200">
+            <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+            <p className="text-xs font-bold text-amber-700 uppercase tracking-wide">Need Attention — By Faculty</p>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {(sub.reports||[]).filter(r=>(r.commentsNeedingAttention||[]).length>0).map((r,i)=>{
+              const savedComment = (sub._provcCommentsLocal||sub.provcComments||[]).find(
+                c => c.facultyName === (r.facultyName||"—") && c.subjectCode === (r.subjectCode||"")
+              )?.comment || "";
+              return (
+                <div key={i} className="px-4 py-3 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        <p className="text-sm font-bold text-slate-800">{r.facultyName||"—"}</p>
+                        <span className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                          {r.subjectCode} · FFI {r.ffiScore?.toFixed(2)||"—"}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {(r.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).slice(0,3).map((c,j)=>(
+                          <div key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
+                            <span className="text-amber-500 font-bold mt-0.5 shrink-0">•</span>
+                            <span className="leading-relaxed">{c}</span>
+                          </div>
+                        ))}
+                        {r.commentsNeedingAttention.length > 3 && (
+                          <p className="text-[10px] text-slate-400 pl-4">+{r.commentsNeedingAttention.length-3} more</p>
+                        )}
+                      </div>
+                      {savedComment && (
+                        <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5 text-xs text-blue-800">
+                          <span className="font-semibold text-blue-600">Pro-VC: </span>{savedComment}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  {r.commentsNeedingAttention.length > 3 && (
-                    <p className="text-[10px] text-slate-400 pl-4">+{r.commentsNeedingAttention.length-3} more</p>
-                  )}
+                    <button
+                      onClick={() => onOpenComment && onOpenComment({
+                        facultyName: r.facultyName || "—",
+                        subjectCode: r.subjectCode || "",
+                        ffi: r.ffiScore?.toFixed(2),
+                        existingComment: savedComment,
+                      })}
+                      className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                        savedComment
+                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                          : "bg-white text-blue-600 border-blue-500 hover:bg-blue-50"
+                      }`}
+                    >
+                      <MessageSquare size={12} />
+                      PRO-VC Comments
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -241,8 +461,6 @@ export default function VCDashboard() {
 
   const [submissions, setSubmissions]   = useState([]);
   const [allHods, setAllHods]           = useState([]);
-  const [analytics, setAnalytics]       = useState(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [loading, setLoading]           = useState(true);
   const [filterStatus, setFilterStatus] = useState("");
   const [search, setSearch]             = useState("");
@@ -260,15 +478,39 @@ export default function VCDashboard() {
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [pendingApproveId, setPendingApproveId]     = useState(null);
 
-  // Analysis sub-tab
-  const [analysisTab, setAnalysisTab] = useState("summary");
-  const [facultyFilter, setFacultyFilter] = useState("");
-  const [statusFilter, setStatusFilter]   = useState("all");
+  // Analysis sub-tab (unused — intelligence tab removed)
+
+  // Pro-VC comment panel state (for analytics view)
+  const [provcPanel, setProvcPanel]       = useState(null); // { sub, facultyName, subjectCode, ffi, existingComment }
+  const [provcLocalComments, setProvcLocalComments] = useState({}); // { [subId]: [{ facultyName, subjectCode, comment }] }
+
+  // Pro-VC report history state
+  const [provcReports, setProvcReports]       = useState({}); // { [subId]: ProVCReport[] }
+  const [reportsLoading, setReportsLoading]   = useState({}); // { [subId]: bool }
+  const [genLoading, setGenLoading]           = useState({}); // { [subId]: bool }
+  const [genFacultyModal, setGenFacultyModal] = useState(null); // submissionId or null
+  const [genFacultyName, setGenFacultyName]   = useState('');
+  const [deptCommentModal, setDeptCommentModal] = useState(null); // submissionId or null
+  const [deptCommentText, setDeptCommentText]   = useState('');
+
+  function getProvcLocalComment(subId, facultyName, subjectCode) {
+    const arr = provcLocalComments[subId] || [];
+    return arr.find(c => c.facultyName === facultyName && c.subjectCode === subjectCode)?.comment || "";
+  }
+
+  function handleProvcCommentSaved(subId, facultyName, subjectCode, comment) {
+    setProvcLocalComments(prev => {
+      const arr = [...(prev[subId] || [])];
+      const idx = arr.findIndex(c => c.facultyName === facultyName && c.subjectCode === subjectCode);
+      if (idx >= 0) arr[idx] = { ...arr[idx], comment };
+      else arr.push({ facultyName, subjectCode, comment });
+      return { ...prev, [subId]: arr };
+    });
+  }
 
   const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
 
   useEffect(() => { fetchSubmissions(); fetchAllHods(); }, []);
-  useEffect(() => { if (activeTab === "analysis" && !analytics) fetchAnalytics(); }, [activeTab]);
 
   async function fetchSubmissions() {
     setLoading(true);
@@ -295,14 +537,13 @@ export default function VCDashboard() {
     }
   }
 
-  async function fetchAnalytics() {
-    setAnalyticsLoading(true);
+  async function fetchProvcReports(subId) {
+    setReportsLoading(prev => ({ ...prev, [subId]: true }));
     try {
-      const { data } = await api.get("/api/submissions/analytics");
-      setAnalytics(data);
-    } catch (err) {
-      toast.error("Failed to load analytics");
-    } finally { setAnalyticsLoading(false); }
+      const { data } = await api.get(`/api/provc-reports/submission/${subId}`);
+      setProvcReports(prev => ({ ...prev, [subId]: data }));
+    } catch {}
+    finally { setReportsLoading(prev => ({ ...prev, [subId]: false })); }
   }
 
   async function handleApproveConfirm() {
@@ -312,7 +553,7 @@ export default function VCDashboard() {
       await api.patch(`/api/submissions/${approveModal}/status`, { status:"approved", vcComment:approveComment||"" });
       toast.success("Submission Approved ✓");
       setApproveModal(null); setApproveComment("");
-      fetchSubmissions(); fetchAnalytics();
+      fetchSubmissions();
     } catch (err) {
       if (err.response?.data?.needSignature) { setPendingApproveId(approveModal); setApproveModal(null); setShowSignatureModal(true); }
       else toast.error(err.response?.data?.error || "Failed to approve");
@@ -365,17 +606,27 @@ export default function VCDashboard() {
     if (!hodStatusMap[id] || new Date(sub.createdAt)>new Date(hodStatusMap[id].createdAt)) hodStatusMap[id]=sub;
   });
 
-  // Filtered faculty cards
-  const filteredFacultyCards = (analytics?.facultyCards||[]).filter(f => {
-    const matchName = !facultyFilter || f.name.toLowerCase().includes(facultyFilter.toLowerCase()) || f.dept.toLowerCase().includes(facultyFilter.toLowerCase());
-    const matchStatus = statusFilter==="all" || f.status===statusFilter;
-    return matchName && matchStatus;
-  });
-
   return (
     <div className="min-h-screen bg-[#f8f9fc] flex flex-col text-slate-800">
       <Navbar title="Pro-VC Dashboard" subtitle="MITS Gwalior" />
       <main className="flex-1 w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+        {/* ── Pro-VC Comment Panel (global, renders over everything) ── */}
+        {provcPanel && (
+          <ProVCCommentPanel
+            facultyName={provcPanel.facultyName}
+            subjectCode={provcPanel.subjectCode}
+            ffi={provcPanel.ffi}
+            submissionId={provcPanel.subId}
+            existingComment={provcPanel.existingComment}
+            token={token}
+            onClose={() => setProvcPanel(null)}
+            onSaved={(comment) => {
+              handleProvcCommentSaved(provcPanel.subId, provcPanel.facultyName, provcPanel.subjectCode, comment);
+              setProvcPanel(null);
+            }}
+          />
+        )}
 
         {/* ── Page Header ── */}
         <div className="px-0 pt-2 pb-0">
@@ -454,7 +705,6 @@ export default function VCDashboard() {
             {[
               { id: "submissions", label: "📋 Submissions" },
               { id: "hod_status",  label: "👥 HOD Status"  },
-              { id: "analysis",    label: "📊 Intelligence" },
             ].map(t => (
               <button
                 key={t.id}
@@ -618,7 +868,11 @@ export default function VCDashboard() {
                               <div className="flex items-center gap-1.5 flex-nowrap">
                                 {/* Analyse */}
                                 <button
-                                  onClick={() => setExpandedSub(isExpanded ? null : sub._id)}
+                                  onClick={() => {
+                                    const expanding = isExpanded ? null : sub._id;
+                                    setExpandedSub(expanding);
+                                    if (expanding) fetchProvcReports(expanding);
+                                  }}
                                   className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                                     isExpanded
                                       ? "bg-blue-600 text-white border-blue-600"
@@ -636,9 +890,31 @@ export default function VCDashboard() {
                                   <Eye size={12} /> Full View
                                 </button>
 
-                                {/* Summary */}
+                                {/* Summary — generate MITS Department Summary PDF */}
                                 <button
-                                  onClick={() => navigate(`/vc/submission/${sub._id}`)}
+                                  onClick={async () => {
+                                    try {
+                                      toast.loading('Generating summary PDF…', { id: 'summary' });
+                                      const response = await api.get(`/api/department-summary/${sub._id}`, {
+                                        responseType: 'blob',
+                                      });
+                                      toast.success('Summary PDF generated', { id: 'summary' });
+                                      const blob = new Blob([response.data], { type: 'application/pdf' });
+                                      const url = window.URL.createObjectURL(blob);
+                                      window.open(url, '_blank');
+                                    } catch (err) {
+                                      let msg = 'Failed to generate summary';
+                                      if (err.response?.data instanceof Blob) {
+                                        try {
+                                          const text = await err.response.data.text();
+                                          msg = JSON.parse(text).error || msg;
+                                        } catch {}
+                                      } else {
+                                        msg = err.response?.data?.error || msg;
+                                      }
+                                      toast.error(msg, { id: 'summary' });
+                                    }
+                                  }}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-600 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
                                 >
                                   <FileText size={12} /> Summary
@@ -651,6 +927,67 @@ export default function VCDashboard() {
                                 >
                                   <ClipboardList size={12} /> Action Taken
                                 </button>
+
+                                {/* Pro-VC Comments (submission level) */}
+                                <button
+                                  onClick={() => navigate(`/vc/submission/${sub._id}?provc=1`)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-500 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                  <MessageSquare size={12} /> Pro-VC Comments
+                                </button>
+
+                                {/* Overall Pro-VC Report — department-level PDF download */}
+                                {((sub.provcComments && sub.provcComments.length > 0) || (sub.vcComment && sub.vcComment.trim())) && (
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        toast.loading('Generating Overall Pro-VC Report…', { id: 'provcdept' });
+                                        const response = await api.get(`/api/submissions/${sub._id}/provc-department-report`, {
+                                          responseType: 'blob',
+                                        });
+                                        const blob = new Blob([response.data], { type: 'application/pdf' });
+                                        if (blob.size < 200) { toast.error('PDF generation failed', { id: 'provcdept' }); return; }
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        const dept = (sub.department || sub.hodId?.department || 'Department').replace(/\s+/g, '_');
+                                        a.download = `ProVC_Dept_Report_${dept}_${sub.academicYear || ''}.pdf`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+                                        window.URL.revokeObjectURL(url);
+                                        toast.success('Overall Pro-VC Report downloaded', { id: 'provcdept' });
+                                      } catch (err) {
+                                        let msg = 'Failed to generate report';
+                                        if (err.response?.data instanceof Blob) {
+                                          try { msg = JSON.parse(await err.response.data.text()).error || msg; } catch {}
+                                        } else {
+                                          msg = err.response?.data?.error || msg;
+                                        }
+                                        toast.error(msg, { id: 'provcdept' });
+                                      }
+                                    }}
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg border border-emerald-600 transition-colors"
+                                  >
+                                    <FileDown size={12} /> Overall Pro-VC Report
+                                  </button>
+                                )}
+
+                                {/* Generate Faculty Pro-VC Report */}
+                                <button
+                                  onClick={() => { setGenFacultyModal(sub._id); setGenFacultyName(''); }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-purple-600 border border-purple-500 hover:bg-purple-50 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                  <FileText size={12} /> Faculty Report
+                                </button>
+
+                                {/* Generate Department Pro-VC Report (saved to history) */}
+                                <button
+                                  onClick={() => { setDeptCommentModal(sub._id); setDeptCommentText(sub.vcComment || ''); }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-teal-600 border border-teal-500 hover:bg-teal-50 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                  <BarChart2 size={12} /> Save Dept Report
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -659,7 +996,68 @@ export default function VCDashboard() {
                           {isExpanded && (
                             <tr>
                               <td colSpan={8} className="p-0">
-                                <InlineAnalysis sub={sub} />
+                                <InlineAnalysis
+                                  sub={{
+                                    ...sub,
+                                    _provcCommentsLocal: [
+                                      ...(sub.provcComments || []),
+                                      ...(provcLocalComments[sub._id] || [])
+                                        .filter(lc => !(sub.provcComments||[]).some(
+                                          dc => dc.facultyName === lc.facultyName && dc.subjectCode === lc.subjectCode
+                                        ))
+                                    ].map(c => {
+                                      const local = (provcLocalComments[sub._id]||[]).find(
+                                        lc => lc.facultyName === c.facultyName && lc.subjectCode === c.subjectCode
+                                      );
+                                      return local ? { ...c, comment: local.comment } : c;
+                                    }),
+                                  }}
+                                  onNavigate={(id, reportId) => navigate(`/vc/submission/${id}${reportId ? `?report=${reportId}` : ""}`)}
+                                  onOpenComment={(info) => setProvcPanel({
+                                    subId: sub._id,
+                                    facultyName: info.facultyName,
+                                    subjectCode: info.subjectCode,
+                                    ffi: info.ffi,
+                                    existingComment: getProvcLocalComment(sub._id, info.facultyName, info.subjectCode) || info.existingComment,
+                                  })}
+                                />
+                                {/* Pro-VC Report History */}
+                                <div className="bg-slate-50 border-t border-slate-100 px-5 py-4">
+                                  <div className="bg-white rounded-xl border border-slate-200 p-4">
+                                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3">Pro-VC Report History</p>
+                                    {reportsLoading[sub._id] ? (
+                                      <p className="text-xs text-slate-400">Loading…</p>
+                                    ) : (provcReports[sub._id] || []).length === 0 ? (
+                                      <p className="text-xs text-slate-400 italic">No reports saved yet — use the Faculty Report or Save Dept Report buttons above to generate and save.</p>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {(provcReports[sub._id] || []).map(r => (
+                                          <div key={r._id} className="flex items-center justify-between gap-2 text-xs">
+                                            <div>
+                                              <span className={`inline-block px-2 py-0.5 rounded-full font-semibold mr-2 ${r.reportType === 'faculty-wise' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                {r.reportType === 'faculty-wise' ? 'Pro-VC Comments Report' : 'Overall Pro-VC Report'}
+                                              </span>
+                                              {r.facultyName && <span className="text-slate-600">{r.facultyName} · </span>}
+                                              <span className="text-slate-400">{new Date(r.generatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                            </div>
+                                            <button
+                                              onClick={async () => {
+                                                try {
+                                                  const res = await api.get(`/api/provc-reports/${r._id}/download`, { responseType: 'blob' });
+                                                  const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                                                  window.open(url, '_blank');
+                                                } catch { toast.error('Failed to download report'); }
+                                              }}
+                                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-white rounded-lg"
+                                            >
+                                              <FileDown size={11} /> Download
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </td>
                             </tr>
                           )}
@@ -724,10 +1122,8 @@ export default function VCDashboard() {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════
-            INTELLIGENCE / ANALYSIS TAB
-        ══════════════════════════════════════════════════════════════════ */}
-        {activeTab === "analysis" && (
+        {/* Intelligence tab removed */}
+        {false && (
           <div className="space-y-5">
 
             {analyticsLoading ? (
@@ -1120,6 +1516,108 @@ export default function VCDashboard() {
             <div className="flex gap-3 justify-end">
               <button onClick={()=>setRejectModal(null)} className="px-5 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Cancel</button>
               <button onClick={handleRejectConfirm} className="px-5 py-2 text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 rounded-xl flex items-center gap-2"><XCircle size={14}/> Confirm Reject</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Generate Faculty Pro-VC Report Modal ── */}
+      {genFacultyModal && (() => {
+        const sub = submissions.find(s => s._id === genFacultyModal);
+        const faculties = [...new Set((sub?.reports || []).map(r => r.facultyName).filter(Boolean))];
+        return (
+          <div className="fixed inset-0 z-[9998] bg-black/40 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <h3 className="font-bold text-slate-800 mb-4">Generate Faculty Pro-VC Report</h3>
+              <p className="text-xs text-slate-500 mb-3">Select the faculty member:</p>
+              <select
+                className="w-full border border-slate-200 rounded-xl p-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                value={genFacultyName}
+                onChange={e => setGenFacultyName(e.target.value)}
+              >
+                <option value="">— select faculty —</option>
+                {faculties.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setGenFacultyModal(null); setGenFacultyName(''); }}
+                  className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={!genFacultyName || genLoading[genFacultyModal]}
+                  onClick={async () => {
+                    setGenLoading(prev => ({ ...prev, [genFacultyModal]: true }));
+                    try {
+                      await api.post('/api/provc-reports/generate-faculty', {
+                        submissionId: genFacultyModal,
+                        facultyName: genFacultyName,
+                      });
+                      toast.success('Faculty Pro-VC Report saved ✓');
+                      fetchProvcReports(genFacultyModal);
+                      if (expandedSub !== genFacultyModal) setExpandedSub(genFacultyModal);
+                      setGenFacultyModal(null);
+                      setGenFacultyName('');
+                    } catch (err) {
+                      toast.error(err.response?.data?.error || 'Generation failed');
+                    } finally {
+                      setGenLoading(prev => ({ ...prev, [genFacultyModal]: false }));
+                    }
+                  }}
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl"
+                >
+                  {genLoading[genFacultyModal] ? 'Generating…' : 'Generate'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Generate Department Pro-VC Report Modal ── */}
+      {deptCommentModal && (
+        <div className="fixed inset-0 z-[9998] bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 className="font-bold text-slate-800 mb-1">Generate Overall Pro-VC Report</h3>
+            <p className="text-xs text-slate-500 mb-3">Review or update the overall department comments:</p>
+            <textarea
+              className="w-full border border-slate-200 rounded-xl p-3 text-sm min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-teal-300 mb-4"
+              placeholder="Enter overall observations, recommendations, and action details…"
+              value={deptCommentText}
+              onChange={e => setDeptCommentText(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeptCommentModal(null)}
+                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={genLoading[deptCommentModal]}
+                onClick={async () => {
+                  setGenLoading(prev => ({ ...prev, [deptCommentModal]: true }));
+                  try {
+                    await api.post('/api/provc-reports/generate-department', {
+                      submissionId: deptCommentModal,
+                      overallComments: deptCommentText,
+                    });
+                    toast.success('Overall Pro-VC Report saved ✓');
+                    fetchProvcReports(deptCommentModal);
+                    if (expandedSub !== deptCommentModal) setExpandedSub(deptCommentModal);
+                    fetchSubmissions();
+                    setDeptCommentModal(null);
+                  } catch (err) {
+                    toast.error(err.response?.data?.error || 'Generation failed');
+                  } finally {
+                    setGenLoading(prev => ({ ...prev, [deptCommentModal]: false }));
+                  }
+                }}
+                className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl"
+              >
+                {genLoading[deptCommentModal] ? 'Generating…' : 'Generate Report'}
+              </button>
             </div>
           </div>
         </div>
