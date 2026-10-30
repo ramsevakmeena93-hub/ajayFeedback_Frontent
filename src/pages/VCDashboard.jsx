@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine,
+  LabelList,
 } from "recharts";
 import {
   CheckCircle, XCircle, Eye, TrendingUp, Users, FileText,
@@ -453,6 +454,168 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// DEPARTMENT ANALYTICS — FFI Bar + Response % Ranking
+// ═══════════════════════════════════════════════════════════════════════════
+
+function DeptFFITooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  const ffi = d.ffi;
+  const color = ffi >= 4 ? "#16a34a" : ffi >= 3 ? "#f59e0b" : "#ef4444";
+  return (
+    <div className="bg-slate-900 text-white rounded-xl shadow-xl px-3 py-2 text-xs min-w-[160px]">
+      <p className="font-bold mb-1">{d.dept}</p>
+      <div className="flex items-center gap-2">
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        <span>Average FFI: <strong>{ffi.toFixed(2)}</strong></span>
+      </div>
+    </div>
+  );
+}
+
+function DeptChartsSection({ submissions }) {
+  // Build per-department stats from all reports inside all submissions
+  const deptMap = {};
+  (submissions || []).forEach(sub => {
+    const dept = sub.hodId?.department || sub.department || "Unknown";
+    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], respPcts: [], reports: 0 };
+    (sub.reports || []).forEach(r => {
+      deptMap[dept].reports++;
+      if (r.ffiScore != null) deptMap[dept].ffis.push(Number(r.ffiScore));
+      if (r.responsePercent != null) deptMap[dept].respPcts.push(Number(r.responsePercent));
+    });
+  });
+
+  const deptList = Object.values(deptMap).filter(d => d.reports > 0);
+
+  // ── Chart 1: Average FFI per dept ──────────────────────────────────────
+  const ffiData = deptList
+    .map(d => ({
+      dept: d.dept.length > 24 ? d.dept.slice(0, 22) + "." : d.dept,
+      fullDept: d.dept,
+      ffi: d.ffis.length ? parseFloat((d.ffis.reduce((s, v) => s + v, 0) / d.ffis.length).toFixed(2)) : 0,
+    }))
+    .filter(d => d.ffi > 0)
+    .sort((a, b) => b.ffi - a.ffi);
+
+  const avgFFIAll = ffiData.length
+    ? parseFloat((ffiData.reduce((s, d) => s + d.ffi, 0) / ffiData.length).toFixed(2))
+    : 0;
+
+  // ── Chart 2: Avg response % per dept ──────────────────────────────────
+  const respData = deptList
+    .map(d => ({
+      dept: d.dept.length > 24 ? d.dept.slice(0, 22) + "." : d.dept,
+      fullDept: d.dept,
+      pct: d.respPcts.length ? parseFloat((d.respPcts.reduce((s, v) => s + v, 0) / d.respPcts.length).toFixed(1)) : 0,
+    }))
+    .filter(d => d.pct > 0)
+    .sort((a, b) => b.pct - a.pct);
+
+  const ffiColor = (v) => v >= 4 ? "#16a34a" : v >= 3 ? "#f59e0b" : "#ef4444";
+  const respColor = (v) => v >= 80 ? "#16a34a" : v >= 60 ? "#f59e0b" : "#ef4444";
+
+  if (ffiData.length === 0 && respData.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+      {/* ── Card 1: FFI Bar Chart ─────────────────────────────────────── */}
+      {ffiData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          {/* Legend */}
+          <div className="flex items-center gap-4 mb-1 flex-wrap">
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <span className="w-3 h-3 rounded-sm bg-green-600 inline-block" /> 4.00 and above (good)
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <span className="w-3 h-3 rounded-sm bg-amber-400 inline-block" /> 3.00 to 3.99 (average)
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+              <span className="w-3 h-3 rounded-sm bg-red-500 inline-block" /> Below 3.00 (needs attention)
+            </div>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">- - Institute average</p>
+
+          <ResponsiveContainer width="100%" height={Math.max(260, ffiData.length * 36)}>
+            <BarChart
+              data={ffiData}
+              layout="vertical"
+              margin={{ top: 4, right: 52, left: 8, bottom: 4 }}
+            >
+              <XAxis
+                type="number" domain={[0, 5]} tickCount={6}
+                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                label={{ value: "Average FFI (out of 5)", position: "insideBottom", offset: -4, fontSize: 10, fill: "#94a3b8" }}
+              />
+              <YAxis
+                dataKey="dept" type="category" width={140}
+                tick={{ fontSize: 11, fill: "#475569" }}
+              />
+              <Tooltip content={<DeptFFITooltip />} cursor={{ fill: "#f1f5f9" }} />
+              <ReferenceLine
+                x={avgFFIAll}
+                stroke="#94a3b8"
+                strokeDasharray="5 4"
+                strokeWidth={1.5}
+                label={{ value: `Avg ${avgFFIAll}`, position: "top", fontSize: 10, fill: "#64748b" }}
+              />
+              <Bar dataKey="ffi" radius={[0, 5, 5, 0]} maxBarSize={22}>
+                {ffiData.map((d) => (
+                  <Cell key={d.dept} fill={ffiColor(d.ffi)} />
+                ))}
+                <LabelList dataKey="ffi" position="right" formatter={v => v.toFixed(2)}
+                  style={{ fontSize: 11, fontWeight: 700, fill: "#334155" }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* ── Card 2: Response % Ranking ───────────────────────────────── */}
+      {respData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <p className="text-xs font-semibold text-slate-500">Department ranking by average response</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              {[["#16a34a","80% and above"],["#f59e0b","60% to 79%"],["#ef4444","Below 60%"]].map(([c,l]) => (
+                <div key={l} className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <span className="w-3 h-3 rounded-sm inline-block" style={{ background: c }} /> {l}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {respData.map((d, i) => (
+              <div key={d.dept} className="flex items-center gap-3">
+                {/* Rank */}
+                <span className="text-xs font-bold text-slate-400 w-5 shrink-0 text-right">{i + 1}</span>
+                {/* Dept name */}
+                <span className="text-xs text-slate-700 w-36 shrink-0 truncate" title={d.fullDept}>{d.dept}</span>
+                {/* Bar */}
+                <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
+                  {/* 80% marker */}
+                  <div className="absolute top-0 bottom-0 w-px bg-slate-300"
+                    style={{ left: `${Math.min((80 / 100) * 100, 100)}%` }} />
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(d.pct, 100)}%`, background: respColor(d.pct) }}
+                  />
+                </div>
+                {/* Value */}
+                <span className="text-xs font-bold text-slate-700 w-12 shrink-0 text-right">{d.pct.toFixed(1)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
 export default function VCDashboard() {
@@ -698,6 +861,9 @@ export default function VCDashboard() {
             </div>
           ))}
         </div>
+
+        {/* ── Department Analytics Charts ── */}
+        <DeptChartsSection submissions={submissions} />
 
         {/* ── Tab Bar ── */}
         <div className="border-b border-slate-200">
