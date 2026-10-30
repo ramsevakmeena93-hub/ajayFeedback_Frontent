@@ -143,11 +143,14 @@ export default function Navbar({ title, subtitle }) {
     setSigSaving(true);
     try {
       const res = await api().post("/api/auth/signature", { signatureImage: sigPreview });
-      if (res.data.user) {
-        login(res.data.user, token); // Update user state
-      }
+      // Update user in context with new signature so it persists
+      const updatedUser = res.data.user
+        ? { ...res.data.user, signatureImage: sigPreview, hasSignature: true }
+        : { ...user, signatureImage: sigPreview, hasSignature: true };
+      login(updatedUser, token);
       toast.success("Signature saved!");
       setShowSigModal(false);
+      setSigPreview(null);
     } catch { toast.error("Failed to save signature"); }
     finally { setSigSaving(false); }
   }
@@ -442,39 +445,60 @@ export default function Navbar({ title, subtitle }) {
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fade-in">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
           <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50">
-            <h2 className="font-bold text-indigo-900 text-lg">Upload / Edit Signature</h2>
+            <h2 className="font-bold text-indigo-900 text-lg">
+              {user?.signatureImage && !sigPreview ? "Your Signature" : "Upload / Edit Signature"}
+            </h2>
             <p className="text-xs text-indigo-600 mt-0.5">This will appear on all feedback reports</p>
           </div>
           <div className="p-6 space-y-4">
-            <div
-              onClick={() => sigRef.current.click()}
-              className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-                sigPreview ? "border-indigo-400 bg-indigo-50" : "border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50"
-              }`}
-            >
-              {sigPreview ? (
-                <div>
-                  <img src={sigPreview} alt="Signature preview" className="max-h-24 mx-auto object-contain mb-2" />
-                  <p className="text-xs text-indigo-600 font-medium">Signature loaded — click to change</p>
-                </div>
-              ) : (
-                <div>
-                  <PenLine className="mx-auto text-slate-400 mb-2" size={32} />
-                  <p className="text-sm font-medium text-slate-600">Click to upload signature image</p>
-                  <p className="text-xs text-slate-400 mt-1">PNG or JPG · Max 2MB · White background recommended</p>
-                </div>
-              )}
-              <input ref={sigRef} type="file" accept="image/*" className="hidden" onChange={handleSigFile} />
-            </div>
+            {/* Show existing signature if no new upload yet */}
+            {user?.signatureImage && !sigPreview ? (
+              <div className="border-2 border-green-300 bg-green-50 rounded-2xl p-6 flex flex-col items-center gap-3">
+                <img src={user.signatureImage} alt="Your signature" className="max-h-28 max-w-full object-contain" />
+                <p className="text-xs text-green-700 font-semibold">Signature saved ✓</p>
+                <button
+                  onClick={() => sigRef.current.click()}
+                  className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline"
+                >
+                  <PenLine size={12}/> Replace signature
+                </button>
+                <input ref={sigRef} type="file" accept="image/*" className="hidden" onChange={handleSigFile} />
+              </div>
+            ) : (
+              <div
+                onClick={() => sigRef.current.click()}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                  sigPreview ? "border-indigo-400 bg-indigo-50" : "border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50"
+                }`}
+              >
+                {sigPreview ? (
+                  <div>
+                    <img src={sigPreview} alt="Signature preview" className="max-h-24 mx-auto object-contain mb-2" />
+                    <p className="text-xs text-indigo-600 font-medium">Signature loaded — click to change</p>
+                  </div>
+                ) : (
+                  <div>
+                    <PenLine className="mx-auto text-slate-400 mb-2" size={32} />
+                    <p className="text-sm font-medium text-slate-600">Click to upload signature image</p>
+                    <p className="text-xs text-slate-400 mt-1">PNG or JPG · Max 2MB · White background recommended</p>
+                  </div>
+                )}
+                <input ref={sigRef} type="file" accept="image/*" className="hidden" onChange={handleSigFile} />
+              </div>
+            )}
             <p className="text-xs text-slate-400 text-center">Your signature will appear on all feedback reports</p>
           </div>
           <div className="px-6 py-4 border-t bg-slate-50 flex gap-3 justify-end">
-            <button onClick={() => setShowSigModal(false)} className="btn btn-secondary">Cancel</button>
-            <button onClick={handleSigSave} disabled={!sigPreview || sigSaving}
-              className="btn btn-primary flex items-center gap-2 disabled:opacity-50">
-              <PenLine size={14} />
-              {sigSaving ? "Saving..." : "Save Signature"}
+            <button onClick={() => { setShowSigModal(false); setSigPreview(null); }} className="btn btn-secondary">
+              {user?.signatureImage && !sigPreview ? "Close" : "Cancel"}
             </button>
+            {(sigPreview) && (
+              <button onClick={handleSigSave} disabled={sigSaving}
+                className="btn btn-primary flex items-center gap-2 disabled:opacity-50">
+                <PenLine size={14} />
+                {sigSaving ? "Saving..." : "Save Signature"}
+              </button>
+            )}
           </div>
         </div>
       </div>

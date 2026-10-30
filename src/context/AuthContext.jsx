@@ -123,6 +123,7 @@ export function AuthProvider({ children, appRole }) {
         activeWorkspace: fresh.activeWorkspace || fresh.role || 'hod',
         department:      fresh.department || '',
         hasSignature:    !!fresh.signatureImage,
+        signatureImage:  fresh.signatureImage || '',
         profilePhoto:    fresh.profilePhoto || '',
         defaultAlternateApproverId: fresh.defaultAlternateApproverId || null,
       };

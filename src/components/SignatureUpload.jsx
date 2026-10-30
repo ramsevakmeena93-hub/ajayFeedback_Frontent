@@ -1,11 +1,17 @@
 ﻿import { useState, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Upload, X, Check } from 'lucide-react';
+import { Upload, Check, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignatureUpload({ token, onSaved, onSkip }) {
-  const [preview, setPreview] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const { user, updateUser } = useAuth();
+
+  // If user already has a signature, show it; otherwise show upload UI
+  const existingSig = user?.signatureImage || null;
+  const [preview,    setPreview]    = useState(null);   // new upload preview only
+  const [saving,     setSaving]     = useState(false);
+  const [replacing,  setReplacing]  = useState(false);  // show upload UI to replace
   const fileRef = useRef();
 
   function handleFile(e) {
@@ -13,21 +19,23 @@ export default function SignatureUpload({ token, onSaved, onSkip }) {
     if (!file) return;
     if (!file.type.startsWith('image/')) return toast.error('Please upload an image file (PNG/JPG)');
     if (file.size > 2 * 1024 * 1024) return toast.error('Image must be under 2MB');
-
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target.result);
     reader.readAsDataURL(file);
   }
 
   async function handleSave() {
-    if (!preview) return;
+    const imgToSave = preview;
+    if (!imgToSave) return;
     setSaving(true);
     try {
-      await axios.post('/api/auth/signature', { signatureImage: preview }, {
+      await axios.post('/api/auth/signature', { signatureImage: imgToSave }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Signature saved successfully');
-      onSaved && onSaved(preview);
+      // Update user in context so it persists across sessions
+      updateUser({ ...user, signatureImage: imgToSave, hasSignature: true });
+      onSaved && onSaved(imgToSave);
     } catch {
       toast.error('Failed to save signature');
     } finally {
@@ -35,19 +43,66 @@ export default function SignatureUpload({ token, onSaved, onSkip }) {
     }
   }
 
+  // ── Already has signature — show it with option to replace ──────────────
+  if (existingSig && !replacing) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="px-6 py-4 border-b bg-green-50 rounded-t-2xl">
+            <h2 className="font-bold text-green-900 text-lg">Your Signature</h2>
+            <p className="text-xs text-green-600 mt-0.5">Signature saved — it will appear on all approved reports</p>
+          </div>
+
+          <div className="p-6">
+            {/* Show existing signature */}
+            <div className="border-2 border-green-300 bg-green-50 rounded-xl p-6 flex items-center justify-center">
+              <img
+                src={existingSig}
+                alt="Your signature"
+                className="max-h-28 max-w-full object-contain"
+              />
+            </div>
+            <p className="text-xs text-slate-400 text-center mt-3">
+              This signature is attached to your reports
+            </p>
+          </div>
+
+          <div className="px-6 py-4 border-t bg-gray-50 rounded-b-2xl flex gap-3 justify-end">
+            <button
+              onClick={() => setReplacing(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-medium transition"
+            >
+              <RefreshCw size={14} /> Replace
+            </button>
+            <button
+              onClick={() => onSkip && onSkip()}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition"
+            >
+              <Check size={14} /> Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Upload UI (no signature yet, or replacing) ──────────────────────────
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="px-6 py-4 border-b bg-blue-50 rounded-t-2xl">
-          <h2 className="font-bold text-blue-900 text-lg">Upload Your Signature</h2>
+          <h2 className="font-bold text-blue-900 text-lg">
+            {replacing ? 'Replace Signature' : 'Upload Your Signature'}
+          </h2>
           <p className="text-xs text-blue-600 mt-0.5">This will be attached to all approved reports</p>
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Upload area */}
           <div
             onClick={() => fileRef.current.click()}
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${preview ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'}`}
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${
+              preview ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+            }`}
           >
             {preview ? (
               <div>
@@ -65,16 +120,22 @@ export default function SignatureUpload({ token, onSaved, onSkip }) {
           </div>
 
           <p className="text-xs text-gray-400 text-center">
-            Your signature will appear on all feedback reports Sent to Pro-VC
+            Your signature will appear on all feedback reports sent to Pro-VC
           </p>
         </div>
 
         <div className="px-6 py-4 border-t bg-gray-50 rounded-b-2xl flex gap-3 justify-end">
-          <button onClick={onSkip} className="btn-secondary text-sm">
-            Skip for now
+          <button
+            onClick={() => replacing ? setReplacing(false) : onSkip && onSkip()}
+            className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-100 rounded-xl text-sm font-medium transition"
+          >
+            {replacing ? 'Cancel' : 'Skip for now'}
           </button>
-          <button onClick={handleSave} disabled={!preview || saving}
-            className="btn-primary flex items-center gap-2 text-sm disabled:opacity-50">
+          <button
+            onClick={handleSave}
+            disabled={!preview || saving}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition"
+          >
             <Check size={15} />
             {saving ? 'Saving...' : 'Save Signature'}
           </button>
