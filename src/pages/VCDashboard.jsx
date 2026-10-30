@@ -523,6 +523,8 @@ function DeptChartsSection({ submissions }) {
       {/* ── Card 1: FFI Bar Chart ─────────────────────────────────────── */}
       {ffiData.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          {/* Title */}
+          <p className="text-sm font-bold text-slate-700 mb-3">Department ranking by average FFI</p>
           {/* Legend */}
           <div className="flex items-center gap-4 mb-1 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs text-slate-600">
