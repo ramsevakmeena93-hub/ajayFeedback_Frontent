@@ -473,6 +473,37 @@ function DeptFFITooltip({ active, payload }) {
   );
 }
 
+// Custom Y-axis tick that wraps long dept names onto two lines
+function YAxisDeptTick({ x, y, payload }) {
+  const name = payload.value || "";
+  // Split at "for", "&", "and", or after 18 chars at a word boundary
+  let line1 = name, line2 = "";
+  const splitWords = name.split(" ");
+  if (name.length > 20) {
+    let cur = "";
+    let splitIdx = splitWords.length;
+    for (let i = 0; i < splitWords.length; i++) {
+      const test = cur ? cur + " " + splitWords[i] : splitWords[i];
+      if (test.length > 18 && cur) { splitIdx = i; break; }
+      cur = test;
+    }
+    line1 = splitWords.slice(0, splitIdx).join(" ");
+    line2 = splitWords.slice(splitIdx).join(" ");
+  }
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={-6} y={line2 ? -6 : 0} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
+        {line1}
+      </text>
+      {line2 && (
+        <text x={-6} y={6} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
+          {line2}
+        </text>
+      )}
+    </g>
+  );
+}
+
 function DeptChartsSection({ submissions }) {
   // Build per-department stats from all reports inside all submissions
   const deptMap = {};
@@ -491,8 +522,7 @@ function DeptChartsSection({ submissions }) {
   // ── Chart 1: Average FFI per dept ──────────────────────────────────────
   const ffiData = deptList
     .map(d => ({
-      dept: d.dept.length > 24 ? d.dept.slice(0, 22) + "." : d.dept,
-      fullDept: d.dept,
+      dept: d.dept,   // full name — no truncation
       ffi: d.ffis.length ? parseFloat((d.ffis.reduce((s, v) => s + v, 0) / d.ffis.length).toFixed(2)) : 0,
     }))
     .filter(d => d.ffi > 0)
@@ -505,8 +535,7 @@ function DeptChartsSection({ submissions }) {
   // ── Chart 2: Avg response % per dept ──────────────────────────────────
   const respData = deptList
     .map(d => ({
-      dept: d.dept.length > 24 ? d.dept.slice(0, 22) + "." : d.dept,
-      fullDept: d.dept,
+      dept: d.dept,   // full name — no truncation
       pct: d.respPcts.length ? parseFloat((d.respPcts.reduce((s, v) => s + v, 0) / d.respPcts.length).toFixed(1)) : 0,
     }))
     .filter(d => d.pct > 0)
@@ -539,20 +568,20 @@ function DeptChartsSection({ submissions }) {
           </div>
           <p className="text-xs text-slate-400 mb-3">- - Institute average</p>
 
-          <ResponsiveContainer width="100%" height={Math.max(260, ffiData.length * 36)}>
+          <ResponsiveContainer width="100%" height={Math.max(280, ffiData.length * 46)}>
             <BarChart
               data={ffiData}
               layout="vertical"
-              margin={{ top: 4, right: 52, left: 8, bottom: 4 }}
+              margin={{ top: 4, right: 52, left: 8, bottom: 20 }}
             >
               <XAxis
                 type="number" domain={[0, 5]} tickCount={6}
                 tick={{ fontSize: 11, fill: "#94a3b8" }}
-                label={{ value: "Average FFI (out of 5)", position: "insideBottom", offset: -4, fontSize: 10, fill: "#94a3b8" }}
+                label={{ value: "Average FFI (out of 5)", position: "insideBottom", offset: -10, fontSize: 10, fill: "#94a3b8" }}
               />
               <YAxis
-                dataKey="dept" type="category" width={140}
-                tick={{ fontSize: 11, fill: "#475569" }}
+                dataKey="dept" type="category" width={185}
+                tick={<YAxisDeptTick />}
               />
               <Tooltip content={<DeptFFITooltip />} cursor={{ fill: "#f1f5f9" }} />
               <ReferenceLine
@@ -595,7 +624,7 @@ function DeptChartsSection({ submissions }) {
                 {/* Rank */}
                 <span className="text-xs font-bold text-slate-400 w-5 shrink-0 text-right">{i + 1}</span>
                 {/* Dept name */}
-                <span className="text-xs text-slate-700 w-36 shrink-0 truncate" title={d.fullDept}>{d.dept}</span>
+                <span className="text-xs text-slate-700 w-48 shrink-0" title={d.dept}>{d.dept}</span>
                 {/* Bar */}
                 <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
                   {/* 80% marker */}
