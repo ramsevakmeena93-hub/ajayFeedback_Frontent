@@ -426,22 +426,6 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => onOpenComment && onOpenComment({
-                        facultyName: r.facultyName || "—",
-                        subjectCode: r.subjectCode || "",
-                        ffi: r.ffiScore?.toFixed(2),
-                        existingComment: savedComment,
-                      })}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                        savedComment
-                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                          : "bg-white text-blue-600 border-blue-500 hover:bg-blue-50"
-                      }`}
-                    >
-                      <MessageSquare size={12} />
-                      PRO-VC Comments
-                    </button>
                   </div>
                 </div>
               );
@@ -1123,14 +1107,6 @@ export default function VCDashboard() {
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-amber-600 border border-amber-500 hover:bg-amber-50 text-xs font-semibold rounded-lg transition-colors"
                                 >
                                   <ClipboardList size={12} /> Action Taken
-                                </button>
-
-                                {/* Pro-VC Comments (submission level) */}
-                                <button
-                                  onClick={() => navigate(`/vc/submission/${sub._id}?provc=1`)}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-500 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <MessageSquare size={12} /> Pro-VC Comments
                                 </button>
                               </div>
                             </td>
