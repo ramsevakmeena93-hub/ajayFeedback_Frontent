@@ -33,7 +33,7 @@ export default function SignatureUpload({ token, onSaved, onSkip }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Signature saved successfully');
-      // Update user in context so it persists across sessions
+      // Persist signature in context so it survives page refresh
       updateUser({ ...user, signatureImage: imgToSave, hasSignature: true });
       onSaved && onSaved(imgToSave);
     } catch {

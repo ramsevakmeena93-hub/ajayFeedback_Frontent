@@ -363,7 +363,8 @@ export default function HODDashboard() {
     setSigSaving(true);
     try {
       const res = await api.post("/api/auth/signature", { signatureImage: sigPreview });
-      if (res.data.user) updateUser(res.data.user);
+      if (res.data.user) updateUser({ ...res.data.user, signatureImage: sigPreview, hasSignature: true });
+      else updateUser({ ...user, signatureImage: sigPreview, hasSignature: true });
       toast.success("Signature saved successfully");
       setSigPreview(null);
       setShowSigModal(false);
