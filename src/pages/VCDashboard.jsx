@@ -506,28 +506,43 @@ function DeptChartsSection({ submissions }) {
   });
 
   // Build per-department stats from filtered submissions & reports
+  // When showing "All Semesters", compute per-semester averages first, then average those.
+  // This ensures overall = average of semester averages (not skewed by report count per sem).
   const deptMap = {};
   filteredSubs.forEach(sub => {
     const dept = sub.hodId?.department || sub.department || "Unknown";
-    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], respPcts: [], reports: 0 };
+    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], semRespMap: {}, reports: 0 };
     (sub.reports || []).forEach(r => {
       if (filterSem !== "all" && String(r.semester) !== String(filterSem)) return;
       deptMap[dept].reports++;
       if (r.ffiScore != null) deptMap[dept].ffis.push(Number(r.ffiScore));
-      // Use responsePercent directly — simple average per report
+
+      // Get the response percent for this report
+      let pct = null;
       if (r.responsePercent != null) {
-        deptMap[dept].respPcts.push(Number(r.responsePercent));
+        pct = Number(r.responsePercent);
       } else if (r.responseCount != null) {
-        // No percent stored — derive from counts if possible
         const base = r.linkSent ?? r.registeredStudents;
-        if (base && Number(base) > 0) {
-          deptMap[dept].respPcts.push((Number(r.responseCount) / Number(base)) * 100);
-        }
+        if (base && Number(base) > 0) pct = (Number(r.responseCount) / Number(base)) * 100;
       }
+      if (pct == null) return;
+
+      // Group by semester so we can average per-semester first
+      const semKey = filterSem !== "all" ? "selected" : String(r.semester ?? "unknown");
+      if (!deptMap[dept].semRespMap[semKey]) deptMap[dept].semRespMap[semKey] = [];
+      deptMap[dept].semRespMap[semKey].push(pct);
     });
   });
 
-  const deptList = Object.values(deptMap).filter(d => d.reports > 0);
+  // For each dept: compute average per semester, then average those semester-averages
+  Object.values(deptMap).forEach(d => {
+    const semAvgs = Object.values(d.semRespMap).map(
+      arr => arr.reduce((s, v) => s + v, 0) / arr.length
+    );
+    d.respPcts = semAvgs; // each entry = one semester's average
+  });
+
+  const deptList = Object.values(deptMap).filter(d => d.reports > 0 || d.respPcts.length > 0);
 
   // ── Chart 1: Average FFI per dept ──────────────────────────────────────
   const ffiData = deptList
