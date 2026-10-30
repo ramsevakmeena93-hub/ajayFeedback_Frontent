@@ -187,7 +187,23 @@ export default function SubmissionDetail() {
     } catch { toast.error("Failed to reject"); }
   }
 
-  const sessionLabel = submission.session === "jan-may" ? "Jan – Jun (Even)" : submission.session === "jul-dec" ? "Jul – Dec (Odd)" : submission.session || "—";
+  // Session label — covers both stored values and legacy empty sessions
+  const sessionLabel = submission.session === "jan-may" ? "Jan – Jun (Even Sem)"
+    : submission.session === "jul-dec" ? "Jul – Dec (Odd Sem)"
+    : submission.session ? submission.session
+    : "—";
+
+  // Clean course name — strip "Submitted Answer" / "Submitted Answers" suffix
+  function cleanProgramme(name) {
+    if (!name) return "—";
+    return String(name)
+      .replace(/\s*[-:–]\s*submitted\s+answers?/gi, "")
+      .replace(/\bsubmitted\s+answers?\b/gi, "")
+      .replace(/\bsubmitted\s+responses?\b/gi, "")
+      .replace(/\bstudent\s+feedback\b/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim() || "—";
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -494,7 +510,7 @@ export default function SubmissionDetail() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">{r.subjectCode||"—"}</td>
-                        <td className="px-4 py-3 text-xs text-slate-600">{r.programme||"—"}</td>
+                        <td className="px-4 py-3 text-xs text-slate-600">{cleanProgramme(r.programme)}</td>
                         <td className="px-4 py-3 text-center text-xs font-medium">{r.semester||"—"}</td>
                         <td className="px-4 py-3 text-center text-xs">{r.academicYear||"—"}</td>
                         <td className="px-4 py-3 text-center">
