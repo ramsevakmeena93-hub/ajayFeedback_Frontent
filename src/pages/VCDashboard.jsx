@@ -878,7 +878,7 @@ export default function VCDashboard() {
           {[
             { label: "Total Submissions", value: submissions.length, icon: FileText,      iconBg: "bg-blue-50",   iconColor: "text-blue-600"   },
             { label: "Total Reports",     value: totalReports,       icon: Users,         iconBg: "bg-green-50",  iconColor: "text-green-600"  },
-            { label: "Avg FEI Score",     value: avgFFI,             icon: TrendingUp,    iconBg: "bg-orange-50", iconColor: "text-orange-500" },
+            { label: "Avg FFI Score",     value: avgFFI,             icon: TrendingUp,    iconBg: "bg-orange-50", iconColor: "text-orange-500" },
             { label: "Pending Review",    value: pendingCount,       icon: AlertTriangle, iconBg: "bg-red-50",    iconColor: "text-red-500"    },
           ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
             <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
@@ -973,7 +973,7 @@ export default function VCDashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/60">
-                      {["HOD / Department", "Academic Year", "Reports", "Avg FEI Score", "Issues", "Submission Date", "Status", "Actions"].map(h => (
+                      {["HOD / Department", "Academic Year", "Reports", "Avg FFI Score", "Avg Response", "Submission Date", "Status", "Actions"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
                           {h}
                         </th>
@@ -1025,7 +1025,7 @@ export default function VCDashboard() {
                               </span>
                             </td>
 
-                            {/* Avg FEI Score */}
+                            {/* Avg FFI Score */}
                             <td className="px-4 py-4">
                               {avg !== "—" ? (
                                 <span className={`text-sm font-bold ${avgN >= 4 ? "text-teal-600" : avgN >= 3 ? "text-orange-500" : "text-rose-600"}`}>
@@ -1036,15 +1036,15 @@ export default function VCDashboard() {
                               )}
                             </td>
 
-                            {/* Issues */}
+                            {/* Avg Response */}
                             <td className="px-4 py-4">
-                              {attentionTotal > 0 ? (
-                                <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-600 border border-red-200 rounded-full text-xs font-bold">
-                                  {attentionTotal} Issues
-                                </span>
-                              ) : (
-                                <span className="text-slate-300 text-sm">—</span>
-                              )}
+                              {(() => {
+                                const respPcts = (sub.reports || []).map(r => r.responsePercent).filter(v => v != null);
+                                if (!respPcts.length) return <span className="text-slate-300 text-sm">—</span>;
+                                const avgResp = (respPcts.reduce((s, v) => s + Number(v), 0) / respPcts.length).toFixed(1);
+                                const color = avgResp >= 80 ? "text-teal-600" : avgResp >= 60 ? "text-orange-500" : "text-rose-600";
+                                return <span className={`text-sm font-bold ${color}`}>{avgResp}%</span>;
+                              })()}
                             </td>
 
                             {/* Submission Date */}
@@ -1131,59 +1131,6 @@ export default function VCDashboard() {
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-500 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
                                 >
                                   <MessageSquare size={12} /> Pro-VC Comments
-                                </button>
-
-                                {/* Overall Pro-VC Report — department-level PDF download */}
-                                {((sub.provcComments && sub.provcComments.length > 0) || (sub.vcComment && sub.vcComment.trim())) && (
-                                  <button
-                                    onClick={async () => {
-                                      try {
-                                        toast.loading('Generating Overall Pro-VC Report…', { id: 'provcdept' });
-                                        const response = await api.get(`/api/submissions/${sub._id}/provc-department-report`, {
-                                          responseType: 'blob',
-                                        });
-                                        const blob = new Blob([response.data], { type: 'application/pdf' });
-                                        if (blob.size < 200) { toast.error('PDF generation failed', { id: 'provcdept' }); return; }
-                                        const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        const dept = (sub.department || sub.hodId?.department || 'Department').replace(/\s+/g, '_');
-                                        a.download = `ProVC_Dept_Report_${dept}_${sub.academicYear || ''}.pdf`;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        document.body.removeChild(a);
-                                        window.URL.revokeObjectURL(url);
-                                        toast.success('Overall Pro-VC Report downloaded', { id: 'provcdept' });
-                                      } catch (err) {
-                                        let msg = 'Failed to generate report';
-                                        if (err.response?.data instanceof Blob) {
-                                          try { msg = JSON.parse(await err.response.data.text()).error || msg; } catch {}
-                                        } else {
-                                          msg = err.response?.data?.error || msg;
-                                        }
-                                        toast.error(msg, { id: 'provcdept' });
-                                      }
-                                    }}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg border border-emerald-600 transition-colors"
-                                  >
-                                    <FileDown size={12} /> Overall Pro-VC Report
-                                  </button>
-                                )}
-
-                                {/* Generate Faculty Pro-VC Report */}
-                                <button
-                                  onClick={() => { setGenFacultyModal(sub._id); setGenFacultyName(''); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-purple-600 border border-purple-500 hover:bg-purple-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <FileText size={12} /> Faculty Report
-                                </button>
-
-                                {/* Generate Department Pro-VC Report (saved to history) */}
-                                <button
-                                  onClick={() => { setDeptCommentModal(sub._id); setDeptCommentText(sub.vcComment || ''); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-teal-600 border border-teal-500 hover:bg-teal-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <BarChart2 size={12} /> Save Dept Report
                                 </button>
                               </div>
                             </td>
