@@ -509,12 +509,24 @@ function DeptChartsSection({ submissions }) {
   const deptMap = {};
   filteredSubs.forEach(sub => {
     const dept = sub.hodId?.department || sub.department || "Unknown";
-    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], respPcts: [], reports: 0 };
+    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], respNumerator: 0, respDenominator: 0, reports: 0 };
     (sub.reports || []).forEach(r => {
       if (filterSem !== "all" && String(r.semester) !== String(filterSem)) return;
       deptMap[dept].reports++;
-      if (r.ffiScore      != null) deptMap[dept].ffis.push(Number(r.ffiScore));
-      if (r.responsePercent != null) deptMap[dept].respPcts.push(Number(r.responsePercent));
+      if (r.ffiScore != null) deptMap[dept].ffis.push(Number(r.ffiScore));
+      // Weighted response: use actual counts when available, else fall back to pct
+      const count  = r.responseCount  != null ? Number(r.responseCount)  : null;
+      const base   = (r.linkSent != null ? Number(r.linkSent) : null) 
+                   || (r.registeredStudents != null ? Number(r.registeredStudents) : null);
+      if (count != null && base != null && base > 0) {
+        // Exact weighted average: sum responses / sum base
+        deptMap[dept].respNumerator   += count;
+        deptMap[dept].respDenominator += base;
+      } else if (r.responsePercent != null) {
+        // No count/base available — treat as 1 "unit" for a simple average
+        deptMap[dept].respNumerator   += Number(r.responsePercent);
+        deptMap[dept].respDenominator += 100;
+      }
     });
   });
 
@@ -533,11 +545,13 @@ function DeptChartsSection({ submissions }) {
     ? parseFloat((ffiData.reduce((s, d) => s + d.ffi, 0) / ffiData.length).toFixed(2))
     : 0;
 
-  // ── Chart 2: Avg response % per dept ──────────────────────────────────
+  // ── Chart 2: Avg response % per dept (weighted) ───────────────────────
   const respData = deptList
     .map(d => ({
       dept: d.dept,
-      pct: d.respPcts.length ? parseFloat((d.respPcts.reduce((s, v) => s + v, 0) / d.respPcts.length).toFixed(1)) : 0,
+      pct: d.respDenominator > 0
+        ? parseFloat(((d.respNumerator / d.respDenominator) * 100).toFixed(1))
+        : 0,
     }))
     .filter(d => d.pct > 0)
     .sort((a, b) => b.pct - a.pct);
@@ -1078,9 +1092,20 @@ export default function VCDashboard() {
                             {/* Avg Response */}
                             <td className="px-4 py-4">
                               {(() => {
-                                const respPcts = (sub.reports || []).map(r => r.responsePercent).filter(v => v != null);
-                                if (!respPcts.length) return <span className="text-slate-300 text-sm">—</span>;
-                                const avgResp = (respPcts.reduce((s, v) => s + Number(v), 0) / respPcts.length).toFixed(1);
+                                // Weighted average: sum(responseCount) / sum(linkSent or registeredStudents) * 100
+                                let num = 0, den = 0;
+                                (sub.reports || []).forEach(r => {
+                                  const count = r.responseCount != null ? Number(r.responseCount) : null;
+                                  const base  = r.linkSent != null ? Number(r.linkSent)
+                                              : r.registeredStudents != null ? Number(r.registeredStudents) : null;
+                                  if (count != null && base != null && base > 0) {
+                                    num += count; den += base;
+                                  } else if (r.responsePercent != null) {
+                                    num += Number(r.responsePercent); den += 100;
+                                  }
+                                });
+                                if (!den) return <span className="text-slate-300 text-sm">—</span>;
+                                const avgResp = ((num / den) * 100).toFixed(1);
                                 const color = avgResp >= 80 ? "text-teal-600" : avgResp >= 60 ? "text-orange-500" : "text-rose-600";
                                 return <span className={`text-sm font-bold ${color}`}>{avgResp}%</span>;
                               })()}
