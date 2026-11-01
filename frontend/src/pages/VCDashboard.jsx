@@ -468,33 +468,44 @@ function DeptFFITooltip({ active, payload }) {
   );
 }
 
-// Custom Y-axis tick that wraps long dept names onto two lines
+// Custom Y-axis tick — splits "Dept Name (date)" into up to 3 lines so nothing clips
 function YAxisDeptTick({ x, y, payload }) {
-  const name = payload.value || "";
-  // Split at "for", "&", "and", or after 18 chars at a word boundary
-  let line1 = name, line2 = "";
-  const splitWords = name.split(" ");
-  if (name.length > 20) {
-    let cur = "";
-    let splitIdx = splitWords.length;
-    for (let i = 0; i < splitWords.length; i++) {
-      const test = cur ? cur + " " + splitWords[i] : splitWords[i];
-      if (test.length > 18 && cur) { splitIdx = i; break; }
-      cur = test;
-    }
-    line1 = splitWords.slice(0, splitIdx).join(" ");
-    line2 = splitWords.slice(splitIdx).join(" ");
+  const full = payload.value || "";
+
+  // Separate the trailing "(date)" part if present
+  const dateMatch = full.match(/^(.*?)(\s*\(\d.+\))$/);
+  const deptPart = dateMatch ? dateMatch[1].trim() : full;
+  const datePart = dateMatch ? dateMatch[2].trim() : "";
+
+  // Split dept name at ~22 chars on a word boundary
+  const words = deptPart.split(" ");
+  let line1 = "", line2 = "";
+  for (const w of words) {
+    const test = line1 ? line1 + " " + w : w;
+    if (!line1 || test.length <= 22) { line1 = test; }
+    else { line2 = line2 ? line2 + " " + w : w; }
   }
+
+  const lines = [line1, line2, datePart].filter(Boolean);
+  const lineH = 14;
+  const totalH = lines.length * lineH;
+  const startY = -totalH / 2 + lineH / 2;
+
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={-6} y={line2 ? -6 : 0} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
-        {line1}
-      </text>
-      {line2 && (
-        <text x={-6} y={6} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
-          {line2}
+      {lines.map((l, i) => (
+        <text
+          key={i}
+          x={-8}
+          y={startY + i * lineH}
+          textAnchor="end"
+          fontSize={i === lines.length - 1 && datePart ? 10 : 11}
+          fill={i === lines.length - 1 && datePart ? "#94a3b8" : "#475569"}
+          dominantBaseline="middle"
+        >
+          {l}
         </text>
-      )}
+      ))}
     </g>
   );
 }
@@ -673,13 +684,13 @@ function DeptChartsSection({ submissions }) {
                   </div>
                 ))}
               </div>
-              <ResponsiveContainer width="100%" height={Math.max(280, ffiData.length * 46)}>
-                <BarChart data={ffiData} layout="vertical" margin={{ top: 4, right: 52, left: 8, bottom: 20 }}>
+              <ResponsiveContainer width="100%" height={Math.max(280, ffiData.length * 56)}>
+                <BarChart data={ffiData} layout="vertical" margin={{ top: 4, right: 52, left: 12, bottom: 20 }}>
                   <XAxis type="number" domain={[0, 5]} tickCount={6}
                     tick={{ fontSize: 11, fill: "#94a3b8" }}
                     label={{ value: "Average FFI (out of 5)", position: "insideBottom", offset: -10, fontSize: 10, fill: "#94a3b8" }}
                   />
-                  <YAxis dataKey="dept" type="category" width={185} tick={<YAxisDeptTick />} />
+                  <YAxis dataKey="dept" type="category" width={260} tick={<YAxisDeptTick />} />
                   <Tooltip content={<DeptFFITooltip />} cursor={{ fill: "#f1f5f9" }} />
                   <Bar dataKey="ffi" radius={[0, 5, 5, 0]} maxBarSize={22}>
                     {ffiData.map((d) => <Cell key={d.dept} fill={ffiColor(d.ffi)} />)}
