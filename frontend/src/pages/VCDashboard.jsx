@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SignatureUpload from '../components/SignatureUpload';
-import mitsCampusImg from "../assets/mits-campus.png";
+import mitsCampusImg from "../assets/mits-campus-real.png";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
