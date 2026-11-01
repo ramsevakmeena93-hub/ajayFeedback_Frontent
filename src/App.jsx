@@ -48,7 +48,7 @@ function LoadingScreen() {
 // decisions independently on every request.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ProtectedRoute({ children, role, workspace }) {
+function ProtectedRoute({ children, role }) {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
@@ -71,17 +71,6 @@ function ProtectedRoute({ children, role, workspace }) {
     const allowedRoles = Array.isArray(role) ? role : [role];
     const hasRole = allowedRoles.some(r => userRoles.has(r));
     if (!hasRole) return <Navigate to="/dashboard" replace />;
-  }
-
-  // Enforce workspace: user's activeWorkspace must match one of the allowed workspaces.
-  // This prevents e.g. a provc user from landing on /hod even if they somehow have
-  // a stale cached role. Skip check if no workspace constraint is given.
-  if (workspace) {
-    const allowedWorkspaces = Array.isArray(workspace) ? workspace : [workspace];
-    const activeWs = user.activeWorkspace || user.role;
-    if (!allowedWorkspaces.includes(activeWs)) {
-      return <Navigate to="/dashboard" replace />;
-    }
   }
 
   return children;
@@ -128,27 +117,24 @@ export default function App() {
         <Route path="/developer"           element={<Developer />} />
         <Route path="/dashboard"           element={<RoleRedirect />} />
 
-        {/* HOD workspace
-            Role check: must hold 'hod' in their roles array.
-            Workspace check: must be in 'hod' workspace.
-            Multi-role users (e.g. HOD+Faculty) must switch to HOD workspace first. */}
+        {/* HOD workspace */}
         <Route path="/hod"
           element={
-            <ProtectedRoute role="hod" workspace="hod">
+            <ProtectedRoute role="hod">
               <HODDashboard />
             </ProtectedRoute>
           }
         />
         <Route path="/hod/report/:id"
           element={
-            <ProtectedRoute role="hod" workspace="hod">
+            <ProtectedRoute role="hod">
               <ReportDetail />
             </ProtectedRoute>
           }
         />
         <Route path="/hod/history"
           element={
-            <ProtectedRoute role="hod" workspace="hod">
+            <ProtectedRoute role="hod">
               <History />
             </ProtectedRoute>
           }
@@ -157,38 +143,37 @@ export default function App() {
         {/* VC workspace */}
         <Route path="/vc"
           element={
-            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
+            <ProtectedRoute role={['vc', 'provc']}>
               <VCDashboard />
             </ProtectedRoute>
           }
         />
         <Route path="/vc/submission/:id"
           element={
-            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
+            <ProtectedRoute role={['vc', 'provc']}>
               <SubmissionDetail />
             </ProtectedRoute>
           }
         />
         <Route path="/vc/history"
           element={
-            <ProtectedRoute role={['vc', 'provc']} workspace={['vc', 'provc']}>
+            <ProtectedRoute role={['vc', 'provc']}>
               <History />
             </ProtectedRoute>
           }
         />
 
-        {/* Faculty workspace
-            Multi-role HOD+Faculty users can access this after switching workspace. */}
+        {/* Faculty workspace */}
         <Route path="/faculty"
           element={
-            <ProtectedRoute role={['faculty', 'hod']} workspace="faculty">
+            <ProtectedRoute role={['faculty', 'hod']}>
               <FacultyDashboard />
             </ProtectedRoute>
           }
         />
         <Route path="/faculty/history"
           element={
-            <ProtectedRoute role={['faculty', 'hod']} workspace="faculty">
+            <ProtectedRoute role={['faculty', 'hod']}>
               <History />
             </ProtectedRoute>
           }
@@ -197,7 +182,7 @@ export default function App() {
         {/* Admin workspace */}
         <Route path="/admin"
           element={
-            <ProtectedRoute role="admin" workspace="admin">
+            <ProtectedRoute role="admin">
               <AdminDashboard />
             </ProtectedRoute>
           }
