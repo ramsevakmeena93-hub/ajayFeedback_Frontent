@@ -266,17 +266,22 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
   // Chart data — full name, subject code, click-navigable
   const chartData = (sub.reports||[])
     .filter(r => r.ffiScore)
-    .map(r => ({
-      name: (r.facultyName || "Unknown")
-        .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "").trim(),
-      full: r.facultyName || "Unknown",
-      subject: r.subjectCode || "",
-      FFI: parseFloat((r.ffiScore||0).toFixed(2)),
-      reportId: r._id,
-      responseCount: r.responseCount,
-      responsePercent: r.responsePercent,
-      attention: (r.commentsNeedingAttention||[]).length,
-    }));
+    .map(r => {
+      const shortName = (r.facultyName || "Unknown")
+        .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "").trim();
+      const code = (r.subjectCode || "").split("-")[0].trim();
+      const name = code ? `${shortName} (${code})` : shortName;
+      return {
+        name,
+        full: r.facultyName || "Unknown",
+        subject: r.subjectCode || "",
+        FFI: parseFloat((r.ffiScore||0).toFixed(2)),
+        reportId: r._id,
+        responseCount: r.responseCount,
+        responsePercent: r.responsePercent,
+        attention: (r.commentsNeedingAttention||[]).length,
+      };
+    });
 
   // Dynamic Y-axis: zoom in on actual score range for more realistic look
   const ffiValues = chartData.map(d => d.FFI);
