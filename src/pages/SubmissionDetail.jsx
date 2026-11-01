@@ -194,10 +194,14 @@ export default function SubmissionDetail() {
   }
 
   // Session label — covers both stored values and legacy empty sessions
-  const sessionLabel = submission.session === "jan-may" ? "Jan – Jun (Even Sem)"
+  const [sessionLabel, setSessionLabelState] = useState(
+    submission.session === "jan-may" ? "Jan – Jun (Even Sem)"
     : submission.session === "jul-dec" ? "Jul – Dec (Odd Sem)"
     : submission.session ? submission.session
-    : "—";
+    : null
+  );
+  const [editingSession, setEditingSession] = useState(false);
+  const [sessionValue, setSessionValue] = useState(submission.session || '');
 
   // Clean course name — strip "Submitted Answer" / "Submitted Answers" suffix
   function cleanProgramme(name) {
@@ -403,7 +407,48 @@ export default function SubmissionDetail() {
             <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">HOD</p><p className="font-semibold text-slate-800">{submission.hodId?.name || "—"}</p></div>
             <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Department</p><p className="font-semibold text-slate-800">{submission.hodId?.department || submission.department || "—"}</p></div>
             <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Academic Year</p><p className="font-semibold text-slate-800">{submission.academicYear || "—"}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Session</p><p className="font-semibold text-slate-800">{sessionLabel}</p></div>
+            <div>
+              <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Session</p>
+              {editingSession ? (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { value: 'jul-dec', label: 'Jul–Dec' },
+                    { value: 'jan-may', label: 'Jan–May' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={async () => {
+                        try {
+                          await api.patch(`/api/submissions/${id}/session`, { session: opt.value });
+                          setSessionLabelState(opt.value === 'jan-may' ? 'Jan – Jun (Even Sem)' : 'Jul – Dec (Odd Sem)');
+                          setSessionValue(opt.value);
+                          setEditingSession(false);
+                          toast.success('Session updated ✓');
+                        } catch { toast.error('Failed to update session'); }
+                      }}
+                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition ${
+                        sessionValue === opt.value
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-white text-indigo-600 border-indigo-400 hover:bg-indigo-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                  <button onClick={() => setEditingSession(false)} className="text-xs text-slate-400 hover:text-slate-600 px-1">✕</button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <p className="font-semibold text-slate-800">{sessionLabel || '—'}</p>
+                  <button
+                    onClick={() => setEditingSession(true)}
+                    className="text-[10px] text-indigo-500 hover:text-indigo-700 border border-indigo-300 rounded px-1.5 py-0.5 font-semibold hover:bg-indigo-50 transition"
+                  >
+                    {sessionLabel ? 'Edit' : '+ Set'}
+                  </button>
+                </div>
+              )}
+            </div>
             <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Form No.</p><p className="font-semibold text-slate-800">{submission.feedbackFormNo ? `Feedback Form ${submission.feedbackFormNo}` : "—"}</p></div>
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Status</p>
