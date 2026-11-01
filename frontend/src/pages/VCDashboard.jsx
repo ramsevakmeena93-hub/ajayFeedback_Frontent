@@ -673,8 +673,6 @@ function DeptChartsSection({ submissions }) {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-slate-400 mb-3">- - Institute average</p>
-
               <ResponsiveContainer width="100%" height={Math.max(280, ffiData.length * 46)}>
                 <BarChart data={ffiData} layout="vertical" margin={{ top: 4, right: 52, left: 8, bottom: 20 }}>
                   <XAxis type="number" domain={[0, 5]} tickCount={6}
@@ -683,9 +681,6 @@ function DeptChartsSection({ submissions }) {
                   />
                   <YAxis dataKey="dept" type="category" width={185} tick={<YAxisDeptTick />} />
                   <Tooltip content={<DeptFFITooltip />} cursor={{ fill: "#f1f5f9" }} />
-                  <ReferenceLine x={avgFFIAll} stroke="#94a3b8" strokeDasharray="5 4" strokeWidth={1.5}
-                    label={{ value: `Avg ${avgFFIAll}`, position: "top", fontSize: 10, fill: "#64748b" }}
-                  />
                   <Bar dataKey="ffi" radius={[0, 5, 5, 0]} maxBarSize={22}>
                     {ffiData.map((d) => <Cell key={d.dept} fill={ffiColor(d.ffi)} />)}
                     <LabelList dataKey="ffi" position="right" formatter={v => v.toFixed(2)}
