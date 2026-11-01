@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine,
+  LabelList,
 } from "recharts";
 import {
   CheckCircle, XCircle, Eye, TrendingUp, Users, FileText,
@@ -265,11 +266,11 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
 
   // Chart data — full name, subject code, click-navigable
   const chartData = (sub.reports||[])
+    .filter(r => r.ffiScore)
     .map(r => {
       const shortName = (r.facultyName || "Unknown")
         .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "").trim();
-      const code = (r.subjectCode || "").split("-")[0].trim(); // e.g. "34252108" from "34252108-Batch-A"
-      // Make the bar key unique: "Sharma (CS301)" — prevents duplicate-name collapse
+      const code = (r.subjectCode || "").split("-")[0].trim();
       const name = code ? `${shortName} (${code})` : shortName;
       return {
         name,
@@ -284,6 +285,7 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
       };
     });
 
+  // Dynamic Y-axis: zoom in on actual score range for more realistic look
   // Dynamic Y-axis: only use reports that actually have a score
   const scoredFFIs = chartData.map(d => d.FFI).filter(v => v != null);
   const minFFI = scoredFFIs.length ? Math.max(0, Math.min(...scoredFFIs) - 0.5) : 0;
@@ -433,27 +435,297 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                         </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => onOpenComment && onOpenComment({
-                        facultyName: r.facultyName || "—",
-                        subjectCode: r.subjectCode || "",
-                        ffi: r.ffiScore?.toFixed(2),
-                        existingComment: savedComment,
-                      })}
-                      className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                        savedComment
-                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                          : "bg-white text-blue-600 border-blue-500 hover:bg-blue-50"
-                      }`}
-                    >
-                      <MessageSquare size={12} />
-                      PRO-VC Comments
-                    </button>
                   </div>
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DEPARTMENT ANALYTICS — FFI Bar + Response % Ranking
+// ═══════════════════════════════════════════════════════════════════════════
+
+function DeptFFITooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  const ffi = d.ffi;
+  const color = ffi >= 4 ? "#16a34a" : ffi >= 3 ? "#f59e0b" : "#ef4444";
+  const statusLabel = { approved: "Approved", submitted: "Pending Review", conflict: "Conflict", escalated: "Escalated", rejected: "Rejected", sent_back: "Sent Back" };
+  return (
+    <div className="bg-slate-900 text-white rounded-xl shadow-xl px-3 py-2 text-xs min-w-[160px]">
+      <p className="font-bold mb-0.5">{d.fullDept || d.dept}</p>
+      {d.status && <p className="text-slate-400 mb-1">{statusLabel[d.status] || d.status}</p>}
+      <div className="flex items-center gap-2">
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        <span>Average FFI: <strong>{ffi.toFixed(2)}</strong></span>
+      </div>
+    </div>
+  );
+}
+
+// Custom Y-axis tick that wraps long dept names onto two lines
+function YAxisDeptTick({ x, y, payload }) {
+  const name = payload.value || "";
+  // Split at "for", "&", "and", or after 18 chars at a word boundary
+  let line1 = name, line2 = "";
+  const splitWords = name.split(" ");
+  if (name.length > 20) {
+    let cur = "";
+    let splitIdx = splitWords.length;
+    for (let i = 0; i < splitWords.length; i++) {
+      const test = cur ? cur + " " + splitWords[i] : splitWords[i];
+      if (test.length > 18 && cur) { splitIdx = i; break; }
+      cur = test;
+    }
+    line1 = splitWords.slice(0, splitIdx).join(" ");
+    line2 = splitWords.slice(splitIdx).join(" ");
+  }
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={-6} y={line2 ? -6 : 0} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
+        {line1}
+      </text>
+      {line2 && (
+        <text x={-6} y={6} textAnchor="end" fontSize={11} fill="#475569" dominantBaseline="middle">
+          {line2}
+        </text>
+      )}
+    </g>
+  );
+}
+
+function DeptChartsSection({ submissions }) {
+  const [filterYear, setFilterYear]     = React.useState("all");
+  const [filterSem,  setFilterSem]      = React.useState("all");
+  const [filterSession, setFilterSession] = React.useState("all");
+
+  // Collect all unique years / semesters / sessions from submissions
+  const allYears    = [...new Set((submissions||[]).map(s => s.academicYear).filter(Boolean))].sort().reverse();
+  const allSems     = [...new Set((submissions||[]).flatMap(s => (s.reports||[]).map(r => r.semester)).filter(v => v != null && v !== ""))].sort((a,b) => Number(a)-Number(b));
+  const allSessions = [...new Set((submissions||[]).map(s => s.session).filter(Boolean))].sort();
+
+  // Filter submissions by year / session, then reports by semester
+  const filteredSubs = (submissions || []).filter(sub => {
+    if (filterYear    !== "all" && sub.academicYear !== filterYear)    return false;
+    if (filterSession !== "all" && sub.session      !== filterSession) return false;
+    return true;
+  });
+
+  // Build per-department stats from filtered submissions & reports
+  // When showing "All Semesters", compute per-semester averages first, then average those.
+  // This ensures overall = average of semester averages (not skewed by report count per sem).
+  const deptMap = {};
+  // Build per-submission stats (one bar per submission, not per dept)
+  // This ensures two submissions from the same department both appear.
+  const deptMap = {};
+  filteredSubs.forEach(sub => {
+    const dept = sub.hodId?.department || sub.department || "Unknown";
+    const subId = String(sub._id);
+    // Label: dept name + submission date so bars are distinguishable
+    const dateStr = sub.createdAt
+      ? new Date(sub.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+      : "";
+    const label = dateStr ? `${dept} (${dateStr})` : dept;
+
+    if (!deptMap[subId]) deptMap[subId] = { dept: label, fullDept: dept, submissionId: subId, status: sub.status, ffis: [], semRespMap: {}, reports: 0 };
+    (sub.reports || []).forEach(r => {
+      if (filterSem !== "all" && String(r.semester) !== String(filterSem)) return;
+      deptMap[subId].reports++;
+      if (r.ffiScore != null) deptMap[subId].ffis.push(Number(r.ffiScore));
+
+      // Get the response percent for this report
+      let pct = null;
+      if (r.responsePercent != null) {
+        pct = Number(r.responsePercent);
+      } else if (r.responseCount != null) {
+        const base = r.linkSent ?? r.registeredStudents;
+        if (base && Number(base) > 0) pct = (Number(r.responseCount) / Number(base)) * 100;
+      }
+      if (pct == null) return;
+
+      // Group by semester so we can average per-semester first
+      const semKey = filterSem !== "all" ? "selected" : String(r.semester ?? "unknown");
+      if (!deptMap[subId].semRespMap[semKey]) deptMap[subId].semRespMap[semKey] = [];
+      deptMap[subId].semRespMap[semKey].push(pct);
+    });
+  });
+
+  // For each entry: compute average per semester, then average those semester-averages
+  Object.values(deptMap).forEach(d => {
+    const semAvgs = Object.values(d.semRespMap).map(
+      arr => arr.reduce((s, v) => s + v, 0) / arr.length
+    );
+    d.respPcts = semAvgs; // each entry = one semester's average
+  });
+
+  const deptList = Object.values(deptMap).filter(d => d.reports > 0 || d.respPcts.length > 0);
+
+  // ── Chart 1: Average FFI per dept ──────────────────────────────────────
+  const ffiData = deptList
+    .map(d => ({
+      dept: d.dept,
+      ffi: d.ffis.length ? parseFloat((d.ffis.reduce((s, v) => s + v, 0) / d.ffis.length).toFixed(2)) : 0,
+    }))
+    .filter(d => d.ffi > 0)
+    .sort((a, b) => b.ffi - a.ffi);
+
+  const avgFFIAll = ffiData.length
+    ? parseFloat((ffiData.reduce((s, d) => s + d.ffi, 0) / ffiData.length).toFixed(2))
+    : 0;
+
+  // ── Chart 2: Avg response % per dept (simple average of per-report %) ──
+  const respData = deptList
+    .map(d => ({
+      dept: d.dept,
+      pct: d.respPcts.length
+        ? parseFloat((d.respPcts.reduce((s, v) => s + v, 0) / d.respPcts.length).toFixed(1))
+        : 0,
+    }))
+    .filter(d => d.pct > 0)
+    .sort((a, b) => b.pct - a.pct);
+
+  const ffiColor  = (v) => v >= 4 ? "#16a34a" : v >= 3 ? "#f59e0b" : "#ef4444";
+  const respColor = (v) => v >= 80 ? "#16a34a" : v >= 60 ? "#f59e0b" : "#ef4444";
+
+  const sessionLabel = (s) => s === "jan-may" ? "Jan – Jun (Even)" : s === "jul-dec" ? "Jul – Dec (Odd)" : s;
+
+  const noData = ffiData.length === 0 && respData.length === 0;
+
+  // Shared filter bar
+  const FilterBar = (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      {/* Academic Year */}
+      {allYears.length > 0 && (
+        <select
+          value={filterYear}
+          onChange={e => setFilterYear(e.target.value)}
+          className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 text-slate-700 font-medium"
+        >
+          <option value="all">All Years</option>
+          {allYears.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+      )}
+      {/* Semester */}
+      {allSems.length > 0 && (
+        <select
+          value={filterSem}
+          onChange={e => setFilterSem(e.target.value)}
+          className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 text-slate-700 font-medium"
+        >
+          <option value="all">All Semesters</option>
+          {allSems.map(s => <option key={s} value={s}>Semester {s}</option>)}
+        </select>
+      )}
+      {/* Session */}
+      {allSessions.length > 0 && (
+        <select
+          value={filterSession}
+          onChange={e => setFilterSession(e.target.value)}
+          className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 text-slate-700 font-medium"
+        >
+          <option value="all">All Sessions</option>
+          {allSessions.map(s => <option key={s} value={s}>{sessionLabel(s)}</option>)}
+        </select>
+      )}
+      {/* Clear */}
+      {(filterYear !== "all" || filterSem !== "all" || filterSession !== "all") && (
+        <button
+          onClick={() => { setFilterYear("all"); setFilterSem("all"); setFilterSession("all"); }}
+          className="text-xs text-red-400 hover:text-red-600 font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition"
+        >
+          ✕ Clear
+        </button>
+      )}
+      {/* Active filter pills */}
+      {filterYear    !== "all" && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{filterYear}</span>}
+      {filterSem     !== "all" && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">Sem {filterSem}</span>}
+      {filterSession !== "all" && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">{sessionLabel(filterSession)}</span>}
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+      {/* Section heading + filters */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+        <p className="text-base font-bold text-slate-800">Department Analytics</p>
+        {FilterBar}
+      </div>
+
+      {noData ? (
+        <div className="py-12 text-center text-slate-400 text-sm">No data for selected filters</div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-2">
+
+          {/* ── Card 1: FFI Bar Chart ──────────────────────────────────── */}
+          {ffiData.length > 0 && (
+            <div>
+              <p className="text-sm font-bold text-slate-700 mb-2">Department ranking by average FFI</p>
+              {/* Legend */}
+              <div className="flex items-center gap-4 mb-1 flex-wrap">
+                {[["bg-green-600","4.00 and above (good)"],["bg-amber-400","3.00 to 3.99 (average)"],["bg-red-500","Below 3.00 (needs attention)"]].map(([c,l]) => (
+                  <div key={l} className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <span className={`w-3 h-3 rounded-sm inline-block ${c}`} /> {l}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mb-3">- - Institute average</p>
+
+              <ResponsiveContainer width="100%" height={Math.max(280, ffiData.length * 46)}>
+                <BarChart data={ffiData} layout="vertical" margin={{ top: 4, right: 52, left: 8, bottom: 20 }}>
+                  <XAxis type="number" domain={[0, 5]} tickCount={6}
+                    tick={{ fontSize: 11, fill: "#94a3b8" }}
+                    label={{ value: "Average FFI (out of 5)", position: "insideBottom", offset: -10, fontSize: 10, fill: "#94a3b8" }}
+                  />
+                  <YAxis dataKey="dept" type="category" width={185} tick={<YAxisDeptTick />} />
+                  <Tooltip content={<DeptFFITooltip />} cursor={{ fill: "#f1f5f9" }} />
+                  <ReferenceLine x={avgFFIAll} stroke="#94a3b8" strokeDasharray="5 4" strokeWidth={1.5}
+                    label={{ value: `Avg ${avgFFIAll}`, position: "top", fontSize: 10, fill: "#64748b" }}
+                  />
+                  <Bar dataKey="ffi" radius={[0, 5, 5, 0]} maxBarSize={22}>
+                    {ffiData.map((d) => <Cell key={d.dept} fill={ffiColor(d.ffi)} />)}
+                    <LabelList dataKey="ffi" position="right" formatter={v => v.toFixed(2)}
+                      style={{ fontSize: 11, fontWeight: 700, fill: "#334155" }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* ── Card 2: Response % Ranking ─────────────────────────────── */}
+          {respData.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <p className="text-xs font-semibold text-slate-500">Department ranking by average response</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {[["#16a34a","80% and above"],["#f59e0b","60% to 79%"],["#ef4444","Below 60%"]].map(([c,l]) => (
+                    <div key={l} className="flex items-center gap-1.5 text-xs text-slate-600">
+                      <span className="w-3 h-3 rounded-sm inline-block" style={{ background: c }} /> {l}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                {respData.map((d, i) => (
+                  <div key={d.dept} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-400 w-5 shrink-0 text-right">{i + 1}</span>
+                    <span className="text-xs text-slate-700 w-48 shrink-0" title={d.dept}>{d.dept}</span>
+                    <div className="flex-1 relative h-5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="absolute top-0 bottom-0 w-px bg-slate-300"
+                        style={{ left: `${Math.min((80 / 100) * 100, 100)}%` }} />
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(d.pct, 100)}%`, background: respColor(d.pct) }} />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700 w-12 shrink-0 text-right">{d.pct.toFixed(1)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -692,7 +964,7 @@ export default function VCDashboard() {
           {[
             { label: "Total Submissions", value: submissions.length, icon: FileText,      iconBg: "bg-blue-50",   iconColor: "text-blue-600"   },
             { label: "Total Reports",     value: totalReports,       icon: Users,         iconBg: "bg-green-50",  iconColor: "text-green-600"  },
-            { label: "Avg FEI Score",     value: avgFFI,             icon: TrendingUp,    iconBg: "bg-orange-50", iconColor: "text-orange-500" },
+            { label: "Avg FFI Score",     value: avgFFI,             icon: TrendingUp,    iconBg: "bg-orange-50", iconColor: "text-orange-500" },
             { label: "Pending Review",    value: pendingCount,       icon: AlertTriangle, iconBg: "bg-red-50",    iconColor: "text-red-500"    },
           ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
             <div key={label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
@@ -706,6 +978,9 @@ export default function VCDashboard() {
             </div>
           ))}
         </div>
+
+        {/* ── Department Analytics Charts ── */}
+        <DeptChartsSection submissions={submissions} />
 
         {/* ── Tab Bar ── */}
         <div className="border-b border-slate-200">
@@ -784,7 +1059,7 @@ export default function VCDashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/60">
-                      {["HOD / Department", "Academic Year", "Reports", "Avg FEI Score", "Issues", "Submission Date", "Status", "Actions"].map(h => (
+                      {["HOD / Department", "Academic Year", "Reports", "Avg FFI Score", "Avg Response", "Submission Date", "Status", "Actions"].map(h => (
                         <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
                           {h}
                         </th>
@@ -836,7 +1111,7 @@ export default function VCDashboard() {
                               </span>
                             </td>
 
-                            {/* Avg FEI Score */}
+                            {/* Avg FFI Score */}
                             <td className="px-4 py-4">
                               {avg !== "—" ? (
                                 <span className={`text-sm font-bold ${avgN >= 4 ? "text-teal-600" : avgN >= 3 ? "text-orange-500" : "text-rose-600"}`}>
@@ -847,15 +1122,24 @@ export default function VCDashboard() {
                               )}
                             </td>
 
-                            {/* Issues */}
+                            {/* Avg Response */}
                             <td className="px-4 py-4">
-                              {attentionTotal > 0 ? (
-                                <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-600 border border-red-200 rounded-full text-xs font-bold">
-                                  {attentionTotal} Issues
-                                </span>
-                              ) : (
-                                <span className="text-slate-300 text-sm">—</span>
-                              )}
+                              {(() => {
+                                // Simple average of per-report responsePercent
+                                const pcts = (sub.reports || []).flatMap(r => {
+                                  if (r.responsePercent != null) return [Number(r.responsePercent)];
+                                  if (r.responseCount != null) {
+                                    const base = r.linkSent ?? r.registeredStudents;
+                                    if (base && Number(base) > 0)
+                                      return [(Number(r.responseCount) / Number(base)) * 100];
+                                  }
+                                  return [];
+                                });
+                                if (!pcts.length) return <span className="text-slate-300 text-sm">—</span>;
+                                const avgResp = (pcts.reduce((s, v) => s + v, 0) / pcts.length).toFixed(1);
+                                const color = avgResp >= 80 ? "text-teal-600" : avgResp >= 60 ? "text-orange-500" : "text-rose-600";
+                                return <span className={`text-sm font-bold ${color}`}>{avgResp}%</span>;
+                              })()}
                             </td>
 
                             {/* Submission Date */}
@@ -934,67 +1218,6 @@ export default function VCDashboard() {
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-amber-600 border border-amber-500 hover:bg-amber-50 text-xs font-semibold rounded-lg transition-colors"
                                 >
                                   <ClipboardList size={12} /> Action Taken
-                                </button>
-
-                                {/* Pro-VC Comments (submission level) */}
-                                <button
-                                  onClick={() => navigate(`/vc/submission/${sub._id}?provc=1`)}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-blue-600 border border-blue-500 hover:bg-blue-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <MessageSquare size={12} /> Pro-VC Comments
-                                </button>
-
-                                {/* Overall Pro-VC Report — department-level PDF download */}
-                                {((sub.provcComments && sub.provcComments.length > 0) || (sub.vcComment && sub.vcComment.trim())) && (
-                                  <button
-                                    onClick={async () => {
-                                      try {
-                                        toast.loading('Generating Overall Pro-VC Report…', { id: 'provcdept' });
-                                        const response = await api.get(`/api/submissions/${sub._id}/provc-department-report`, {
-                                          responseType: 'blob',
-                                        });
-                                        const blob = new Blob([response.data], { type: 'application/pdf' });
-                                        if (blob.size < 200) { toast.error('PDF generation failed', { id: 'provcdept' }); return; }
-                                        const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        const dept = (sub.department || sub.hodId?.department || 'Department').replace(/\s+/g, '_');
-                                        a.download = `ProVC_Dept_Report_${dept}_${sub.academicYear || ''}.pdf`;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        document.body.removeChild(a);
-                                        window.URL.revokeObjectURL(url);
-                                        toast.success('Overall Pro-VC Report downloaded', { id: 'provcdept' });
-                                      } catch (err) {
-                                        let msg = 'Failed to generate report';
-                                        if (err.response?.data instanceof Blob) {
-                                          try { msg = JSON.parse(await err.response.data.text()).error || msg; } catch {}
-                                        } else {
-                                          msg = err.response?.data?.error || msg;
-                                        }
-                                        toast.error(msg, { id: 'provcdept' });
-                                      }
-                                    }}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg border border-emerald-600 transition-colors"
-                                  >
-                                    <FileDown size={12} /> Overall Pro-VC Report
-                                  </button>
-                                )}
-
-                                {/* Generate Faculty Pro-VC Report */}
-                                <button
-                                  onClick={() => { setGenFacultyModal(sub._id); setGenFacultyName(''); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-purple-600 border border-purple-500 hover:bg-purple-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <FileText size={12} /> Faculty Report
-                                </button>
-
-                                {/* Generate Department Pro-VC Report (saved to history) */}
-                                <button
-                                  onClick={() => { setDeptCommentModal(sub._id); setDeptCommentText(sub.vcComment || ''); }}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-white text-teal-600 border border-teal-500 hover:bg-teal-50 text-xs font-semibold rounded-lg transition-colors"
-                                >
-                                  <BarChart2 size={12} /> Save Dept Report
                                 </button>
                               </div>
                             </td>

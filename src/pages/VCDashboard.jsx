@@ -455,9 +455,11 @@ function DeptFFITooltip({ active, payload }) {
   const d = payload[0].payload;
   const ffi = d.ffi;
   const color = ffi >= 4 ? "#16a34a" : ffi >= 3 ? "#f59e0b" : "#ef4444";
+  const statusLabel = { approved: "Approved", submitted: "Pending Review", conflict: "Conflict", escalated: "Escalated", rejected: "Rejected", sent_back: "Sent Back" };
   return (
     <div className="bg-slate-900 text-white rounded-xl shadow-xl px-3 py-2 text-xs min-w-[160px]">
-      <p className="font-bold mb-1">{d.dept}</p>
+      <p className="font-bold mb-0.5">{d.fullDept || d.dept}</p>
+      {d.status && <p className="text-slate-400 mb-1">{statusLabel[d.status] || d.status}</p>}
       <div className="flex items-center gap-2">
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
         <span>Average FFI: <strong>{ffi.toFixed(2)}</strong></span>
@@ -518,13 +520,23 @@ function DeptChartsSection({ submissions }) {
   // When showing "All Semesters", compute per-semester averages first, then average those.
   // This ensures overall = average of semester averages (not skewed by report count per sem).
   const deptMap = {};
+  // Build per-submission stats (one bar per submission, not per dept)
+  // This ensures two submissions from the same department both appear.
+  const deptMap = {};
   filteredSubs.forEach(sub => {
     const dept = sub.hodId?.department || sub.department || "Unknown";
-    if (!deptMap[dept]) deptMap[dept] = { dept, ffis: [], semRespMap: {}, reports: 0 };
+    const subId = String(sub._id);
+    // Label: dept name + submission date so bars are distinguishable
+    const dateStr = sub.createdAt
+      ? new Date(sub.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+      : "";
+    const label = dateStr ? `${dept} (${dateStr})` : dept;
+
+    if (!deptMap[subId]) deptMap[subId] = { dept: label, fullDept: dept, submissionId: subId, status: sub.status, ffis: [], semRespMap: {}, reports: 0 };
     (sub.reports || []).forEach(r => {
       if (filterSem !== "all" && String(r.semester) !== String(filterSem)) return;
-      deptMap[dept].reports++;
-      if (r.ffiScore != null) deptMap[dept].ffis.push(Number(r.ffiScore));
+      deptMap[subId].reports++;
+      if (r.ffiScore != null) deptMap[subId].ffis.push(Number(r.ffiScore));
 
       // Get the response percent for this report
       let pct = null;
@@ -538,12 +550,12 @@ function DeptChartsSection({ submissions }) {
 
       // Group by semester so we can average per-semester first
       const semKey = filterSem !== "all" ? "selected" : String(r.semester ?? "unknown");
-      if (!deptMap[dept].semRespMap[semKey]) deptMap[dept].semRespMap[semKey] = [];
-      deptMap[dept].semRespMap[semKey].push(pct);
+      if (!deptMap[subId].semRespMap[semKey]) deptMap[subId].semRespMap[semKey] = [];
+      deptMap[subId].semRespMap[semKey].push(pct);
     });
   });
 
-  // For each dept: compute average per semester, then average those semester-averages
+  // For each entry: compute average per semester, then average those semester-averages
   Object.values(deptMap).forEach(d => {
     const semAvgs = Object.values(d.semRespMap).map(
       arr => arr.reduce((s, v) => s + v, 0) / arr.length
