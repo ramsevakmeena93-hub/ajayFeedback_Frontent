@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import SignatureUpload from '../components/SignatureUpload';
+import mitsCampusImg from "../assets/mits-campus.png";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -920,37 +921,20 @@ export default function VCDashboard() {
           className="relative rounded-2xl overflow-hidden shadow-md"
           style={{ background: "linear-gradient(135deg, #1a2f5e 0%, #1e3f7a 60%, #162550 100%)", minHeight: "180px" }}
         >
-          {/* Building silhouette — right side decoration */}
-          <div className="absolute inset-y-0 right-0 w-72 flex items-end justify-end pointer-events-none select-none overflow-hidden opacity-20">
-            <svg viewBox="0 0 300 180" className="w-full h-full" fill="currentColor" style={{ color: "#93c5fd" }}>
-              <rect x="160" y="40" width="50" height="140" rx="2"/>
-              <rect x="168" y="50" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="184" y="50" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="168" y="70" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="184" y="70" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="168" y="90" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="184" y="90" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="168" y="110" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="184" y="110" width="10" height="12" rx="1" fill="#1e3f7a"/>
-              <rect x="110" y="70" width="40" height="110" rx="2"/>
-              <rect x="118" y="80" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="132" y="80" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="118" y="98" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="132" y="98" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="118" y="116" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="132" y="116" width="8" height="10" rx="1" fill="#1e3f7a"/>
-              <rect x="220" y="80" width="35" height="100" rx="2"/>
-              <rect x="227" y="90" width="8" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="239" y="90" width="8" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="227" y="106" width="8" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="239" y="106" width="8" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="262" y="30" width="25" height="150" rx="2"/>
-              <polygon points="274,10 262,30 286,30"/>
-              <rect x="267" y="45" width="7" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="267" y="61" width="7" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="267" y="77" width="7" height="8" rx="1" fill="#1e3f7a"/>
-              <rect x="80" y="178" width="220" height="2"/>
-            </svg>
+          {/* MITS campus photo — right side, clipped with a diagonal mask */}
+          <div className="absolute inset-y-0 right-0 w-1/2 pointer-events-none select-none overflow-hidden"
+            style={{ clipPath: "polygon(18% 0%, 100% 0%, 100% 100%, 0% 100%)" }}
+          >
+            <img
+              src={mitsCampusImg}
+              alt="MITS Campus"
+              className="w-full h-full object-cover object-center"
+              style={{ opacity: 0.72 }}
+            />
+            {/* subtle dark overlay on left edge so text stays readable */}
+            <div className="absolute inset-0"
+              style={{ background: "linear-gradient(to right, #1a2f5e 0%, transparent 35%)" }}
+            />
           </div>
           {/* Content */}
           <div className="relative z-10 px-8 py-8">
