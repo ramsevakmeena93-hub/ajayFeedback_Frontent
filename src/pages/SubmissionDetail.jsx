@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
-import { ArrowLeft, CheckCircle, XCircle, ChevronDown, ChevronUp, ExternalLink, MessageSquare, X, Save, FileDown, BarChart2, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, ChevronDown, ChevronUp, ExternalLink, MessageSquare, X, Save, FileDown, BarChart2, FileText, Plus, Eye } from "lucide-react";
 
 // Helper: auto-number lines in a comment block
 function autoNumber(text) {
@@ -50,7 +50,7 @@ function CommentCell({ items, color }) {
 
 export default function SubmissionDetail() {
   const { id }    = useParams();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
   const [submission, setSubmission] = useState(null);
@@ -59,8 +59,20 @@ export default function SubmissionDetail() {
   const rowRefs = useRef({});   // { [reportId]: DOM element }
 
   // Pro-VC per-faculty comment panel
-  const [provcPanel, setProvcPanel] = useState(null); // { facultyName, subjectCode, ffi, existingComment }
-  const [localProvcComments, setLocalProvcComments] = useState([]); // updated after saves
+  const [provcPanel, setProvcPanel] = useState(null);
+  const [localProvcComments, setLocalProvcComments] = useState([]);
+
+  // Comments full-view modal (Appreciation / Needs Attention)
+  const [commentsModal, setCommentsModal] = useState(null); // { title, items, color }
+
+  // Action Taken modal (view + edit for provc/vc/admin)
+  const [actionModal, setActionModal] = useState(null); // { report, current }
+  const [actionDraft, setActionDraft] = useState('');
+  const [actionSaving, setActionSaving] = useState(false);
+
+  // Role helpers
+  const userRoles = new Set([...(user?.roles || []), ...(user?.role ? [user.role] : [])]);
+  const canWriteComment = userRoles.has('provc') || userRoles.has('vc') || userRoles.has('admin');
 
   // Pro-VC Report history
   const [savedReports, setSavedReports]             = useState([]);
@@ -309,6 +321,87 @@ export default function SubmissionDetail() {
           </div>
         </div>
 
+        {/* ── Comments Full-View Modal ── */}
+        {commentsModal && (
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setCommentsModal(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className={`flex items-center justify-between px-5 py-4 rounded-t-2xl ${commentsModal.color === 'green' ? 'bg-emerald-600' : 'bg-amber-500'} text-white`}>
+                <p className="font-bold text-sm">{commentsModal.title}</p>
+                <button onClick={() => setCommentsModal(null)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/20 transition"><X size={16}/></button>
+              </div>
+              <div className="overflow-y-auto p-5 space-y-2">
+                {commentsModal.items.map((c, i) => (
+                  <div key={i} className={`flex items-start gap-2 text-sm rounded-xl px-3 py-2.5 border ${commentsModal.color === 'green' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+                    <span className={`font-bold mt-0.5 shrink-0 ${commentsModal.color === 'green' ? 'text-emerald-500' : 'text-amber-500'}`}>•</span>
+                    <span className="leading-relaxed">{c}</span>
+                  </div>
+                ))}
+                {commentsModal.items.length === 0 && <p className="text-slate-400 text-sm text-center py-6">No comments available</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Action Taken Modal (view / edit) ── */}
+        {actionModal && (
+          <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setActionModal(null)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-5 py-4 bg-amber-500 text-white rounded-t-2xl">
+                <div>
+                  <p className="font-bold text-sm">Pro-VC Action Taken</p>
+                  <p className="text-xs opacity-80 mt-0.5">{actionModal.report.facultyName} · {actionModal.report.subjectCode}</p>
+                </div>
+                <button onClick={() => setActionModal(null)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/20 transition"><X size={16}/></button>
+              </div>
+              <div className="p-5 flex flex-col gap-3">
+                {canWriteComment ? (
+                  <>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {actionModal.current ? "Update action taken" : "Write action taken"}
+                    </label>
+                    {actionModal.current && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-800">
+                        <p className="font-semibold text-amber-600 mb-1">Current:</p>
+                        <p className="leading-relaxed">{actionModal.current}</p>
+                      </div>
+                    )}
+                    <textarea
+                      className="w-full min-h-[140px] text-sm border border-slate-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 leading-relaxed"
+                      placeholder="Describe the action taken by Pro-VC…"
+                      value={actionDraft}
+                      onChange={e => setActionDraft(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={() => setActionModal(null)} className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl transition">Cancel</button>
+                      <button
+                        disabled={actionSaving || !actionDraft.trim()}
+                        onClick={async () => {
+                          setActionSaving(true);
+                          try {
+                            await api.patch(`/api/submissions/${id}/action-taken`, { actionTaken: actionDraft.trim() });
+                            toast.success("Action taken saved ✓");
+                            setSubmission(s => ({ ...s, vcComment: actionDraft.trim() }));
+                            setActionModal(null);
+                          } catch (err) {
+                            toast.error(err.response?.data?.error || "Failed to save");
+                          } finally { setActionSaving(false); }
+                        }}
+                        className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                      >
+                        <Save size={14}/>{actionSaving ? "Saving…" : "Save"}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
+                    {actionModal.current || <span className="text-slate-400 italic">No action taken recorded yet.</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Pro-VC Report History */}
         {savedReports.length > 0 && (
           <div className="card p-4">
@@ -531,12 +624,46 @@ export default function SubmissionDetail() {
                             ))}
                           </div>
                           <CommentCell items={appAll} color="green"/>
+                          {appAll.length > 0 && (
+                            <button
+                              onClick={() => setCommentsModal({ title: `Appreciation — ${r.facultyName}`, items: appAll, color: 'green' })}
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 border border-emerald-300 rounded-lg px-2 py-0.5 hover:bg-emerald-50 transition"
+                            >
+                              <Plus size={10}/> View all {appAll.length}
+                            </button>
+                          )}
                         </td>
                         {/* Needs Attention — full, scrollable */}
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <CommentCell items={attList} color="amber"/>
+                          {attList.length > 0 && (
+                            <button
+                              onClick={() => setCommentsModal({ title: `Needs Attention — ${r.facultyName}`, items: attList, color: 'amber' })}
+                              className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 hover:text-amber-800 border border-amber-300 rounded-lg px-2 py-0.5 hover:bg-amber-50 transition"
+                            >
+                              <Plus size={10}/> View all {attList.length}
+                            </button>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">{r.actionTaken||<span className="text-slate-300">—</span>}</td>
+                        {/* Action Taken — show text + + button for all roles */}
+                        <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">
+                          <div className="flex flex-col gap-1">
+                            {r.actionTaken
+                              ? <p className="line-clamp-3">{r.actionTaken}</p>
+                              : <span className="text-slate-300">—</span>
+                            }
+                            <button
+                              onClick={() => { setActionDraft(r.actionTaken || submission.vcComment || ''); setActionModal({ report: r, current: r.actionTaken || submission.vcComment || '' }); }}
+                              className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border transition w-fit mt-0.5 ${
+                                canWriteComment
+                                  ? 'text-amber-600 border-amber-300 hover:bg-amber-50'
+                                  : 'text-slate-500 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {canWriteComment ? <><Plus size={10}/>{r.actionTaken ? 'Edit' : 'Add'}</> : <><Eye size={10}/> View</>}
+                            </button>
+                          </div>
+                        </td>
                         <td className="px-4 py-3">
                           {(() => {
                             const savedCmt = getComment(r.facultyName || "—", r.subjectCode || "");
@@ -545,22 +672,27 @@ export default function SubmissionDetail() {
                                 {savedCmt && (
                                   <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 leading-relaxed max-w-[160px]">{savedCmt}</p>
                                 )}
-                                <button
-                                  onClick={() => setProvcPanel({
-                                    facultyName: r.facultyName || "—",
-                                    subjectCode: r.subjectCode || "",
-                                    ffi: r.ffiScore?.toFixed(2),
-                                    existingComment: savedCmt,
-                                  })}
-                                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                                    savedCmt
-                                      ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                                      : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
-                                  }`}
-                                >
-                                  <MessageSquare size={11} />
-                                  {savedCmt ? "Edit" : "Add"}
-                                </button>
+                                {canWriteComment ? (
+                                  <button
+                                    onClick={() => setProvcPanel({
+                                      facultyName: r.facultyName || "—",
+                                      subjectCode: r.subjectCode || "",
+                                      ffi: r.ffiScore?.toFixed(2),
+                                      existingComment: savedCmt,
+                                    })}
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                                      savedCmt
+                                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                        : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
+                                    }`}
+                                  >
+                                    <Plus size={11}/>{savedCmt ? "Edit" : "Add"}
+                                  </button>
+                                ) : savedCmt ? (
+                                  <span className="text-xs text-blue-700 font-medium flex items-center gap-1"><MessageSquare size={10}/> Commented</span>
+                                ) : (
+                                  <span className="text-xs text-slate-400 italic">No comment</span>
+                                )}
                               </div>
                             );
                           })()}
