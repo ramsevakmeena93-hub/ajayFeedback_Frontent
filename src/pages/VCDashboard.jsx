@@ -516,12 +516,8 @@ function DeptChartsSection({ submissions }) {
     return true;
   });
 
-  // Build per-department stats from filtered submissions & reports
-  // When showing "All Semesters", compute per-semester averages first, then average those.
-  // This ensures overall = average of semester averages (not skewed by report count per sem).
-  const deptMap = {};
-  // Build per-submission stats (one bar per submission, not per dept)
-  // This ensures two submissions from the same department both appear.
+  // Build per-submission stats (one bar per submission, not per dept).
+  // This ensures two submissions from the same department both appear as separate bars.
   const deptMap = {};
   filteredSubs.forEach(sub => {
     const dept = sub.hodId?.department || sub.department || "Unknown";
@@ -565,10 +561,12 @@ function DeptChartsSection({ submissions }) {
 
   const deptList = Object.values(deptMap).filter(d => d.reports > 0 || d.respPcts.length > 0);
 
-  // ── Chart 1: Average FFI per dept ──────────────────────────────────────
+  // ── Chart 1: Average FFI per submission ───────────────────────────────
   const ffiData = deptList
     .map(d => ({
-      dept: d.dept,
+      dept:     d.dept,
+      fullDept: d.fullDept,
+      status:   d.status,
       ffi: d.ffis.length ? parseFloat((d.ffis.reduce((s, v) => s + v, 0) / d.ffis.length).toFixed(2)) : 0,
     }))
     .filter(d => d.ffi > 0)
@@ -578,10 +576,12 @@ function DeptChartsSection({ submissions }) {
     ? parseFloat((ffiData.reduce((s, d) => s + d.ffi, 0) / ffiData.length).toFixed(2))
     : 0;
 
-  // ── Chart 2: Avg response % per dept (simple average of per-report %) ──
+  // ── Chart 2: Avg response % per submission ────────────────────────────
   const respData = deptList
     .map(d => ({
-      dept: d.dept,
+      dept:     d.dept,
+      fullDept: d.fullDept,
+      status:   d.status,
       pct: d.respPcts.length
         ? parseFloat((d.respPcts.reduce((s, v) => s + v, 0) / d.respPcts.length).toFixed(1))
         : 0,
