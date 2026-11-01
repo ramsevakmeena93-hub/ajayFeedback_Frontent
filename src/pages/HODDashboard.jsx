@@ -45,6 +45,13 @@ export default function HODDashboard() {
   const [currentSession, setCurrentSession] = useState(null);
   const [sessionStartTime, setSessionStartTime] = useState(null);
 
+  // Send to Pro-VC modal — lets HOD pick session, academic year, form no before submitting
+  const [sendModal, setSendModal] = useState(false);
+  const [sendSession, setSendSession]     = useState('jul-dec');
+  const [sendYear, setSendYear]           = useState('');
+  const [sendFormNo, setSendFormNo]       = useState('I');
+  const [sending, setSending]             = useState(false);
+
   // Signature modal
   const [showSigModal, setShowSigModal] = useState(false);
   const [sigPreview, setSigPreview] = useState(null); // only new upload preview
@@ -206,18 +213,28 @@ export default function HODDashboard() {
       const names = notApproved.map(r => r.facultyName || "Unknown").join(", ");
       return toast.error(`Cannot Send to Pro-VC: The following report(s) must be approved by faculty first:\n${names}`);
     }
+    // Open session picker modal
+    setSendYear(YEARS[Math.max(0, CURRENT_YEAR - 2020)]);
+    setSendModal(true);
+  }
+
+  async function confirmSendToVC() {
+    setSending(true);
     try {
       await api.post("/api/submissions/send", {
         reportIds: selected,
-        academicYear: currentSession?.academicYear || YEARS[Math.max(0, CURRENT_YEAR - 2020)],
+        academicYear: sendYear,
         department: currentSession?.department || user?.department || "",
-        session: currentSession?.session || "",
-        feedbackFormNo: currentSession?.feedbackFormNo || "I",
+        session: sendSession,
+        feedbackFormNo: sendFormNo,
         submissionDate: new Date().toISOString()
       });
-      toast.success("Reports Sent to Pro-VC successfully"); setSelected([]);
+      toast.success("Reports Sent to Pro-VC successfully");
+      setSelected([]);
+      setSendModal(false);
       fetchSubmissions();
     } catch (err) { toast.error(err.response?.data?.error || "Failed to send"); }
+    finally { setSending(false); }
   }
 
   async function handleBulkSendToFaculty() {
@@ -690,6 +707,91 @@ export default function HODDashboard() {
       </main>
 
       <Footer />
+
+      {/* ── Send to Pro-VC — Session Picker Modal ── */}
+      {sendModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg">Send to Pro-VC</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Choose the session details for this submission</p>
+            </div>
+
+            {/* Session */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Academic Session</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'jul-dec', label: 'Jul – Dec', sub: 'Odd Semester' },
+                  { value: 'jan-may', label: 'Jan – May', sub: 'Even Semester' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSendSession(opt.value)}
+                    className={`rounded-xl border-2 p-3 text-left transition-all ${
+                      sendSession === opt.value
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <p className={`text-sm font-bold ${sendSession === opt.value ? 'text-indigo-700' : 'text-slate-700'}`}>{opt.label}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{opt.sub}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Academic Year */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Academic Year</label>
+              <select
+                value={sendYear}
+                onChange={e => setSendYear(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              >
+                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+
+            {/* Feedback Form No */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Feedback Form No.</label>
+              <div className="flex gap-2">
+                {['I', 'II'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setSendFormNo(f)}
+                    className={`flex-1 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                      sendFormNo === f
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    Form {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setSendModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={sending}
+                onClick={confirmSendToVC}
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
+              >
+                <Send size={14}/>{sending ? 'Sending…' : 'Confirm & Send'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Signature Modal */}
       {showSigModal && (

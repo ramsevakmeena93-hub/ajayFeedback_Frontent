@@ -1,0 +1,1189 @@
+﻿import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
+import FeedbackTable from "../components/FeedbackTable";
+import StatsBar from "../components/StatsBar";
+import BatchPDFUploadModal from "../components/BatchPDFUploadModal";
+import Footer from "../components/Footer";
+import WorkspaceSwitcher from "../components/WorkspaceSwitcher";
+import { Upload, Send, Trash2, RefreshCw, Wrench, Users, Plus, Download, FileText, X, ChevronRight, PenLine, Clock, CheckCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+
+
+// Dynamic academic year list from 2020 to 10 years ahead
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 11 }, (_, i) => {
+  const y = 2020 + i;
+  return `${y}-${y + 1}`;
+});
+
+export default function HODDashboard() {
+  const { token, user, logout, updateUser, isMultiRole, activeWorkspace } = useAuth();
+  const sigRef = useRef();
+
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [okReviewed, setOkReviewed] = useState(new Set());
+  const [vcUser, setVcUser] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all"); // all, approved, pending
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  
+  const [dismissedNotifs, setDismissedNotifs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('dismissedNotifs') || '[]'); } catch { return []; }
+  });
+
+  function dismissNotif(id) {
+    const updated = [...dismissedNotifs, id];
+    setDismissedNotifs(updated);
+    localStorage.setItem('dismissedNotifs', JSON.stringify(updated));
+  }
+
+  const [currentSession, setCurrentSession] = useState(null);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+
+  // Send to Pro-VC modal — lets HOD pick session, academic year, form no before submitting
+  const [sendModal, setSendModal] = useState(false);
+  const [sendSession, setSendSession]     = useState('jul-dec');
+  const [sendYear, setSendYear]           = useState('');
+  const [sendFormNo, setSendFormNo]       = useState('I');
+  const [sending, setSending]             = useState(false);
+
+  // Signature modal
+  const [showSigModal, setShowSigModal] = useState(false);
+  const [sigPreview, setSigPreview] = useState(null); // only new upload preview
+  const [sigSaving, setSigSaving] = useState(false);
+
+  // PDF preview (before VC)
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  // HOD Comment modal
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [hodComment, setHodComment] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
+
+  // Export PDF filters
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    semester: 'all',
+    academicYear: 'all',
+    session: 'all'
+  });
+  const [availableFilters, setAvailableFilters] = useState({
+    semesters: [],
+    academicYears: [],
+    sessions: [],
+    totalReports: 0
+  });
+
+  // Pro-VC Reports (read-only for HOD)
+  const [hodProvcReports, setHodProvcReports]               = useState([]);
+  const [hodProvcReportsLoading, setHodProvcReportsLoading] = useState(false);
+
+  const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
+
+  useEffect(() => { fetchReports(); fetchSubmissions(); fetchVCUser(); fetchHodProvcReports(); }, []);
+
+  async function fetchHodProvcReports() {
+    if (!user?.department) return;
+    setHodProvcReportsLoading(true);
+    try {
+      const encoded = encodeURIComponent(user.department);
+      const { data } = await api.get(`/api/provc-reports/department/${encoded}`);
+      setHodProvcReports(data);
+    } catch {}
+    finally { setHodProvcReportsLoading(false); }
+  }
+
+  async function fetchSubmissions() {
+    try { const { data } = await api.get("/api/submissions/my"); setSubmissions(data); } catch { }
+  }
+  
+  async function handleDeleteSubmission(submissionId) {
+    if (!window.confirm("Delete this submission? This will NOT delete the individual reports, only the submission record.")) return;
+    try {
+      await api.delete(`/api/submissions/${submissionId}`);
+      toast.success("Submission deleted successfully");
+      fetchSubmissions();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to delete submission");
+    }
+  }
+  async function fetchVCUser() {
+    try { const { data } = await api.get("/api/auth/vc-info"); setVcUser(data); } catch { }
+  }
+
+  // Fetch HOD comment for current department
+  async function fetchHODComment() {
+    if (!user?.department) return;
+    setCommentLoading(true);
+    try {
+      const { data } = await api.get("/api/reports/hod-comment", {
+        params: {
+          department: user.department,
+          academicYear: '2026-2027', // Can be dynamic later
+          session: '' // Can add session filter later
+        }
+      });
+      if (data.comment) {
+        setHodComment(data.comment.comment || '');
+      } else {
+        setHodComment('');
+      }
+    } catch (err) {
+      console.error('Failed to load comment:', err);
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  // Save HOD comment
+  async function handleSaveComment() {
+    if (!hodComment.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+    if (hodComment.length > 2000) {
+      toast.error('Comment must be less than 2000 characters');
+      return;
+    }
+    setCommentSaving(true);
+    try {
+      await api.post("/api/reports/hod-comment", {
+        department: user?.department || '',
+        academicYear: '2026-2027',
+        session: '',
+        comment: hodComment.trim()
+      });
+      toast.success('Comment saved successfully!');
+      setShowCommentModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save comment');
+    } finally {
+      setCommentSaving(false);
+    }
+  }
+
+  // Open comment modal and fetch existing comment
+  function openCommentModal() {
+    setShowCommentModal(true);
+    fetchHODComment();
+  }
+
+  async function fetchReports() {
+    setLoading(true);
+    try {
+      const { data } = await api.get("/api/reports/my");
+      setReports(data);
+      const autoSelect = [];
+      setSelected(autoSelect);
+    }
+    catch (err) {
+      if (err.response?.status === 401) { toast.error("Session expired"); logout(); return; }
+      toast.error("Failed to load reports");
+    } finally { setLoading(false); }
+  }
+
+  // Compute which report IDs are in any submission
+  const submittedIds = new Set(
+    submissions
+      .flatMap(s => (s.reports || []).map(r => (typeof r === "string" ? r : r?._id?.toString())))
+      .filter(Boolean)
+  );
+
+
+
+  async function handleSendToVC() {
+    if (selected.length === 0) return toast.error("Select at least one report");
+    
+    // Check if HOD has uploaded signature
+    if (!user?.signatureImage) {
+      return toast.error("❌ Please upload your signature before submitting to Pro-VC", {
+        duration: 5000,
+        icon: '✋'
+      });
+    }
+    
+    const notApproved = reports.filter(r => selected.includes(r._id) && r.status !== "faculty_approved");
+    if (notApproved.length > 0) {
+      const names = notApproved.map(r => r.facultyName || "Unknown").join(", ");
+      return toast.error(`Cannot Send to Pro-VC: The following report(s) must be approved by faculty first:\n${names}`);
+    }
+    // Open session picker modal
+    setSendYear(YEARS[Math.max(0, CURRENT_YEAR - 2020)]);
+    setSendModal(true);
+  }
+
+  async function confirmSendToVC() {
+    setSending(true);
+    try {
+      await api.post("/api/submissions/send", {
+        reportIds: selected,
+        academicYear: sendYear,
+        department: currentSession?.department || user?.department || "",
+        session: sendSession,
+        feedbackFormNo: sendFormNo,
+        submissionDate: new Date().toISOString()
+      });
+      toast.success("Reports Sent to Pro-VC successfully");
+      setSelected([]);
+      setSendModal(false);
+      fetchSubmissions();
+    } catch (err) { toast.error(err.response?.data?.error || "Failed to send"); }
+    finally { setSending(false); }
+  }
+
+  async function handleBulkSendToFaculty() {
+    const ids = reports.filter(r => r.status === "processed").map(r => r._id);
+    if (ids.length === 0) return toast.error("No processed reports to send");
+    try {
+      const { data } = await api.post("/api/reports/bulk-send-to-faculty", { reportIds: ids });
+      toast.success(`Sent ${data.sent} reports to faculty`); fetchReports();
+    } catch (err) { toast.error(err.response?.data?.error || "Failed"); }
+  }
+
+  async function handleExportCSV() {
+    try {
+      toast.success("Downloading CSV...");
+      const res = await api.get("/api/reports/my/export", { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "feedback-reports.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error("Failed to export CSV");
+    }
+  }
+
+  // Fetch available filter options
+  async function fetchAvailableFilters() {
+    try {
+      const { data } = await api.get("/api/reports/my/export-filters");
+      setAvailableFilters(data);
+    } catch (err) {
+      console.error('Failed to load filters:', err);
+    }
+  }
+
+  // Open filter modal and fetch available options
+  function openFilterModal() {
+    setShowFilterModal(true);
+    fetchAvailableFilters();
+  }
+
+  // Export PDF with filters
+  async function handleExportPDFWithFilters() {
+    if (reports.length === 0) return toast.error("No reports to export");
+    
+    const filters = {};
+    if (exportFilters.semester !== 'all') filters.semester = exportFilters.semester;
+    if (exportFilters.academicYear !== 'all') filters.academicYear = exportFilters.academicYear;
+    if (exportFilters.session !== 'all') filters.session = exportFilters.session;
+    
+    const filterDesc = Object.keys(filters).length > 0 
+      ? `Applying filters: ${JSON.stringify(filters)}` 
+      : 'Exporting all reports';
+    
+    setExportingPDF(true);
+    toast.loading(`${filterDesc}...`, { id: "pdf-export" });
+    
+    try {
+      const res = await api.post("/api/reports/my/export-pdf", filters, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      
+      // Get filename from response header
+      const disposition = res.headers['content-disposition'];
+      const filenameMatch = disposition && disposition.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : `hod-report-${Date.now()}.pdf`;
+      
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`PDF downloaded: ${filename}`, { id: "pdf-export" });
+      setShowFilterModal(false);
+    } catch (err) {
+      toast.error("Failed to generate PDF", { id: "pdf-export" });
+    } finally { setExportingPDF(false); }
+  }
+
+  async function handleSendToFaculty(reportId) {
+    try { await api.post(`/api/reports/${reportId}/send-to-faculty`); toast.success("Report sent to faculty"); fetchReports(); }
+    catch (err) { toast.error(err.response?.data?.error || "Failed to send"); }
+  }
+
+  async function handleHODApprove(reportId, reason) {
+    try {
+      await api.patch(`/api/reports/${reportId}/edit`, { status: "faculty_approved", actionTaken: reason });
+      setReports(prev => prev.map(r => r._id === reportId ? { ...r, status: "faculty_approved", actionTaken: reason || r.actionTaken } : r));
+      toast.success("Report approved by HOD");
+    } catch { toast.error("Failed to approve"); }
+  }
+  async function handleFieldEdit(reportId, field, value) {
+    try {
+      await api.patch(`/api/reports/${reportId}/edit`, { [field]: value });
+      setReports(prev => prev.map(r => r._id === reportId ? { ...r, [field]: value } : r));
+    } catch { toast.error("Failed to update"); }
+  }
+
+  // Single report delete (only for non-approved, non-VC-approved reports)
+  async function handleDeleteReport(reportId) {
+    if (!window.confirm("Delete this report? This cannot be undone.")) return;
+    try {
+      await api.delete(`/api/reports/${reportId}`);
+      setReports(prev => prev.filter(r => r._id !== reportId));
+      setSelected(prev => prev.filter(id => id !== reportId));
+      toast.success("Report deleted");
+    } catch (err) { toast.error(err.response?.data?.error || "Failed to delete"); }
+  }
+
+  async function clearAllReports() {
+    if (!window.confirm("Delete all non-approved reports? This cannot be undone.")) return;
+    try {
+      const { data } = await api.delete("/api/reports/my/all");
+      await fetchReports();
+      toast.success(`Deleted ${data.deleted} reports`);
+    } catch { toast.error("Failed to delete"); }
+  }
+  async function fixMetadata() {
+    toast("Re-extracting names from PDFs...", { icon: "🔄" });
+    try {
+      const { data } = await api.post("/api/reports/my/fix-metadata");
+      toast.success(`Fixed ${data.fixed} of ${data.total} reports`); fetchReports();
+    } catch { toast.error("Failed to fix metadata"); }
+  }
+  function handleInlineOk(reportId) {
+    setOkReviewed(prev => new Set([...prev, reportId]));
+    api.post(`/api/reports/${reportId}/send-to-faculty`)
+      .then(() => { toast.success("Report sent to faculty dashboard"); fetchReports(); })
+      .catch(err => toast.error("Failed: " + (err.response?.data?.error || err.message)));
+  }
+
+  // Signature upload handlers
+  function handleSigFile(e) {
+    const file = e.target.files[0]; if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please upload an image file (PNG/JPG)");
+    if (file.size > 2 * 1024 * 1024) return toast.error("Image must be under 2MB");
+    const reader = new FileReader();
+    reader.onload = (ev) => setSigPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+  async function handleSigSave() {
+    if (!sigPreview) return;
+    setSigSaving(true);
+    try {
+      const res = await api.post("/api/auth/signature", { signatureImage: sigPreview });
+      if (res.data.user) updateUser({ ...res.data.user, signatureImage: sigPreview, hasSignature: true });
+      else updateUser({ ...user, signatureImage: sigPreview, hasSignature: true });
+      toast.success("Signature saved successfully");
+      setSigPreview(null);
+      setShowSigModal(false);
+    } catch { toast.error("Failed to save signature"); }
+    finally { setSigSaving(false); }
+  }
+
+  const processed = reports.filter(r => r.status === "processed");
+  const approvedSubs = submissions.filter(s => s.status === "approved" || s.status === "rejected" || s.status === "sent_back");
+
+  // ── VC decision popup ─────────────────────────────────────────────────────
+  // Show once per session for each unacknowledged VC decision.
+  // Dismissed IDs are persisted to localStorage so reloads don't re-show.
+  const [vcPopupQueue, setVcPopupQueue] = useState([]);
+  const [vcPopupIdx,   setVcPopupIdx]   = useState(0);
+  const [showVcPopup,  setShowVcPopup]  = useState(false);
+
+  useEffect(() => {
+    const dismissed = JSON.parse(localStorage.getItem('dismissedVcDecisions') || '[]');
+    const pending = approvedSubs.filter(s => !dismissed.includes(s._id));
+    if (pending.length > 0) {
+      setVcPopupQueue(pending);
+      setVcPopupIdx(0);
+      setShowVcPopup(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions.length]);
+
+  function dismissVcPopup() {
+    const current = vcPopupQueue[vcPopupIdx];
+    if (current) {
+      const dismissed = JSON.parse(localStorage.getItem('dismissedVcDecisions') || '[]');
+      dismissed.push(current._id);
+      localStorage.setItem('dismissedVcDecisions', JSON.stringify(dismissed));
+    }
+    if (vcPopupIdx + 1 < vcPopupQueue.length) {
+      setVcPopupIdx(i => i + 1);
+    } else {
+      setShowVcPopup(false);
+    }
+  }
+
+  const visibleReports = reports.filter(r => {
+    // Session filter
+    if (sessionStartTime && new Date(r.createdAt).getTime() < sessionStartTime) return false;
+    if (!sessionStartTime && submittedIds.has(String(r._id))) return false;
+    
+    // Status filter
+    if (filterStatus === "approved" && r.status !== "faculty_approved") return false;
+    if (filterStatus === "pending" && r.status === "faculty_approved") return false;
+    
+    return true;
+  }).sort((a, b) => {
+    // Natural sort by subject code (course code)
+    const ca = (a.subjectCode || '').trim();
+    const cb = (b.subjectCode || '').trim();
+    return ca.localeCompare(cb, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
+  const hodStats = [
+    { label: "Total Reports",   value: visibleReports.length, icon: FileText,    color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100" },
+    { label: "Pending Action",  value: visibleReports.filter(r => r.status === 'processed').length, icon: Clock,       color: "text-amber-600",  bg: "bg-amber-50",  border: "border-amber-100" },
+    { label: "Sent to Faculty", value: visibleReports.filter(r => r.status === 'sent_to_faculty').length, icon: Send,        color: "text-blue-600",   bg: "bg-blue-50",   border: "border-blue-100" },
+    { label: "Approved",        value: visibleReports.filter(r => r.status === 'faculty_approved').length, icon: CheckCircle, color: "text-emerald-600",bg: "bg-emerald-50",border: "border-emerald-100" }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-200">
+      <Navbar title="HOD Dashboard" subtitle={currentSession ? `${currentSession.department} · ${currentSession.academicYear}` : `${user?.department || "Department"}`} />
+
+      <main className="flex-1 max-w-screen-2xl mx-auto w-full px-4 sm:px-6 py-6 space-y-5">
+
+        {/* Page header */}
+        <div className="flex items-start justify-between gap-4 animate-fade-in mb-8">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 to-purple-600 dark:from-indigo-400 dark:to-purple-400">HOD Dashboard</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">
+              {currentSession
+                ? `${currentSession.department} · ${currentSession.academicYear}`
+                : `Academic Year ${YEARS[Math.max(0, CURRENT_YEAR - 2020)]} · ${user?.department || "Department"}`}
+            </p>
+          </div>
+
+        </div>
+
+        {/* VC Decision Popup Modal */}
+        {showVcPopup && vcPopupQueue[vcPopupIdx] && (() => {
+          const sub = vcPopupQueue[vcPopupIdx];
+          const isApproved  = sub.status === "approved";
+          const isRejected  = sub.status === "rejected";
+          const isSentBack  = sub.status === "sent_back";
+          const remaining   = vcPopupQueue.length - vcPopupIdx - 1;
+          return (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70] p-4 animate-fade-in">
+              <div className={`bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in border-2 ${
+                isApproved ? "border-emerald-400" : isRejected ? "border-red-400" : "border-amber-400"
+              }`}>
+                {/* Header strip */}
+                <div className={`px-6 py-5 ${
+                  isApproved  ? "bg-gradient-to-r from-emerald-500 to-green-500"
+                  : isRejected ? "bg-gradient-to-r from-red-500 to-rose-500"
+                  : "bg-gradient-to-r from-amber-500 to-orange-500"
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">
+                      {isApproved ? "✅" : isRejected ? "❌" : "↩️"}
+                    </span>
+                    <div>
+                      <p className="text-white font-black text-xl leading-tight">
+                        {isApproved  ? "Submission Approved!" 
+                        : isRejected ? "Submission Rejected"
+                        : "Submission Sent Back"}
+                      </p>
+                      <p className="text-white/80 text-sm mt-0.5">
+                        VC Decision — {sub.academicYear || new Date().getFullYear()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 space-y-4">
+                  <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+                    {isApproved && <>
+                      The Dr. Manjaree Pandit has <strong className="text-emerald-600">approved</strong> your feedback
+                      submission for the <strong>{sub.department || "your department"}</strong> department,
+                      Academic Year <strong>{sub.academicYear || "2026"}</strong>
+                      {sub.session ? `, ${sub.session === "jan-may" ? "Jan – May" : "Jul – Dec"} session` : ""}.
+                      The final PDF report is now available.
+                    </>}
+                    {isRejected && <>
+                      The Dr. Manjaree Pandit has <strong className="text-red-600">rejected</strong> your feedback
+                      submission for <strong>{sub.department || "your department"}</strong>,
+                      Academic Year <strong>{sub.academicYear || "2026"}</strong>.
+                      Please review the comments and resubmit.
+                    </>}
+                    {isSentBack && <>
+                      The Dr. Manjaree Pandit has <strong className="text-amber-600">sent back</strong> your
+                      submission for <strong>{sub.department || "your department"}</strong> for revision.
+                    </>}
+                  </p>
+
+                  {sub.vcComment && (
+                    <div className={`rounded-2xl p-4 border ${
+                      isApproved  ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+                      : isRejected ? "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800"
+                      : "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                    }`}>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Pro-VC Comment</p>
+                      <p className="text-sm text-slate-800 dark:text-slate-200 italic">"{sub.vcComment}"</p>
+                    </div>
+                  )}
+
+                  {remaining > 0 && (
+                    <p className="text-xs text-slate-400 text-center">
+                      {remaining} more decision{remaining > 1 ? "s" : ""} waiting
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex gap-3">
+                  {isApproved && (
+                    <a
+                      href="/hod/history"
+                      onClick={dismissVcPopup}
+                      className="btn btn-success flex-1 text-center justify-center"
+                    >
+                      📄 View & Download PDF
+                    </a>
+                  )}
+                  <button
+                    onClick={dismissVcPopup}
+                    className={`btn flex-1 justify-center ${isApproved ? "btn-secondary" : "btn-primary"}`}
+                  >
+                    {remaining > 0 ? "Next →" : "Dismiss"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ── REPORTS ── */}
+        <>
+
+
+          {loading ? (
+            <div className="card p-12 text-center animate-fade-in">
+              <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-slate-600 text-sm font-semibold">Loading reports...</p>
+              <p className="text-slate-400 text-xs mt-1">Fetching from database</p>
+            </div>
+          ) : (
+            <div className="animate-slide-up">
+              <StatsBar stats={hodStats} />
+
+              {/* ── Toolbar ── */}
+              <div className="card px-5 py-3.5 flex flex-wrap gap-2 items-center justify-between animate-fade-in mt-4">
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setShowBatchModal(true)} className="btn btn-primary btn-sm flex items-center gap-1.5 shadow-sm">
+                    <Plus size={15} /> Upload Feedback Reports
+                  </button>
+
+                  {reports.length > 0 && <>
+                    <button onClick={() => setShowStatusModal(true)} className="btn btn-secondary btn-sm text-indigo-600">
+                      <Users size={14} /> Status
+                    </button>
+                    <button onClick={clearAllReports} className="btn btn-secondary btn-sm text-red-600">
+                      <Trash2 size={14} /> Clear All
+                    </button>
+                  </>}
+                  
+                  {/* Filter Buttons */}
+                  <div className="flex gap-1 ml-2">
+                    <button 
+                      onClick={() => setFilterStatus("all")}
+                      className={`btn btn-sm ${filterStatus === "all" ? "bg-indigo-600 text-white" : "btn-secondary"}`}>
+                      All Files
+                    </button>
+                    <button 
+                      onClick={() => setFilterStatus("approved")}
+                      className={`btn btn-sm ${filterStatus === "approved" ? "bg-emerald-600 text-white" : "btn-secondary text-emerald-600"}`}>
+                      Approved Files
+                    </button>
+                    <button 
+                      onClick={() => setFilterStatus("pending")}
+                      className={`btn btn-sm ${filterStatus === "pending" ? "bg-amber-600 text-white" : "btn-secondary text-amber-600"}`}>
+                      Pending Files
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={fetchReports} className="btn btn-ghost btn-sm">
+                    <RefreshCw size={14} /> Refresh
+                  </button>
+                  {processed.length > 0 && (
+                    <button onClick={handleBulkSendToFaculty} className="btn btn-secondary btn-sm text-teal-700">
+                      <Users size={14} /> Send All to Faculty
+                    </button>
+                  )}
+                  {reports.length > 0 && (
+                      <button onClick={openFilterModal} disabled={exportingPDF} className="btn btn-secondary btn-sm text-violet-700">
+                        <FileText size={14} /> {exportingPDF ? "Generating..." : "Export PDF"}
+                      </button>
+                  )}
+                  {reports.length > 0 && (
+                      <button onClick={openCommentModal} className="btn btn-secondary btn-sm text-blue-700">
+                        <PenLine size={14} /> Add Report Comments
+                      </button>
+                  )}
+                  <button onClick={handleSendToVC} 
+                    disabled={selected.length === 0 || !user?.signatureImage || selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0} 
+                    className={`btn btn-sm ${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length > 0 ? 'btn-success' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                    title={
+                      !user?.signatureImage ? "Please upload your signature first" 
+                      : selected.length === 0 ? "Select reports to send"
+                      : selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length === 0 ? "At least one report must be approved by faculty"
+                      : `Send ${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length} approved report(s) to Pro-VC`
+                    }>
+                    <Send size={14} /> 
+                    {selected.length > 0 
+                      ? `Send to Pro-VC (${selected.filter(id => reports.find(r => r._id === id && r.status === 'faculty_approved')).length}/${selected.length} ✓)` 
+                      : 'Send to Pro-VC'
+                    }
+                  </button>
+                </div>
+              </div>
+
+              {/* Pro-VC Reports for this department (read-only) */}
+              {(hodProvcReports.length > 0 || hodProvcReportsLoading) && (
+                <div className="card p-4 mt-4">
+                  <p className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <FileText size={15} className="text-purple-600" />
+                    Pro-VC Reports for {user?.department}
+                  </p>
+                  {hodProvcReportsLoading ? (
+                    <p className="text-xs text-slate-400">Loading…</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {hodProvcReports.map(r => (
+                        <div key={r._id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-xl px-4 py-2 bg-slate-50 text-xs">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`font-semibold px-2.5 py-0.5 rounded-full ${r.reportType === 'faculty-wise' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {r.reportType === 'faculty-wise' ? 'Pro-VC Comments Report' : 'Overall Pro-VC Report'}
+                            </span>
+                            {r.facultyName && <span className="text-slate-600">{r.facultyName}</span>}
+                            <span className="text-slate-400">{new Date(r.generatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            <span className="text-slate-400">{r.generatedByName}</span>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await api.get(`/api/provc-reports/${r._id}/download`, { responseType: 'blob' });
+                                const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                                window.open(url, '_blank');
+                              } catch { toast.error('Failed to download report'); }
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-900 hover:bg-slate-700 text-white rounded-lg shrink-0"
+                          >
+                            <Download size={11} /> Download
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <FeedbackTable
+                reports={visibleReports}
+                selected={selected} onSelect={setSelected}
+                okReviewed={okReviewed} onInlineOk={handleInlineOk}
+                onSendToFaculty={handleSendToFaculty} onHODApprove={handleHODApprove}
+                onFieldEdit={handleFieldEdit} onDeleteReport={handleDeleteReport}
+                submittedIds={submittedIds}
+                hodUser={user} vcUser={vcUser}
+                token={token}
+              />
+            </div>
+          )}
+        </>
+      </main>
+
+      <Footer />
+
+      {/* ── Send to Pro-VC — Session Picker Modal ── */}
+      {sendModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg">Send to Pro-VC</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Choose the session details for this submission</p>
+            </div>
+
+            {/* Session */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Academic Session</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'jul-dec', label: 'Jul – Dec', sub: 'Odd Semester' },
+                  { value: 'jan-may', label: 'Jan – May', sub: 'Even Semester' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSendSession(opt.value)}
+                    className={`rounded-xl border-2 p-3 text-left transition-all ${
+                      sendSession === opt.value
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <p className={`text-sm font-bold ${sendSession === opt.value ? 'text-indigo-700' : 'text-slate-700'}`}>{opt.label}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{opt.sub}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Academic Year */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Academic Year</label>
+              <select
+                value={sendYear}
+                onChange={e => setSendYear(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              >
+                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+
+            {/* Feedback Form No */}
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Feedback Form No.</label>
+              <div className="flex gap-2">
+                {['I', 'II'].map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setSendFormNo(f)}
+                    className={`flex-1 py-2 rounded-xl border-2 text-sm font-bold transition-all ${
+                      sendFormNo === f
+                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    Form {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setSendModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={sending}
+                onClick={confirmSendToVC}
+                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
+              >
+                <Send size={14}/>{sending ? 'Sending…' : 'Confirm & Send'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Signature Modal */}
+      {showSigModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50">
+              <h2 className="font-bold text-indigo-900 text-lg">Upload / Edit Signature</h2>
+              <p className="text-xs text-indigo-600 mt-0.5">This will appear on all feedback reports</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div
+                onClick={() => sigRef.current.click()}
+                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${sigPreview ? "border-indigo-400 bg-indigo-50" : "border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50"}`}
+              >
+                {sigPreview ? (
+                  <div>
+                    <img src={sigPreview} alt="Signature preview" className="max-h-24 mx-auto object-contain mb-2" />
+                    <p className="text-xs text-indigo-600 font-medium">Signature loaded — click to change</p>
+                  </div>
+                ) : user?.signatureImage ? (
+                  <div>
+                    <img src={user.signatureImage} alt="Current Signature" className="max-h-24 mx-auto object-contain mb-2" />
+                    <p className="text-xs text-slate-500 font-medium">Current signature — click to replace</p>
+                  </div>
+                ) : (
+                  <div>
+                    <PenLine className="mx-auto text-slate-400 mb-2" size={32} />
+                    <p className="text-sm font-medium text-slate-600">Click to upload signature image</p>
+                    <p className="text-xs text-slate-400 mt-1">PNG or JPG · Max 2MB · White background recommended</p>
+                  </div>
+                )}
+                <input ref={sigRef} type="file" accept="image/*" className="hidden" onChange={handleSigFile} />
+              </div>
+              <p className="text-xs text-slate-400 text-center">
+                Your signature will appear on all feedback reports Sent to Pro-VC
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t bg-slate-50 flex gap-3 justify-end">
+              <button onClick={() => { setSigPreview(null); setShowSigModal(false); }} className="btn btn-secondary">Cancel</button>
+              <button onClick={handleSigSave} disabled={!sigPreview || sigSaving}
+                className="btn btn-primary flex items-center gap-2 disabled:opacity-50">
+                <PenLine size={14} />
+                {sigSaving ? "Saving..." : "Save Signature"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modern Automated Batch PDF Upload Modal */}
+      {showBatchModal && (
+        <BatchPDFUploadModal
+          user={user}
+          token={token}
+          onClose={() => setShowBatchModal(false)}
+          onSuccess={() => {
+            setShowBatchModal(false);
+            fetchReports();
+          }}
+        />
+      )}
+
+      {/* Status Modal - Faculty Approval Status */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-indigo-50 to-violet-50 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-indigo-900 text-xl">Faculty Approval Status</h2>
+                <p className="text-xs text-indigo-600 mt-0.5">Track which reports have been approved by faculty</p>
+              </div>
+              <button onClick={() => setShowStatusModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 text-slate-500 transition-colors">
+                <X size={18}/>
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-3">
+                {visibleReports.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users size={48} className="mx-auto text-slate-300 mb-4"/>
+                    <p className="text-slate-500">No reports found</p>
+                  </div>
+                ) : (
+                  visibleReports.map((report) => (
+                    <div key={report._id} className={`border-2 rounded-xl p-4 transition-all ${
+                      report.status === "faculty_approved" 
+                        ? "border-emerald-200 bg-emerald-50/50" 
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-slate-900 text-base mb-1">{report.facultyName || "Unknown Faculty"}</h3>
+                          <div className="flex flex-wrap gap-2 text-xs text-slate-600 mb-2">
+                            <span className="font-mono bg-slate-100 px-2 py-0.5 rounded">{report.subjectCode || "—"}</span>
+                            <span>{report.programme || "—"}</span>
+                            {report.semester && <span>Sem {report.semester}</span>}
+                          </div>
+                          {report.actionTaken && (
+                            <p className="text-xs text-slate-600 mt-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                              <span className="font-semibold">Action: </span>{report.actionTaken}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          {report.status === "faculty_approved" ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <CheckCircle size={13}/> Approved
+                              </span>
+                              {report.facultyAcknowledgedAt && (
+                                <p className="text-xs text-slate-500 mt-2">
+                                  {new Date(report.facultyAcknowledgedAt).toLocaleDateString("en-IN", { 
+                                    day: "2-digit", 
+                                    month: "short", 
+                                    year: "numeric" 
+                                  })}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                              <Clock size={13}/> Pending
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t bg-slate-50 flex items-center justify-between">
+              <div className="text-sm text-slate-600">
+                <span className="font-semibold text-emerald-600">{visibleReports.filter(r => r.status === "faculty_approved").length}</span> approved, 
+                <span className="font-semibold text-amber-600 ml-1">{visibleReports.filter(r => r.status !== "faculty_approved").length}</span> pending
+              </div>
+              <button onClick={() => setShowStatusModal(false)} className="btn btn-primary">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOD Comment Modal */}
+      {showCommentModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl animate-scale-in overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-blue-900 text-xl flex items-center gap-2">
+                  <PenLine size={20} />
+                  Add Report Comments
+                </h2>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  These comments will appear in the PDF report between summary statistics and the faculty table
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowCommentModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {commentLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-sm text-slate-600">Loading existing comment...</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Department Comments
+                    </label>
+                    <textarea
+                      value={hodComment}
+                      onChange={(e) => setHodComment(e.target.value)}
+                      placeholder="Enter your comments about the overall department performance, observations, or recommendations..."
+                      rows={8}
+                      maxLength={2000}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-slate-500">
+                        This will appear for all reports in your department
+                      </p>
+                      <p className={`text-xs font-medium ${hodComment.length > 1900 ? 'text-red-600' : 'text-slate-400'}`}>
+                        {hodComment.length} / 2000
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <p className="text-xs text-blue-800 font-medium mb-1">💡 Example Comments:</p>
+                    <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                      <li>Overall performance is satisfactory with areas for improvement</li>
+                      <li>Faculty members have shown improvement in student engagement</li>
+                      <li>Action items have been communicated to respective faculty</li>
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t bg-slate-50 flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowCommentModal(false)} 
+                className="btn btn-secondary"
+                disabled={commentSaving}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveComment} 
+                disabled={commentSaving || commentLoading || !hodComment.trim()}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                {commentSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={16} />
+                    Save Comment
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export PDF Filter Modal */}
+      {showFilterModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg animate-scale-in overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950 dark:to-purple-950 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-violet-900 dark:text-violet-100 text-xl flex items-center gap-2">
+                  <Download size={20} />
+                  Export PDF with Filters
+                </h2>
+                <p className="text-xs text-violet-600 dark:text-violet-400 mt-0.5">
+                  Filter reports by semester, academic year, or session
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowFilterModal(false)} 
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+              >
+                <X size={18}/>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Available reports info */}
+              <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100 mb-1">
+                  📊 Available Reports: {availableFilters.totalReports}
+                </p>
+                {availableFilters.semesters.length > 0 && (
+                  <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                    Semesters: {availableFilters.semesters.join(', ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Semester Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Semester
+                </label>
+                <select
+                  value={exportFilters.semester}
+                  onChange={(e) => setExportFilters({...exportFilters, semester: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Semesters</option>
+                  {availableFilters.semesters.map(sem => (
+                    <option key={sem} value={sem}>Semester {sem}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Academic Year Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Academic Year
+                </label>
+                <select
+                  value={exportFilters.academicYear}
+                  onChange={(e) => setExportFilters({...exportFilters, academicYear: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Years</option>
+                  {availableFilters.academicYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Session Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Session
+                </label>
+                <select
+                  value={exportFilters.session}
+                  onChange={(e) => setExportFilters({...exportFilters, session: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Sessions</option>
+                  {availableFilters.sessions.map(sess => (
+                    <option key={sess} value={sess}>
+                      {sess === 'jan-may' ? 'January - May' : 'July - December'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filter summary */}
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                  Current Selection:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {exportFilters.semester !== 'all' && (
+                    <span className="px-3 py-1 bg-violet-200 dark:bg-violet-900 text-violet-900 dark:text-violet-100 text-xs font-medium rounded-full">
+                      Semester {exportFilters.semester}
+                    </span>
+                  )}
+                  {exportFilters.academicYear !== 'all' && (
+                    <span className="px-3 py-1 bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-100 text-xs font-medium rounded-full">
+                      {exportFilters.academicYear}
+                    </span>
+                  )}
+                  {exportFilters.session !== 'all' && (
+                    <span className="px-3 py-1 bg-green-200 dark:bg-green-900 text-green-900 dark:text-green-100 text-xs font-medium rounded-full">
+                      {exportFilters.session === 'jan-may' ? 'Jan-May' : 'Jul-Dec'}
+                    </span>
+                  )}
+                  {exportFilters.semester === 'all' && exportFilters.academicYear === 'all' && exportFilters.session === 'all' && (
+                    <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
+                      All Reports
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex gap-3 justify-end">
+              <button 
+                onClick={() => setShowFilterModal(false)} 
+                className="btn btn-secondary"
+                disabled={exportingPDF}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleExportPDFWithFilters} 
+                disabled={exportingPDF}
+                className="btn btn-primary flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+              >
+                {exportingPDF ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} />
+                    Export PDF
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
