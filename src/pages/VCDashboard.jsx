@@ -915,11 +915,6 @@ export default function VCDashboard() {
         )}
 
         {/* ── Page Header ── */}
-        <div className="px-0 pt-2 pb-0">
-          <h1 className="text-2xl font-bold text-slate-900">Pro-VC Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-0.5">MITS Gwalior</p>
-        </div>
-
         {/* ── Welcome Banner ── */}
         <div
           className="relative rounded-2xl overflow-hidden shadow-md"
