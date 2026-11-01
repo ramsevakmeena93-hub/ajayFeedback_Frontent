@@ -349,7 +349,15 @@ export default function SubmissionDetail() {
               </div>
               <div className="p-5">
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
-                  {actionModal.current || <span className="text-slate-400 italic">No action taken recorded yet.</span>}
+                  {actionModal.current
+                    ? actionModal.current.split(/\n+/).map(l => l.trim()).filter(Boolean).map((l, i) => (
+                        <div key={i} className="flex items-start gap-2 mb-1.5">
+                          <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
+                          <span>{l}</span>
+                        </div>
+                      ))
+                    : <span className="text-slate-400 italic">No action taken recorded yet.</span>
+                  }
                 </div>
                 <button onClick={() => setActionModal(null)} className="mt-4 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition">
                   Close
@@ -602,20 +610,47 @@ export default function SubmissionDetail() {
                             </button>
                           )}
                         </td>
-                        {/* Action Taken — view only for all roles */}
+                        {/* Action Taken — preview with +N more, view-only for all roles */}
                         <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">
-                          <div className="flex flex-col gap-1">
-                            {r.actionTaken
-                              ? <p className="line-clamp-3">{r.actionTaken}</p>
-                              : <span className="text-slate-300">—</span>
-                            }
-                            <button
-                              onClick={() => setActionModal({ report: r, current: r.actionTaken || submission.vcComment || '' })}
-                              className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border border-slate-200 text-slate-500 hover:bg-slate-50 transition w-fit mt-0.5"
-                            >
-                              <Eye size={10}/> View
-                            </button>
-                          </div>
+                          {(() => {
+                            const fullText = r.actionTaken || submission.vcComment || '';
+                            // Split into lines/sentences for preview
+                            const lines = fullText
+                              .split(/\n+/)
+                              .map(l => l.trim())
+                              .filter(Boolean);
+                            const preview = lines.slice(0, 2);
+                            const extra = lines.length - 2;
+                            return (
+                              <div className="flex flex-col gap-1">
+                                {lines.length === 0
+                                  ? <span className="text-slate-300">—</span>
+                                  : preview.map((l, i) => (
+                                      <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
+                                        <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
+                                        <span className="text-slate-700">{l}</span>
+                                      </div>
+                                    ))
+                                }
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  {extra > 0 && (
+                                    <button
+                                      onClick={() => setActionModal({ report: r, current: fullText })}
+                                      className="text-xs text-amber-500 hover:text-amber-700 flex items-center gap-0.5"
+                                    >
+                                      <ChevronDown size={11}/> +{extra} more
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setActionModal({ report: r, current: fullText })}
+                                    className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border border-slate-200 text-slate-500 hover:bg-slate-50 transition w-fit"
+                                  >
+                                    <Eye size={10}/> View
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-4 py-3">
                           {(() => {
