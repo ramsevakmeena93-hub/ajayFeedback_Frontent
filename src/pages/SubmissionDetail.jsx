@@ -65,14 +65,8 @@ export default function SubmissionDetail() {
   // Comments full-view modal (Appreciation / Needs Attention)
   const [commentsModal, setCommentsModal] = useState(null); // { title, items, color }
 
-  // Action Taken modal (view + edit for provc/vc/admin)
+  // Action Taken modal (view only)
   const [actionModal, setActionModal] = useState(null); // { report, current }
-  const [actionDraft, setActionDraft] = useState('');
-  const [actionSaving, setActionSaving] = useState(false);
-
-  // Role helpers
-  const userRoles = new Set([...(user?.roles || []), ...(user?.role ? [user.role] : [])]);
-  const canWriteComment = userRoles.has('provc') || userRoles.has('vc') || userRoles.has('admin');
 
   // Pro-VC Report history
   const [savedReports, setSavedReports]             = useState([]);
@@ -342,7 +336,7 @@ export default function SubmissionDetail() {
           </div>
         )}
 
-        {/* ── Action Taken Modal (view / edit) ── */}
+        {/* ── Action Taken Modal (read-only for all roles) ── */}
         {actionModal && (
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setActionModal(null)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" onClick={e => e.stopPropagation()}>
@@ -353,50 +347,13 @@ export default function SubmissionDetail() {
                 </div>
                 <button onClick={() => setActionModal(null)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/20 transition"><X size={16}/></button>
               </div>
-              <div className="p-5 flex flex-col gap-3">
-                {canWriteComment ? (
-                  <>
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      {actionModal.current ? "Update action taken" : "Write action taken"}
-                    </label>
-                    {actionModal.current && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-800">
-                        <p className="font-semibold text-amber-600 mb-1">Current:</p>
-                        <p className="leading-relaxed">{actionModal.current}</p>
-                      </div>
-                    )}
-                    <textarea
-                      className="w-full min-h-[140px] text-sm border border-slate-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 leading-relaxed"
-                      placeholder="Describe the action taken by Pro-VC…"
-                      value={actionDraft}
-                      onChange={e => setActionDraft(e.target.value)}
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={() => setActionModal(null)} className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl transition">Cancel</button>
-                      <button
-                        disabled={actionSaving || !actionDraft.trim()}
-                        onClick={async () => {
-                          setActionSaving(true);
-                          try {
-                            await api.patch(`/api/submissions/${id}/action-taken`, { actionTaken: actionDraft.trim() });
-                            toast.success("Action taken saved ✓");
-                            setSubmission(s => ({ ...s, vcComment: actionDraft.trim() }));
-                            setActionModal(null);
-                          } catch (err) {
-                            toast.error(err.response?.data?.error || "Failed to save");
-                          } finally { setActionSaving(false); }
-                        }}
-                        className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
-                      >
-                        <Save size={14}/>{actionSaving ? "Saving…" : "Save"}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
-                    {actionModal.current || <span className="text-slate-400 italic">No action taken recorded yet.</span>}
-                  </div>
-                )}
+              <div className="p-5">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
+                  {actionModal.current || <span className="text-slate-400 italic">No action taken recorded yet.</span>}
+                </div>
+                <button onClick={() => setActionModal(null)} className="mt-4 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition">
+                  Close
+                </button>
               </div>
             </div>
           </div>
@@ -645,7 +602,7 @@ export default function SubmissionDetail() {
                             </button>
                           )}
                         </td>
-                        {/* Action Taken — show text + + button for all roles */}
+                        {/* Action Taken — view only for all roles */}
                         <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">
                           <div className="flex flex-col gap-1">
                             {r.actionTaken
@@ -653,14 +610,10 @@ export default function SubmissionDetail() {
                               : <span className="text-slate-300">—</span>
                             }
                             <button
-                              onClick={() => { setActionDraft(r.actionTaken || submission.vcComment || ''); setActionModal({ report: r, current: r.actionTaken || submission.vcComment || '' }); }}
-                              className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border transition w-fit mt-0.5 ${
-                                canWriteComment
-                                  ? 'text-amber-600 border-amber-300 hover:bg-amber-50'
-                                  : 'text-slate-500 border-slate-200 hover:bg-slate-50'
-                              }`}
+                              onClick={() => setActionModal({ report: r, current: r.actionTaken || submission.vcComment || '' })}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border border-slate-200 text-slate-500 hover:bg-slate-50 transition w-fit mt-0.5"
                             >
-                              {canWriteComment ? <><Plus size={10}/>{r.actionTaken ? 'Edit' : 'Add'}</> : <><Eye size={10}/> View</>}
+                              <Eye size={10}/> View
                             </button>
                           </div>
                         </td>
@@ -672,27 +625,31 @@ export default function SubmissionDetail() {
                                 {savedCmt && (
                                   <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 leading-relaxed max-w-[160px]">{savedCmt}</p>
                                 )}
-                                {canWriteComment ? (
-                                  <button
-                                    onClick={() => setProvcPanel({
-                                      facultyName: r.facultyName || "—",
-                                      subjectCode: r.subjectCode || "",
-                                      ffi: r.ffiScore?.toFixed(2),
-                                      existingComment: savedCmt,
-                                    })}
-                                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                                      savedCmt
-                                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                                        : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
-                                    }`}
-                                  >
-                                    <Plus size={11}/>{savedCmt ? "Edit" : "Add"}
-                                  </button>
-                                ) : savedCmt ? (
-                                  <span className="text-xs text-blue-700 font-medium flex items-center gap-1"><MessageSquare size={10}/> Commented</span>
-                                ) : (
-                                  <span className="text-xs text-slate-400 italic">No comment</span>
-                                )}
+                                {(() => {
+                                  const userRoles = new Set([...(user?.roles || []), ...(user?.role ? [user.role] : [])]);
+                                  const canWrite = userRoles.has('provc') || userRoles.has('vc') || userRoles.has('admin');
+                                  return canWrite ? (
+                                    <button
+                                      onClick={() => setProvcPanel({
+                                        facultyName: r.facultyName || "—",
+                                        subjectCode: r.subjectCode || "",
+                                        ffi: r.ffiScore?.toFixed(2),
+                                        existingComment: savedCmt,
+                                      })}
+                                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                                        savedCmt
+                                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                          : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
+                                      }`}
+                                    >
+                                      <Plus size={11}/>{savedCmt ? "Edit" : "Add"}
+                                    </button>
+                                  ) : savedCmt ? (
+                                    <span className="text-xs text-blue-700 font-medium flex items-center gap-1"><MessageSquare size={10}/> Commented</span>
+                                  ) : (
+                                    <span className="text-xs text-slate-400 italic">No comment</span>
+                                  );
+                                })()}
                               </div>
                             );
                           })()}
