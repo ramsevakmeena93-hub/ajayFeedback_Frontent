@@ -154,14 +154,15 @@ function FFITooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const ffi = d.FFI;
-  const color = ffi >= 4 ? "#10b981" : ffi >= 3.5 ? "#6366f1" : ffi >= 3 ? "#f59e0b" : "#ef4444";
-  const label = ffi >= 4 ? "Excellent" : ffi >= 3.5 ? "Good" : ffi >= 3 ? "Monitor" : "Critical";
+  const hasScore = ffi != null;
+  const color = !hasScore ? "#94a3b8" : ffi >= 4 ? "#10b981" : ffi >= 3.5 ? "#6366f1" : ffi >= 3 ? "#f59e0b" : "#ef4444";
+  const label = !hasScore ? "No score yet" : ffi >= 4 ? "Excellent" : ffi >= 3.5 ? "Good" : ffi >= 3 ? "Monitor" : "Critical";
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-2.5 text-xs min-w-[160px]">
       <p className="font-bold text-slate-800 mb-1 leading-snug">{d.full}</p>
       <p className="text-slate-400 mb-1.5">{d.subject}</p>
       <div className="flex items-center gap-2">
-        <span className="text-lg font-black" style={{ color }}>{ffi?.toFixed(2)}</span>
+        <span className="text-lg font-black" style={{ color }}>{hasScore ? ffi.toFixed(2) : "—"}</span>
         <span className="font-semibold px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: `${color}18`, color }}>
           {label}
         </span>
@@ -275,18 +276,20 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
         name,
         full: r.facultyName || "Unknown",
         subject: r.subjectCode || "",
-        FFI: parseFloat((r.ffiScore||0).toFixed(2)),
+        FFI: r.ffiScore != null ? parseFloat(r.ffiScore.toFixed(2)) : null,
         reportId: r._id,
         responseCount: r.responseCount,
         responsePercent: r.responsePercent,
         attention: (r.commentsNeedingAttention||[]).length,
+        noScore: r.ffiScore == null,
       };
     });
 
   // Dynamic Y-axis: zoom in on actual score range for more realistic look
-  const ffiValues = chartData.map(d => d.FFI);
-  const minFFI = ffiValues.length ? Math.max(0, Math.min(...ffiValues) - 0.5) : 0;
-  const maxFFI = ffiValues.length ? Math.min(5, Math.max(...ffiValues) + 0.3) : 5;
+  // Dynamic Y-axis: only use reports that actually have a score
+  const scoredFFIs = chartData.map(d => d.FFI).filter(v => v != null);
+  const minFFI = scoredFFIs.length ? Math.max(0, Math.min(...scoredFFIs) - 0.5) : 0;
+  const maxFFI = scoredFFIs.length ? Math.min(5, Math.max(...scoredFFIs) + 0.3) : 5;
   const avgNum = avg ? parseFloat(avg) : null;
 
   // Dynamic bar height: more bars → shorter height, fewer → taller
@@ -339,6 +342,7 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block"/>3.5–4.0</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block"/>3.0–3.5</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500 inline-block"/>&lt;3.0</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-slate-300 inline-block"/>No score</span>
               </div>
             </div>
           </div>
@@ -382,8 +386,8 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                 {chartData.map((e, i) => (
                   <Cell
                     key={i}
-                    fill={e.FFI >= 4 ? "#10b981" : e.FFI >= 3.5 ? "#6366f1" : e.FFI >= 3 ? "#f59e0b" : "#ef4444"}
-                    opacity={0.88}
+                    fill={e.FFI == null ? "#cbd5e1" : e.FFI >= 4 ? "#10b981" : e.FFI >= 3.5 ? "#6366f1" : e.FFI >= 3 ? "#f59e0b" : "#ef4444"}
+                    opacity={e.FFI == null ? 0.6 : 0.88}
                   />
                 ))}
               </Bar>
