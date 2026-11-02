@@ -76,7 +76,22 @@ export default function SubmissionDetail() {
   const [genDeptComment, setGenDeptComment]         = useState('');
   const [generating, setGenerating]                 = useState(false);
 
-  function getComment(facultyName, subjectCode) {
+  // Session edit — safe init: submission may be null on first render
+  const [sessionLabel, setSessionLabelState] = useState(null);
+  const [editingSession, setEditingSession]  = useState(false);
+  const [sessionValue, setSessionValue]      = useState('');
+
+  // Sync session state once submission loads
+  useEffect(() => {
+    if (!submission) return;
+    const s = submission.session;
+    setSessionLabelState(
+      s === "jan-may" ? "Jan – Jun (Even Sem)"
+      : s === "jul-dec" ? "Jul – Dec (Odd Sem)"
+      : s || null
+    );
+    setSessionValue(s || '');
+  }, [submission?._id]); // only re-run when a different submission loads
     // prefer local (freshly saved) over DB data
     const local = localProvcComments.find(c => c.facultyName === facultyName && c.subjectCode === subjectCode);
     if (local) return local.comment;
@@ -192,16 +207,6 @@ export default function SubmissionDetail() {
       setSubmission(s => ({ ...s, status: "rejected", vcComment: reason || "" }));
     } catch { toast.error("Failed to reject"); }
   }
-
-  // Session label — covers both stored values and legacy empty sessions
-  const [sessionLabel, setSessionLabelState] = useState(
-    submission.session === "jan-may" ? "Jan – Jun (Even Sem)"
-    : submission.session === "jul-dec" ? "Jul – Dec (Odd Sem)"
-    : submission.session ? submission.session
-    : null
-  );
-  const [editingSession, setEditingSession] = useState(false);
-  const [sessionValue, setSessionValue] = useState(submission.session || '');
 
   // Clean course name — strip "Submitted Answer" / "Submitted Answers" suffix
   function cleanProgramme(name) {
