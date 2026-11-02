@@ -6,6 +6,30 @@ import { useAuth } from "../context/AuthContext";
 import SignatureUpload from '../components/SignatureUpload';
 import mitsCampusImg from "../assets/mits-campus-real.png";
 import Navbar from "../components/Navbar";
+
+// ── Error boundary — shows a readable message instead of blank page ──────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-8">
+          <div className="bg-white rounded-2xl shadow border border-red-200 p-8 max-w-lg w-full">
+            <p className="font-bold text-red-600 text-lg mb-2">Something went wrong</p>
+            <pre className="text-xs text-slate-600 bg-slate-50 rounded-xl p-4 overflow-auto whitespace-pre-wrap">
+              {this.state.error?.message}
+            </pre>
+            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold">
+              Reload page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import Footer from "../components/Footer";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine,
@@ -742,7 +766,7 @@ function DeptChartsSection({ submissions }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════
-export default function VCDashboard() {
+function VCDashboardInner() {
   const { token, user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -1839,5 +1863,13 @@ export default function VCDashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VCDashboard() {
+  return (
+    <ErrorBoundary>
+      <VCDashboardInner />
+    </ErrorBoundary>
   );
 }
