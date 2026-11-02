@@ -9,7 +9,11 @@ import {
   Award,
   CheckCircle,
   ArrowLeft,
-  Globe
+  Globe,
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import mitsLogo from "../assets/mits-logo.png";
 
@@ -17,8 +21,11 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showCredForm, setShowCredForm] = useState(false);
+  const [credEmail, setCredEmail] = useState("");
+  const [credPass, setCredPass]   = useState("");
+  const [showPwd, setShowPwd]     = useState(false);
 
-  // Already logged in → redirect to dashboard
   useEffect(() => {
     if (user) go(user.activeWorkspace || user.role);
   }, [user]);
@@ -102,6 +109,25 @@ export default function Login() {
     navigate(dest, { replace: true });
   }
 
+  async function handleCredLogin(e) {
+    e.preventDefault();
+    if (!credEmail.trim() || !credPass.trim()) return toast.error("Enter email and password");
+    setLoading(true);
+    const tid = toast.loading("Signing in…");
+    try {
+      const API = import.meta.env.VITE_API_BASE || "https://ajayfeedback-backend-5jk8.onrender.com";
+      const { data } = await axios.post(`${API}/api/auth/login`, {
+        email: credEmail.trim().toLowerCase(),
+        password: credPass,
+      });
+      login(data.token, data.user);
+      toast.success(`Welcome, ${data.user.name}!`, { id: tid });
+      go(data.user.activeWorkspace || data.user.role);
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Sign-in failed", { id: tid });
+    } finally { setLoading(false); }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4">
       
@@ -148,6 +174,41 @@ export default function Login() {
             <div className="relative flex justify-center text-xs">
               <span className="bg-white px-4 text-slate-500 font-medium uppercase tracking-wide">Authorized Users Only</span>
             </div>
+          </div>
+
+          {/* Staff / Pro-VC password login */}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowCredForm(v => !v)}
+              className="w-full text-xs text-slate-500 hover:text-indigo-600 font-semibold text-center underline underline-offset-2 transition"
+            >
+              {showCredForm ? "Hide staff login" : "Staff / Pro-VC login (email & password)"}
+            </button>
+            {showCredForm && (
+              <form onSubmit={handleCredLogin} className="mt-3 space-y-3">
+                <div className="relative">
+                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input type="email" required placeholder="Email address" value={credEmail}
+                    onChange={e => setCredEmail(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                </div>
+                <div className="relative">
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input type={showPwd ? "text" : "password"} required placeholder="Password" value={credPass}
+                    onChange={e => setCredPass(e.target.value)}
+                    className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                  <button type="button" onClick={() => setShowPwd(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showPwd ? <EyeOff size={14}/> : <Eye size={14}/>}
+                  </button>
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2">
+                  {loading ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"/> : <Lock size={14}/>}
+                  {loading ? "Signing in…" : "Sign in"}
+                </button>
+              </form>
+            )}
           </div>
 
           {/* Info Box */}
