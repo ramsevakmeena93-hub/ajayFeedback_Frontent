@@ -9,6 +9,31 @@ import Footer from "../components/Footer";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { ArrowLeft, CheckCircle, XCircle, ChevronDown, ChevronUp, ExternalLink, MessageSquare, X, Save, FileDown, BarChart2, FileText, Plus, Eye } from "lucide-react";
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
+          <div className="bg-white rounded-2xl shadow border border-red-200 p-8 max-w-2xl w-full">
+            <p className="font-bold text-red-600 text-lg mb-3">Submission Detail crashed</p>
+            <pre className="text-xs text-slate-700 bg-slate-50 rounded-xl p-4 overflow-auto whitespace-pre-wrap max-h-64 border border-slate-200">
+              {this.state.error?.message}
+              {'\n\n'}
+              {this.state.error?.stack}
+            </pre>
+            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold">
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Helper: auto-number lines in a comment block
 function autoNumber(text) {
   if (!text) return "";
@@ -48,7 +73,7 @@ function CommentCell({ items, color }) {
   );
 }
 
-export default function SubmissionDetail() {
+function SubmissionDetailInner() {
   const { id }    = useParams();
   const { token, user } = useAuth();
   const navigate  = useNavigate();
@@ -845,5 +870,13 @@ export default function SubmissionDetail() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SubmissionDetail() {
+  return (
+    <ErrorBoundary>
+      <SubmissionDetailInner />
+    </ErrorBoundary>
   );
 }
