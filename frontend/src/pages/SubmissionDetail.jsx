@@ -34,7 +34,7 @@ function CommentCell({ items, color }) {
     <div className="space-y-1">
       {visible.map((c, i) => (
         <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
-          <span className={`mt-0.5 font-bold shrink-0 ${bullet}`}>ΓÇó</span>
+          <span className={`mt-0.5 font-bold shrink-0 ${bullet}`}>•</span>
           <span className="text-slate-700">{c}</span>
         </div>
       ))}
@@ -155,7 +155,7 @@ export default function SubmissionDetail() {
   });
 
   const ffis   = uniqueReports.map(r => r.ffiScore).filter(Boolean);
-  const avgFFI = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "--";
+  const avgFFI = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "—";
   const chartData = uniqueReports.map(r => ({
     name: (r.facultyName||"Faculty")
       .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "")
@@ -168,7 +168,7 @@ export default function SubmissionDetail() {
   }));
   const minFFI = ffis.length ? Math.max(0, Math.min(...ffis) - 0.5) : 0;
   const maxFFI = ffis.length ? Math.min(5, Math.max(...ffis) + 0.3) : 5;
-  const avgNum = avgFFI !== "--" ? parseFloat(avgFFI) : null;
+  const avgNum = avgFFI !== "—" ? parseFloat(avgFFI) : null;
   const chartHeight = Math.max(220, Math.min(320, 170 + chartData.length * 5));
   const bottomMargin = chartData.length > 10 ? 100 : chartData.length > 5 ? 85 : 65;
 
@@ -212,7 +212,7 @@ export default function SubmissionDetail() {
       .replace(/\bsubmitted\s+responses?\b/gi, "")
       .replace(/\bstudent\s+feedback\b/gi, "")
       .replace(/\s{2,}/g, " ")
-      .trim() || "--";
+      .trim() || "—";
   }
 
   return (
@@ -330,7 +330,7 @@ export default function SubmissionDetail() {
               <div className="overflow-y-auto p-5 space-y-2">
                 {commentsModal.items.map((c, i) => (
                   <div key={i} className={`flex items-start gap-2 text-sm rounded-xl px-3 py-2.5 border ${commentsModal.color === 'green' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
-                    <span className={`font-bold mt-0.5 shrink-0 ${commentsModal.color === 'green' ? 'text-emerald-500' : 'text-amber-500'}`}>ΓÇó</span>
+                    <span className={`font-bold mt-0.5 shrink-0 ${commentsModal.color === 'green' ? 'text-emerald-500' : 'text-amber-500'}`}>•</span>
                     <span className="leading-relaxed">{c}</span>
                   </div>
                 ))}
@@ -402,11 +402,11 @@ export default function SubmissionDetail() {
         {/* Submission info card */}
         <div className="card p-5">
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-4 text-sm">
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">HOD</p><p className="font-semibold text-slate-800">{submission.hodId?.name || "--"}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Department</p><p className="font-semibold text-slate-800">{submission.hodId?.department || submission.department || "--"}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Academic Year</p><p className="font-semibold text-slate-800">{submission.academicYear || "--"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">HOD</p><p className="font-semibold text-slate-800">{submission.hodId?.name || "—"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Department</p><p className="font-semibold text-slate-800">{submission.hodId?.department || submission.department || "—"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Academic Year</p><p className="font-semibold text-slate-800">{submission.academicYear || "—"}</p></div>
             <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Session</p><p className="font-semibold text-slate-800">{sessionLabel}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Form No.</p><p className="font-semibold text-slate-800">{submission.feedbackFormNo ? `Feedback Form ${submission.feedbackFormNo}` : "--"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Form No.</p><p className="font-semibold text-slate-800">{submission.feedbackFormNo ? `Feedback Form ${submission.feedbackFormNo}` : "—"}</p></div>
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Status</p>
               <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
@@ -561,7 +561,7 @@ export default function SubmissionDetail() {
                       >
                         <td className="px-4 py-3 text-slate-400 text-xs">{idx+1}</td>
                         <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">
-                          {r.facultyName||"--"}
+                          {r.facultyName||"—"}
                           {r._id && (
                             <a href={getPdfUrl(r)} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-0.5">
@@ -569,10 +569,10 @@ export default function SubmissionDetail() {
                             </a>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">{r.subjectCode||"--"}</td>
+                        <td className="px-4 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">{r.subjectCode||"—"}</td>
                         <td className="px-4 py-3 text-xs text-slate-600">{cleanProgramme(r.programme)}</td>
-                        <td className="px-4 py-3 text-center text-xs font-medium">{r.semester||"--"}</td>
-                        <td className="px-4 py-3 text-center text-xs">{r.academicYear||"--"}</td>
+                        <td className="px-4 py-3 text-center text-xs font-medium">{r.semester||"—"}</td>
+                        <td className="px-4 py-3 text-center text-xs">{r.academicYear||"—"}</td>
                         <td className="px-4 py-3 text-center">
                           {r.ffiScore!=null
                             ? <span className={`text-sm font-bold ${r.ffiScore>=4?"text-emerald-600":r.ffiScore>=3?"text-amber-600":"text-red-600"}`}>{r.ffiScore.toFixed(2)}</span>
@@ -580,10 +580,10 @@ export default function SubmissionDetail() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className="text-xs font-semibold text-slate-600">
-                            {r.responsePercent != null ? `${Number(r.responsePercent).toFixed(2)}%` : (r.responseCount ?? r.totalResponses ?? "--")}
+                            {r.responsePercent != null ? `${Number(r.responsePercent).toFixed(2)}%` : (r.responseCount ?? r.totalResponses ?? "—")}
                           </span>
                         </td>
-                        {/* Appreciation -- full, scrollable */}
+                        {/* Appreciation — full, scrollable */}
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <div className="space-y-0.5 mb-1">
                             {pctList.map(([label,pct])=>(
@@ -593,26 +593,26 @@ export default function SubmissionDetail() {
                           <CommentCell items={appAll} color="green"/>
                           {appAll.length > 0 && (
                             <button
-                              onClick={() => setCommentsModal({ title: `Appreciation -- ${r.facultyName}`, items: appAll, color: 'green' })}
+                              onClick={() => setCommentsModal({ title: `Appreciation — ${r.facultyName}`, items: appAll, color: 'green' })}
                               className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 border border-emerald-300 rounded-lg px-2 py-0.5 hover:bg-emerald-50 transition"
                             >
                               <Plus size={10}/> View all {appAll.length}
                             </button>
                           )}
                         </td>
-                        {/* Needs Attention -- full, scrollable */}
+                        {/* Needs Attention — full, scrollable */}
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <CommentCell items={attList} color="amber"/>
                           {attList.length > 0 && (
                             <button
-                              onClick={() => setCommentsModal({ title: `Needs Attention -- ${r.facultyName}`, items: attList, color: 'amber' })}
+                              onClick={() => setCommentsModal({ title: `Needs Attention — ${r.facultyName}`, items: attList, color: 'amber' })}
                               className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 hover:text-amber-800 border border-amber-300 rounded-lg px-2 py-0.5 hover:bg-amber-50 transition"
                             >
                               <Plus size={10}/> View all {attList.length}
                             </button>
                           )}
                         </td>
-                        {/* Action Taken -- show text + + button for all roles */}
+                        {/* Action Taken — show text + + button for all roles */}
                         <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">
                           <div className="flex flex-col gap-1">
                             {r.actionTaken
@@ -629,7 +629,7 @@ export default function SubmissionDetail() {
                         </td>
                         <td className="px-4 py-3">
                           {(() => {
-                            const savedCmt = getComment(r.facultyName || "--", r.subjectCode || "");
+                            const savedCmt = getComment(r.facultyName || "—", r.subjectCode || "");
                             return (
                               <div className="flex flex-col gap-1.5">
                                 {savedCmt && (
@@ -638,7 +638,7 @@ export default function SubmissionDetail() {
                                 {canWriteComment ? (
                                   <button
                                     onClick={() => setProvcPanel({
-                                      facultyName: r.facultyName || "--",
+                                      facultyName: r.facultyName || "—",
                                       subjectCode: r.subjectCode || "",
                                       ffi: r.ffiScore?.toFixed(2),
                                       existingComment: savedCmt,
