@@ -430,9 +430,13 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
           </div>
           <div className="divide-y divide-slate-100">
             {(sub.reports||[]).filter(r=>(r.commentsNeedingAttention||[]).length>0).map((r,i)=>{
+              const allAttn = (r.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5);
               const savedComment = (sub._provcCommentsLocal||sub.provcComments||[]).find(
                 c => c.facultyName === (r.facultyName||"—") && c.subjectCode === (r.subjectCode||"")
               )?.comment || "";
+              const [expanded, setExpanded] = React.useState(false);
+              const visible = expanded ? allAttn : allAttn.slice(0, 3);
+              const extra = allAttn.length - 3;
               return (
                 <div key={i} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                   <div className="flex items-start gap-3">
@@ -444,14 +448,27 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        {(r.commentsNeedingAttention||[]).filter(c => c && c.trim().split(/\s+/).length >= 5).slice(0,3).map((c,j)=>(
+                        {visible.map((c,j)=>(
                           <div key={j} className="flex items-start gap-1.5 text-xs text-slate-600">
                             <span className="text-amber-500 font-bold mt-0.5 shrink-0">•</span>
                             <span className="leading-relaxed">{c}</span>
                           </div>
                         ))}
-                        {r.commentsNeedingAttention.length > 3 && (
-                          <p className="text-[10px] text-slate-400 pl-4">+{r.commentsNeedingAttention.length-3} more</p>
+                        {!expanded && extra > 0 && (
+                          <button
+                            onClick={() => setExpanded(true)}
+                            className="text-xs text-amber-600 hover:text-amber-800 font-semibold pl-4 flex items-center gap-1"
+                          >
+                            <ChevronDown size={11}/> +{extra} more
+                          </button>
+                        )}
+                        {expanded && extra > 0 && (
+                          <button
+                            onClick={() => setExpanded(false)}
+                            className="text-xs text-amber-600 hover:text-amber-800 font-semibold pl-4 flex items-center gap-1"
+                          >
+                            <ChevronUp size={11}/> Show less
+                          </button>
                         )}
                       </div>
                       {savedComment && (
@@ -460,6 +477,23 @@ function InlineAnalysis({ sub, onNavigate, onOpenComment }) {
                         </div>
                       )}
                     </div>
+                    {/* Pro-VC Comment button */}
+                    <button
+                      onClick={() => onOpenComment && onOpenComment({
+                        facultyName: r.facultyName || "—",
+                        subjectCode: r.subjectCode || "",
+                        ffi: r.ffiScore?.toFixed(2),
+                        existingComment: savedComment,
+                      })}
+                      className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                        savedComment
+                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                          : "bg-white text-blue-600 border-blue-500 hover:bg-blue-50"
+                      }`}
+                    >
+                      <MessageSquare size={12} />
+                      {savedComment ? "Edit Comment" : "Add Comment"}
+                    </button>
                   </div>
                 </div>
               );
