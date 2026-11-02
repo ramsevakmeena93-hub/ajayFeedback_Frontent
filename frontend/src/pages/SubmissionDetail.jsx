@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { getPdfUrl } from "../api";
@@ -8,31 +8,6 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 import { ArrowLeft, CheckCircle, XCircle, ChevronDown, ChevronUp, ExternalLink, MessageSquare, X, Save, FileDown, BarChart2, FileText, Plus, Eye } from "lucide-react";
-
-class ErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { error: null }; }
-  static getDerivedStateFromError(e) { return { error: e }; }
-  render() {
-    if (this.state.error) {
-      return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
-          <div className="bg-white rounded-2xl shadow border border-red-200 p-8 max-w-2xl w-full">
-            <p className="font-bold text-red-600 text-lg mb-3">Submission Detail crashed</p>
-            <pre className="text-xs text-slate-700 bg-slate-50 rounded-xl p-4 overflow-auto whitespace-pre-wrap max-h-64 border border-slate-200">
-              {this.state.error?.message}
-              {'\n\n'}
-              {this.state.error?.stack}
-            </pre>
-            <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold">
-              Reload
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 // Helper: auto-number lines in a comment block
 function autoNumber(text) {
@@ -59,7 +34,7 @@ function CommentCell({ items, color }) {
     <div className="space-y-1">
       {visible.map((c, i) => (
         <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
-          <span className={`mt-0.5 font-bold shrink-0 ${bullet}`}>•</span>
+          <span className={`mt-0.5 font-bold shrink-0 ${bullet}`}>ΓÇó</span>
           <span className="text-slate-700">{c}</span>
         </div>
       ))}
@@ -73,7 +48,7 @@ function CommentCell({ items, color }) {
   );
 }
 
-function SubmissionDetailInner() {
+export default function SubmissionDetail() {
   const { id }    = useParams();
   const { token, user } = useAuth();
   const navigate  = useNavigate();
@@ -90,8 +65,14 @@ function SubmissionDetailInner() {
   // Comments full-view modal (Appreciation / Needs Attention)
   const [commentsModal, setCommentsModal] = useState(null); // { title, items, color }
 
-  // Action Taken modal (view only)
+  // Action Taken modal (view + edit for provc/vc/admin)
   const [actionModal, setActionModal] = useState(null); // { report, current }
+  const [actionDraft, setActionDraft] = useState('');
+  const [actionSaving, setActionSaving] = useState(false);
+
+  // Role helpers
+  const userRoles = new Set([...(user?.roles || []), ...(user?.role ? [user.role] : [])]);
+  const canWriteComment = userRoles.has('provc') || userRoles.has('vc') || userRoles.has('admin');
 
   // Pro-VC Report history
   const [savedReports, setSavedReports]             = useState([]);
@@ -101,22 +82,7 @@ function SubmissionDetailInner() {
   const [genDeptComment, setGenDeptComment]         = useState('');
   const [generating, setGenerating]                 = useState(false);
 
-  // Session edit — safe init: submission may be null on first render
-  const [sessionLabel, setSessionLabelState] = useState(null);
-  const [editingSession, setEditingSession]  = useState(false);
-  const [sessionValue, setSessionValue]      = useState('');
-
-  // Sync session state once submission loads
-  useEffect(() => {
-    if (!submission) return;
-    const s = submission.session;
-    setSessionLabelState(
-      s === "jan-may" ? "Jan – Jun (Even Sem)"
-      : s === "jul-dec" ? "Jul – Dec (Odd Sem)"
-      : s || null
-    );
-    setSessionValue(s || '');
-  }, [submission?._id]); // only re-run when a different submission loads
+  function getComment(facultyName, subjectCode) {
     // prefer local (freshly saved) over DB data
     const local = localProvcComments.find(c => c.facultyName === facultyName && c.subjectCode === subjectCode);
     if (local) return local.comment;
@@ -189,7 +155,7 @@ function SubmissionDetailInner() {
   });
 
   const ffis   = uniqueReports.map(r => r.ffiScore).filter(Boolean);
-  const avgFFI = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "—";
+  const avgFFI = ffis.length ? (ffis.reduce((s,v)=>s+v,0)/ffis.length).toFixed(2) : "ΓÇö";
   const chartData = uniqueReports.map(r => ({
     name: (r.facultyName||"Faculty")
       .replace(/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?)\s+/i, "")
@@ -202,7 +168,7 @@ function SubmissionDetailInner() {
   }));
   const minFFI = ffis.length ? Math.max(0, Math.min(...ffis) - 0.5) : 0;
   const maxFFI = ffis.length ? Math.min(5, Math.max(...ffis) + 0.3) : 5;
-  const avgNum = avgFFI !== "—" ? parseFloat(avgFFI) : null;
+  const avgNum = avgFFI !== "ΓÇö" ? parseFloat(avgFFI) : null;
   const chartHeight = Math.max(220, Math.min(320, 170 + chartData.length * 5));
   const bottomMargin = chartData.length > 10 ? 100 : chartData.length > 5 ? 85 : 65;
 
@@ -233,16 +199,22 @@ function SubmissionDetailInner() {
     } catch { toast.error("Failed to reject"); }
   }
 
-  // Clean course name — strip "Submitted Answer" / "Submitted Answers" suffix
+  // Session label ΓÇö covers both stored values and legacy empty sessions
+  const sessionLabel = submission.session === "jan-may" ? "Jan ΓÇô Jun (Even Sem)"
+    : submission.session === "jul-dec" ? "Jul ΓÇô Dec (Odd Sem)"
+    : submission.session ? submission.session
+    : "ΓÇö";
+
+  // Clean course name ΓÇö strip "Submitted Answer" / "Submitted Answers" suffix
   function cleanProgramme(name) {
-    if (!name) return "—";
+    if (!name) return "ΓÇö";
     return String(name)
-      .replace(/\s*[-:–]\s*submitted\s+answers?/gi, "")
+      .replace(/\s*[-:ΓÇô]\s*submitted\s+answers?/gi, "")
       .replace(/\bsubmitted\s+answers?\b/gi, "")
       .replace(/\bsubmitted\s+responses?\b/gi, "")
       .replace(/\bstudent\s+feedback\b/gi, "")
       .replace(/\s{2,}/g, " ")
-      .trim() || "—";
+      .trim() || "ΓÇö";
   }
 
   return (
@@ -261,7 +233,7 @@ function SubmissionDetailInner() {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold opacity-80 uppercase tracking-wide">Pro-VC Comment</p>
                   <p className="font-bold text-sm truncate mt-0.5">{provcPanel.facultyName}</p>
-                  <p className="text-xs opacity-70 mt-0.5">{provcPanel.subjectCode}{provcPanel.ffi ? ` · FFI ${provcPanel.ffi}` : ""}</p>
+                  <p className="text-xs opacity-70 mt-0.5">{provcPanel.subjectCode}{provcPanel.ffi ? ` ┬╖ FFI ${provcPanel.ffi}` : ""}</p>
                 </div>
                 <button onClick={() => setProvcPanel(null)} className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition ml-3">
                   <X size={18} />
@@ -279,7 +251,7 @@ function SubmissionDetailInner() {
                 </label>
                 <textarea
                   className="flex-1 w-full min-h-[180px] text-sm text-slate-700 border border-slate-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 leading-relaxed"
-                  placeholder={`Write your observation for ${provcPanel.facultyName}…`}
+                  placeholder={`Write your observation for ${provcPanel.facultyName}ΓÇª`}
                   value={provcPanel.draftText !== undefined ? provcPanel.draftText : (provcPanel.existingComment || "")}
                   onChange={e => setProvcPanel(prev => ({ ...prev, draftText: e.target.value }))}
                 />
@@ -301,7 +273,7 @@ function SubmissionDetailInner() {
                         subjectCode: provcPanel.subjectCode,
                         comment: text.trim(),
                       });
-                      toast.success("Pro-VC comment saved ✓");
+                      toast.success("Pro-VC comment saved Γ£ô");
                       handleProvcSaved(provcPanel.facultyName, provcPanel.subjectCode, text.trim());
                       setProvcPanel(null);
                     } catch (err) {
@@ -349,7 +321,7 @@ function SubmissionDetailInner() {
           </div>
         </div>
 
-        {/* ── Comments Full-View Modal ── */}
+        {/* ΓöÇΓöÇ Comments Full-View Modal ΓöÇΓöÇ */}
         {commentsModal && (
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setCommentsModal(null)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -360,7 +332,7 @@ function SubmissionDetailInner() {
               <div className="overflow-y-auto p-5 space-y-2">
                 {commentsModal.items.map((c, i) => (
                   <div key={i} className={`flex items-start gap-2 text-sm rounded-xl px-3 py-2.5 border ${commentsModal.color === 'green' ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
-                    <span className={`font-bold mt-0.5 shrink-0 ${commentsModal.color === 'green' ? 'text-emerald-500' : 'text-amber-500'}`}>•</span>
+                    <span className={`font-bold mt-0.5 shrink-0 ${commentsModal.color === 'green' ? 'text-emerald-500' : 'text-amber-500'}`}>ΓÇó</span>
                     <span className="leading-relaxed">{c}</span>
                   </div>
                 ))}
@@ -370,32 +342,61 @@ function SubmissionDetailInner() {
           </div>
         )}
 
-        {/* ── Action Taken Modal (read-only for all roles) ── */}
+        {/* ΓöÇΓöÇ Action Taken Modal (view / edit) ΓöÇΓöÇ */}
         {actionModal && (
           <div className="fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setActionModal(null)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 bg-amber-500 text-white rounded-t-2xl">
                 <div>
                   <p className="font-bold text-sm">Pro-VC Action Taken</p>
-                  <p className="text-xs opacity-80 mt-0.5">{actionModal.report.facultyName} · {actionModal.report.subjectCode}</p>
+                  <p className="text-xs opacity-80 mt-0.5">{actionModal.report.facultyName} ┬╖ {actionModal.report.subjectCode}</p>
                 </div>
                 <button onClick={() => setActionModal(null)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/20 transition"><X size={16}/></button>
               </div>
-              <div className="p-5">
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
-                  {actionModal.current
-                    ? actionModal.current.split(/\n+/).map(l => l.trim()).filter(Boolean).map((l, i) => (
-                        <div key={i} className="flex items-start gap-2 mb-1.5">
-                          <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
-                          <span>{l}</span>
-                        </div>
-                      ))
-                    : <span className="text-slate-400 italic">No action taken recorded yet.</span>
-                  }
-                </div>
-                <button onClick={() => setActionModal(null)} className="mt-4 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition">
-                  Close
-                </button>
+              <div className="p-5 flex flex-col gap-3">
+                {canWriteComment ? (
+                  <>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {actionModal.current ? "Update action taken" : "Write action taken"}
+                    </label>
+                    {actionModal.current && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-800">
+                        <p className="font-semibold text-amber-600 mb-1">Current:</p>
+                        <p className="leading-relaxed">{actionModal.current}</p>
+                      </div>
+                    )}
+                    <textarea
+                      className="w-full min-h-[140px] text-sm border border-slate-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 leading-relaxed"
+                      placeholder="Describe the action taken by Pro-VCΓÇª"
+                      value={actionDraft}
+                      onChange={e => setActionDraft(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={() => setActionModal(null)} className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-xl transition">Cancel</button>
+                      <button
+                        disabled={actionSaving || !actionDraft.trim()}
+                        onClick={async () => {
+                          setActionSaving(true);
+                          try {
+                            await api.patch(`/api/submissions/${id}/action-taken`, { actionTaken: actionDraft.trim() });
+                            toast.success("Action taken saved Γ£ô");
+                            setSubmission(s => ({ ...s, vcComment: actionDraft.trim() }));
+                            setActionModal(null);
+                          } catch (err) {
+                            toast.error(err.response?.data?.error || "Failed to save");
+                          } finally { setActionSaving(false); }
+                        }}
+                        className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2"
+                      >
+                        <Save size={14}/>{actionSaving ? "SavingΓÇª" : "Save"}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 leading-relaxed min-h-[80px]">
+                    {actionModal.current || <span className="text-slate-400 italic">No action taken recorded yet.</span>}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -434,52 +435,11 @@ function SubmissionDetailInner() {
         {/* Submission info card */}
         <div className="card p-5">
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-4 text-sm">
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">HOD</p><p className="font-semibold text-slate-800">{submission.hodId?.name || "—"}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Department</p><p className="font-semibold text-slate-800">{submission.hodId?.department || submission.department || "—"}</p></div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Academic Year</p><p className="font-semibold text-slate-800">{submission.academicYear || "—"}</p></div>
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Session</p>
-              {editingSession ? (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { value: 'jul-dec', label: 'Jul–Dec' },
-                    { value: 'jan-may', label: 'Jan–May' },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={async () => {
-                        try {
-                          await api.patch(`/api/submissions/${id}/session`, { session: opt.value });
-                          setSessionLabelState(opt.value === 'jan-may' ? 'Jan – Jun (Even Sem)' : 'Jul – Dec (Odd Sem)');
-                          setSessionValue(opt.value);
-                          setEditingSession(false);
-                          toast.success('Session updated ✓');
-                        } catch { toast.error('Failed to update session'); }
-                      }}
-                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition ${
-                        sessionValue === opt.value
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-white text-indigo-600 border-indigo-400 hover:bg-indigo-50'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                  <button onClick={() => setEditingSession(false)} className="text-xs text-slate-400 hover:text-slate-600 px-1">✕</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <p className="font-semibold text-slate-800">{sessionLabel || '—'}</p>
-                  <button
-                    onClick={() => setEditingSession(true)}
-                    className="text-[10px] text-indigo-500 hover:text-indigo-700 border border-indigo-300 rounded px-1.5 py-0.5 font-semibold hover:bg-indigo-50 transition"
-                  >
-                    {sessionLabel ? 'Edit' : '+ Set'}
-                  </button>
-                </div>
-              )}
-            </div>
-            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Form No.</p><p className="font-semibold text-slate-800">{submission.feedbackFormNo ? `Feedback Form ${submission.feedbackFormNo}` : "—"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">HOD</p><p className="font-semibold text-slate-800">{submission.hodId?.name || "ΓÇö"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Department</p><p className="font-semibold text-slate-800">{submission.hodId?.department || submission.department || "ΓÇö"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Academic Year</p><p className="font-semibold text-slate-800">{submission.academicYear || "ΓÇö"}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Session</p><p className="font-semibold text-slate-800">{sessionLabel}</p></div>
+            <div><p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Form No.</p><p className="font-semibold text-slate-800">{submission.feedbackFormNo ? `Feedback Form ${submission.feedbackFormNo}` : "ΓÇö"}</p></div>
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Status</p>
               <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
@@ -515,9 +475,9 @@ function SubmissionDetailInner() {
                   </span>
                 )}
                 <div className="hidden sm:flex items-center gap-2 text-[10px] font-semibold text-slate-500">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block"/>≥4.0</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block"/>3.5–4</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block"/>3–3.5</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block"/>ΓëÑ4.0</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block"/>3.5ΓÇô4</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-500 inline-block"/>3ΓÇô3.5</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500 inline-block"/>&lt;3</span>
                 </div>
               </div>
@@ -564,7 +524,7 @@ function SubmissionDetailInner() {
                         {d.responsePercent != null && (
                           <p className="text-slate-400 mt-1">{d.responsePercent?.toFixed(0)}% response rate</p>
                         )}
-                        <p className="text-blue-500 mt-1.5 font-semibold">Click to jump to report ↓</p>
+                        <p className="text-blue-500 mt-1.5 font-semibold">Click to jump to report Γåô</p>
                       </div>
                     );
                   }}
@@ -634,7 +594,7 @@ function SubmissionDetailInner() {
                       >
                         <td className="px-4 py-3 text-slate-400 text-xs">{idx+1}</td>
                         <td className="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">
-                          {r.facultyName||"—"}
+                          {r.facultyName||"ΓÇö"}
                           {r._id && (
                             <a href={getPdfUrl(r)} target="_blank" rel="noopener noreferrer"
                               className="flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-0.5">
@@ -642,21 +602,21 @@ function SubmissionDetailInner() {
                             </a>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">{r.subjectCode||"—"}</td>
+                        <td className="px-4 py-3 text-xs font-mono text-slate-600 whitespace-nowrap">{r.subjectCode||"ΓÇö"}</td>
                         <td className="px-4 py-3 text-xs text-slate-600">{cleanProgramme(r.programme)}</td>
-                        <td className="px-4 py-3 text-center text-xs font-medium">{r.semester||"—"}</td>
-                        <td className="px-4 py-3 text-center text-xs">{r.academicYear||"—"}</td>
+                        <td className="px-4 py-3 text-center text-xs font-medium">{r.semester||"ΓÇö"}</td>
+                        <td className="px-4 py-3 text-center text-xs">{r.academicYear||"ΓÇö"}</td>
                         <td className="px-4 py-3 text-center">
                           {r.ffiScore!=null
                             ? <span className={`text-sm font-bold ${r.ffiScore>=4?"text-emerald-600":r.ffiScore>=3?"text-amber-600":"text-red-600"}`}>{r.ffiScore.toFixed(2)}</span>
-                            : <span className="text-slate-300">—</span>}
+                            : <span className="text-slate-300">ΓÇö</span>}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className="text-xs font-semibold text-slate-600">
-                            {r.responsePercent != null ? `${Number(r.responsePercent).toFixed(2)}%` : (r.responseCount ?? r.totalResponses ?? "—")}
+                            {r.responsePercent != null ? `${Number(r.responsePercent).toFixed(2)}%` : (r.responseCount ?? r.totalResponses ?? "ΓÇö")}
                           </span>
                         </td>
-                        {/* Appreciation — full, scrollable */}
+                        {/* Appreciation ΓÇö full, scrollable */}
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <div className="space-y-0.5 mb-1">
                             {pctList.map(([label,pct])=>(
@@ -666,100 +626,73 @@ function SubmissionDetailInner() {
                           <CommentCell items={appAll} color="green"/>
                           {appAll.length > 0 && (
                             <button
-                              onClick={() => setCommentsModal({ title: `Appreciation — ${r.facultyName}`, items: appAll, color: 'green' })}
+                              onClick={() => setCommentsModal({ title: `Appreciation ΓÇö ${r.facultyName}`, items: appAll, color: 'green' })}
                               className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 hover:text-emerald-800 border border-emerald-300 rounded-lg px-2 py-0.5 hover:bg-emerald-50 transition"
                             >
                               <Plus size={10}/> View all {appAll.length}
                             </button>
                           )}
                         </td>
-                        {/* Needs Attention — full, scrollable */}
+                        {/* Needs Attention ΓÇö full, scrollable */}
                         <td className="px-4 py-3 min-w-[200px] max-w-[260px]">
                           <CommentCell items={attList} color="amber"/>
                           {attList.length > 0 && (
                             <button
-                              onClick={() => setCommentsModal({ title: `Needs Attention — ${r.facultyName}`, items: attList, color: 'amber' })}
+                              onClick={() => setCommentsModal({ title: `Needs Attention ΓÇö ${r.facultyName}`, items: attList, color: 'amber' })}
                               className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 hover:text-amber-800 border border-amber-300 rounded-lg px-2 py-0.5 hover:bg-amber-50 transition"
                             >
                               <Plus size={10}/> View all {attList.length}
                             </button>
                           )}
                         </td>
-                        {/* Action Taken — preview with +N more, view-only for all roles */}
+                        {/* Action Taken ΓÇö show text + + button for all roles */}
                         <td className="px-4 py-3 text-xs text-slate-600 max-w-[150px] leading-relaxed">
-                          {(() => {
-                            const fullText = r.actionTaken || submission.vcComment || '';
-                            // Split into lines/sentences for preview
-                            const lines = fullText
-                              .split(/\n+/)
-                              .map(l => l.trim())
-                              .filter(Boolean);
-                            const preview = lines.slice(0, 2);
-                            const extra = lines.length - 2;
-                            return (
-                              <div className="flex flex-col gap-1">
-                                {lines.length === 0
-                                  ? <span className="text-slate-300">—</span>
-                                  : preview.map((l, i) => (
-                                      <div key={i} className="flex items-start gap-1.5 text-xs leading-relaxed">
-                                        <span className="text-amber-500 font-bold shrink-0 mt-0.5">•</span>
-                                        <span className="text-slate-700">{l}</span>
-                                      </div>
-                                    ))
-                                }
-                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                  {extra > 0 && (
-                                    <button
-                                      onClick={() => setActionModal({ report: r, current: fullText })}
-                                      className="text-xs text-amber-500 hover:text-amber-700 flex items-center gap-0.5"
-                                    >
-                                      <ChevronDown size={11}/> +{extra} more
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => setActionModal({ report: r, current: fullText })}
-                                    className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border border-slate-200 text-slate-500 hover:bg-slate-50 transition w-fit"
-                                  >
-                                    <Eye size={10}/> View
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })()}
+                          <div className="flex flex-col gap-1">
+                            {r.actionTaken
+                              ? <p className="line-clamp-3">{r.actionTaken}</p>
+                              : <span className="text-slate-300">ΓÇö</span>
+                            }
+                            <button
+                              onClick={() => { setActionDraft(r.actionTaken || submission.vcComment || ''); setActionModal({ report: r, current: r.actionTaken || submission.vcComment || '' }); }}
+                              className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5 border transition w-fit mt-0.5 ${
+                                canWriteComment
+                                  ? 'text-amber-600 border-amber-300 hover:bg-amber-50'
+                                  : 'text-slate-500 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {canWriteComment ? <><Plus size={10}/>{r.actionTaken ? 'Edit' : 'Add'}</> : <><Eye size={10}/> View</>}
+                            </button>
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           {(() => {
-                            const savedCmt = getComment(r.facultyName || "—", r.subjectCode || "");
+                            const savedCmt = getComment(r.facultyName || "ΓÇö", r.subjectCode || "");
                             return (
                               <div className="flex flex-col gap-1.5">
                                 {savedCmt && (
                                   <p className="text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 leading-relaxed max-w-[160px]">{savedCmt}</p>
                                 )}
-                                {(() => {
-                                  const userRoles = new Set([...(user?.roles || []), ...(user?.role ? [user.role] : [])]);
-                                  const canWrite = userRoles.has('provc') || userRoles.has('vc') || userRoles.has('admin');
-                                  return canWrite ? (
-                                    <button
-                                      onClick={() => setProvcPanel({
-                                        facultyName: r.facultyName || "—",
-                                        subjectCode: r.subjectCode || "",
-                                        ffi: r.ffiScore?.toFixed(2),
-                                        existingComment: savedCmt,
-                                      })}
-                                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                                        savedCmt
-                                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                                          : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
-                                      }`}
-                                    >
-                                      <Plus size={11}/>{savedCmt ? "Edit" : "Add"}
-                                    </button>
-                                  ) : savedCmt ? (
-                                    <span className="text-xs text-blue-700 font-medium flex items-center gap-1"><MessageSquare size={10}/> Commented</span>
-                                  ) : (
-                                    <span className="text-xs text-slate-400 italic">No comment</span>
-                                  );
-                                })()}
+                                {canWriteComment ? (
+                                  <button
+                                    onClick={() => setProvcPanel({
+                                      facultyName: r.facultyName || "ΓÇö",
+                                      subjectCode: r.subjectCode || "",
+                                      ffi: r.ffiScore?.toFixed(2),
+                                      existingComment: savedCmt,
+                                    })}
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                                      savedCmt
+                                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                        : "bg-white text-blue-600 border-blue-400 hover:bg-blue-50"
+                                    }`}
+                                  >
+                                    <Plus size={11}/>{savedCmt ? "Edit" : "Add"}
+                                  </button>
+                                ) : savedCmt ? (
+                                  <span className="text-xs text-blue-700 font-medium flex items-center gap-1"><MessageSquare size={10}/> Commented</span>
+                                ) : (
+                                  <span className="text-xs text-slate-400 italic">No comment</span>
+                                )}
                               </div>
                             );
                           })()}
@@ -775,7 +708,7 @@ function SubmissionDetailInner() {
       </div>
       <Footer/>
 
-      {/* ── Generate Faculty Pro-VC Report Modal ── */}
+      {/* ΓöÇΓöÇ Generate Faculty Pro-VC Report Modal ΓöÇΓöÇ */}
       {genFacultyModal && (
         <div className="fixed inset-0 z-[9998] bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
@@ -786,7 +719,7 @@ function SubmissionDetailInner() {
               value={genFacultyName}
               onChange={e => setGenFacultyName(e.target.value)}
             >
-              <option value="">— select faculty —</option>
+              <option value="">ΓÇö select faculty ΓÇö</option>
               {[...new Set(uniqueReports.map(r => r.facultyName).filter(Boolean))].map(f => (
                 <option key={f} value={f}>{f}</option>
               ))}
@@ -807,7 +740,7 @@ function SubmissionDetailInner() {
                       submissionId: id,
                       facultyName: genFacultyName,
                     });
-                    toast.success('Faculty Pro-VC Report saved ✓');
+                    toast.success('Faculty Pro-VC Report saved Γ£ô');
                     const { data } = await api.get(`/api/provc-reports/submission/${id}`);
                     setSavedReports(data);
                     setGenFacultyModal(false);
@@ -818,14 +751,14 @@ function SubmissionDetailInner() {
                 }}
                 className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl"
               >
-                {generating ? 'Generating…' : 'Generate'}
+                {generating ? 'GeneratingΓÇª' : 'Generate'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Generate Department Pro-VC Report Modal ── */}
+      {/* ΓöÇΓöÇ Generate Department Pro-VC Report Modal ΓöÇΓöÇ */}
       {genDeptModal && (
         <div className="fixed inset-0 z-[9998] bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
@@ -833,7 +766,7 @@ function SubmissionDetailInner() {
             <p className="text-xs text-slate-500 mb-3">Review or update the overall department comments:</p>
             <textarea
               className="w-full border border-slate-200 rounded-xl p-3 text-sm min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-teal-300 mb-4"
-              placeholder="Enter overall observations, recommendations, and action details…"
+              placeholder="Enter overall observations, recommendations, and action detailsΓÇª"
               value={genDeptComment}
               onChange={e => setGenDeptComment(e.target.value)}
             />
@@ -853,7 +786,7 @@ function SubmissionDetailInner() {
                       submissionId: id,
                       overallComments: genDeptComment,
                     });
-                    toast.success('Overall Pro-VC Report saved ✓');
+                    toast.success('Overall Pro-VC Report saved Γ£ô');
                     const { data } = await api.get(`/api/provc-reports/submission/${id}`);
                     setSavedReports(data);
                     setGenDeptModal(false);
@@ -863,20 +796,12 @@ function SubmissionDetailInner() {
                 }}
                 className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl"
               >
-                {generating ? 'Generating…' : 'Generate Report'}
+                {generating ? 'GeneratingΓÇª' : 'Generate Report'}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-}
-
-export default function SubmissionDetail() {
-  return (
-    <ErrorBoundary>
-      <SubmissionDetailInner />
-    </ErrorBoundary>
   );
 }
