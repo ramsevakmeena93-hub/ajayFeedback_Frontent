@@ -25,9 +25,7 @@ const DEPARTMENTS = [
 ];
 
 const EMPTY_FORM = {
-  name: '', email: '', password: '', department: '',
-  designation: '', phone: '', qualification: '', experience: '',
-  status: 'active',
+  name: '', email: '', department: '', status: 'active',
 };
 
 export default function HODManagement() {
@@ -74,13 +72,10 @@ export default function HODManagement() {
 
   function openEdit(h) {
     setForm({
-      name: h.name || '', email: h.email || '', password: '',
-      department: h.department || '', designation: h.designation || '',
-      phone: h.phone || '', qualification: h.qualification || '',
-      experience: h.experience || '', status: h.status || 'active',
+      name: h.name || '', email: h.email || '',
+      department: h.department || '', status: h.status || 'active',
     });
     setEditTarget(h);
-    setShowPwd(false);
     setShowModal(true);
   }
 
@@ -89,12 +84,9 @@ export default function HODManagement() {
     setSaving(true);
     try {
       if (editTarget) {
-        const payload = { ...form, role: 'hod' };
-        if (!payload.password) delete payload.password;
-        await api.patch(`/api/admin/users/${editTarget._id}`, payload);
+        await api.patch(`/api/admin/users/${editTarget._id}`, { ...form, role: 'hod' });
         toast.success('HOD updated');
       } else {
-        if (!form.password) { toast.error('Password is required'); setSaving(false); return; }
         await api.post('/api/admin/users', { ...form, role: 'hod' });
         toast.success('HOD added');
       }
@@ -356,50 +348,6 @@ export default function HODManagement() {
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
                 </select>
-              </div>
-
-              {/* Password */}
-              <div className="col-span-2">
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                  Password {editTarget ? '(blank = keep current)' : '*'}
-                </label>
-                <div className="relative">
-                  <input type={showPwd ? 'text' : 'password'} value={form.password}
-                    placeholder={editTarget ? 'Leave blank to keep current' : 'Min 6 characters'}
-                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    required={!editTarget}
-                    className="w-full p-2.5 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
-                  <button type="button" onClick={() => setShowPwd(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Designation */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Designation</label>
-                <input type="text" placeholder="Associate Professor" value={form.designation}
-                  onChange={e => setForm(f => ({ ...f, designation: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Phone</label>
-                <input type="tel" placeholder="+91 XXXXX XXXXX" value={form.phone}
-                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Qualification</label>
-                <input type="text" placeholder="PhD, M.Tech" value={form.qualification}
-                  onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Experience</label>
-                <input type="text" placeholder="10 years" value={form.experience}
-                  onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
               </div>
             </div>
 
