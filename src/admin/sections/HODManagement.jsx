@@ -313,18 +313,52 @@ export default function HODManagement() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
+              {/* Full Name */}
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Full Name *</label>
                 <input required type="text" placeholder="Dr. Anita Verma" value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
               </div>
+
+              {/* Email */}
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Email *</label>
                 <input required type="email" placeholder="anita@mitsgwalior.in" value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm" />
               </div>
+
+              {/* Department */}
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Department</label>
+                <select value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm">
+                  <option value="">— Select department —</option>
+                  {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+
+              {/* Role — auto-selected as HOD */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Role</label>
+                <select value="hod" disabled
+                  className="w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-500 cursor-not-allowed">
+                  <option value="hod">HOD</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Status</label>
+                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm">
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+
+              {/* Password */}
               <div className="col-span-2">
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
                   Password {editTarget ? '(blank = keep current)' : '*'}
@@ -341,22 +375,8 @@ export default function HODManagement() {
                   </button>
                 </div>
               </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Department</label>
-                <select value={form.department} onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm">
-                  <option value="">— Select department —</option>
-                  {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Status</label>
-                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm">
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-              </div>
+
+              {/* Designation */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Designation</label>
                 <input type="text" placeholder="Associate Professor" value={form.designation}
