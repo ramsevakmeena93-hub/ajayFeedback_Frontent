@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 const SOCKET_URL = import.meta.env.VITE_API_URL
   || (import.meta.env.PROD
-    ? 'https://ajayfeedback-backend.onrender.com'
+    ? 'https://ajayfeedback-backend-5jk8.onrender.com'
     : 'http://localhost:5000');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,10 +85,10 @@ export function AuthProvider({ children, appRole }) {
         if (!appRole || storedUser.role === appRole ||
             (storedUser.roles && storedUser.roles.includes(appRole))) {
           _setAuth(storedUser, storedToken);
-          // Always refresh roles from server on mount — picks up any
-          // role changes made since the token was issued (e.g. admin
-          // assigned a second role while the user was logged in).
-          refreshRolesFromServer(storedToken);
+          // Refresh roles from server BEFORE setting loading=false
+          // so ProtectedRoute always sees the latest role from DB
+          refreshRolesFromServer(storedToken).finally(() => setLoading(false));
+          return; // don't call setLoading(false) below
         }
       } catch {
         localStorage.removeItem(storageKey);
