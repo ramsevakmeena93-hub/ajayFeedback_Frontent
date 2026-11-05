@@ -59,8 +59,8 @@ ENV VITE_API_BASE=$VITE_API_BASE
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 RUN cd /app/frontend \
-    && npm ci \
-    && node node_modules/.bin/vite build --outDir /var/www/html
+    && npm ci --include=dev \
+    && node node_modules/vite/bin/vite.js build --outDir /var/www/html
 
 # ── 7. AI Model — install deps ────────────────────────────────────────────────
 COPY backend/huggingface_space/requirements.txt /app/ai/requirements.txt
