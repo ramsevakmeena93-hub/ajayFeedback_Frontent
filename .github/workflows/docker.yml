@@ -1,0 +1,50 @@
+name: Build & Push feedback-app to Docker Hub
+
+on:
+  push:
+    branches: [ master, main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout frontend repo
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      # 2. Checkout backend repo into ./backend folder
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: ramsevakmeena93-hub/ajayFeedback_Backend
+          path: backend
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 4. Set up Docker Buildx (faster builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 5. Build and push single image with all 3 services
+      - name: Build and push feedback-app
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.all
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/feedback-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/feedback-app:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://ajayfeedback-backend-5jk8.onrender.com
+            VITE_API_BASE=https://ajayfeedback-backend-5jk8.onrender.com
+            VITE_GOOGLE_CLIENT_ID=32902780570-ltgii8ds5cf6pp8elj3uapsao7a78u88.apps.googleusercontent.com
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
