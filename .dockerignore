@@ -1,0 +1,23 @@
+node_modules
+.env
+*.log
+.git
+.gitignore
+dist
+dist-vc
+dist-hod
+dist-faculty
+dist-admin
+
+# Backend has its own image (ignored for separate builds, included for Dockerfile.all)
+# backend/
+
+# Misc
+*.zip
+*.png
+*.pdf
+debug-*.html
+fix-*.html
+__pycache__/
+*.pyc
+.venv

@@ -1,0 +1,119 @@
+# =============================================================================
+# ONE Dockerfile — Frontend + Backend + AI Model
+# =============================================================================
+# Build:  docker build -f Dockerfile.all -t feedback-app .
+# Run:    docker run -p 80:80 -p 5000:5000 -p 7860:7860 \
+#                   --env-file ./backend/.env feedback-app
+# Access: http://localhost        → Frontend
+#         http://localhost:5000   → Backend API
+#         http://localhost:7860   → AI Model
+# =============================================================================
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TOKENIZERS_PARALLELISM=false
+ENV NODE_ENV=production
+ENV PORT=5000
+ENV HF_HOME=/app/ai/model_cache
+
+# ── 1. System packages ────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    supervisor nginx curl ca-certificates gnupg \
+    python3 python3-pip \
+    make g++ gcc \
+    libcairo2-dev libpango1.0-dev libjpeg-dev \
+    libgif-dev librsvg2-dev libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── 2. Node.js 20 ────────────────────────────────────────────────────────────
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── 3. Work directories ───────────────────────────────────────────────────────
+RUN mkdir -p /app/backend /app/frontend /app/ai /app/uploads/reports
+
+# ── 4. Backend — install deps ─────────────────────────────────────────────────
+COPY backend/package.json backend/package-lock.json /app/backend/
+RUN cd /app/backend && npm ci --omit=dev || npm ci --omit=dev --omit=optional
+
+# ── 5. Backend — copy source ──────────────────────────────────────────────────
+COPY backend/ /app/backend/
+
+# ── 6. Frontend — install deps + build ───────────────────────────────────────
+COPY package.json package-lock.json /app/frontend/
+COPY src/             /app/frontend/src/
+COPY public/          /app/frontend/public/
+COPY index.html       /app/frontend/
+COPY vite.config.js   /app/frontend/
+COPY tailwind.config.js /app/frontend/
+COPY postcss.config.js  /app/frontend/
+
+ARG VITE_API_URL=http://localhost:5000
+ARG VITE_API_BASE=http://localhost:5000
+ARG VITE_GOOGLE_CLIENT_ID=""
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_API_BASE=$VITE_API_BASE
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
+RUN cd /app/frontend \
+    && npm ci \
+    && node node_modules/.bin/vite build --outDir /var/www/html
+
+# ── 7. AI Model — install deps ────────────────────────────────────────────────
+COPY backend/huggingface_space/requirements.txt /app/ai/requirements.txt
+RUN pip3 install --no-cache-dir -r /app/ai/requirements.txt
+
+# ── 8. AI Model — copy source + cache model ──────────────────────────────────
+COPY backend/huggingface_space/app.py /app/ai/app.py
+RUN python3 -c "\
+from transformers import pipeline; \
+p = pipeline('zero-shot-classification', \
+    model='MoritzLaurer/deberta-v3-base-zeroshot-v2.0', device=-1); \
+print('Model cached OK')"
+
+# ── 9. Nginx config ───────────────────────────────────────────────────────────
+COPY nginx.standalone.conf /etc/nginx/sites-available/default
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# ── 10. Supervisor config — manages all 3 processes ──────────────────────────
+RUN mkdir -p /var/log/supervisor
+COPY <<'EOF' /etc/supervisor/conf.d/feedback.conf
+[supervisord]
+nodaemon=true
+logfile=/var/log/supervisor/supervisord.log
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/supervisor/nginx.log
+stderr_logfile=/var/log/supervisor/nginx.err
+
+[program:backend]
+command=node /app/backend/server.js
+directory=/app/backend
+autostart=true
+autorestart=true
+environment=NODE_ENV="production",PORT="5000"
+stdout_logfile=/var/log/supervisor/backend.log
+stderr_logfile=/var/log/supervisor/backend.err
+
+[program:ai]
+command=python3 /app/ai/app.py
+directory=/app/ai
+autostart=true
+autorestart=true
+environment=HF_HOME="/app/ai/model_cache",TOKENIZERS_PARALLELISM="false"
+stdout_logfile=/var/log/supervisor/ai.log
+stderr_logfile=/var/log/supervisor/ai.err
+EOF
+
+# ── 11. Ports ─────────────────────────────────────────────────────────────────
+EXPOSE 80 5000 7860
+
+# ── 12. Start ─────────────────────────────────────────────────────────────────
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

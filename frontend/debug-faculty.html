@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Faculty Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0e27;
+      color: #00ff00;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #00ffff;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    .section {
+      background: #1a1f3a;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .section h2 {
+      color: #ffff00;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    pre {
+      background: #000;
+      border: 1px solid #00ff00;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 3px;
+      margin-top: 10px;
+    }
+    .error { color: #ff0000; }
+    .success { color: #00ff00; }
+    .warning { color: #ffff00; }
+    input {
+      background: #000;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 8px;
+      width: 100%;
+      margin-bottom: 10px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 FACULTY DASHBOARD DEBUG CONSOLE</h1>
+    
+    <div class="section">
+      <h2>📋 AUTH TOKEN</h2>
+      <input type="password" id="token" placeholder="Paste auth token or it will auto-load...">
+    </div>
+
+    <div class="section">
+      <h2>🧪 TEST ENDPOINTS</h2>
+      <button onclick="testFacultyAnalysis()">1. Test Faculty Analysis</button>
+      <button onclick="testFacultyReports()">2. Test Faculty Reports</button>
+      <button onclick="testFacultyAdvanced()">3. Test Advanced Analytics</button>
+      <button onclick="checkUserInfo()">4. Check User Info</button>
+      <button onclick="checkAllReports()">5. Check All Reports (Admin)</button>
+    </div>
+
+    <div class="section">
+      <h2>📊 RESULTS</h2>
+      <div id="output"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://ajayfeedback-backend-5jk8.onrender.com/api';
+    
+    window.onload = function() {
+      try {
+        const auth = JSON.parse(localStorage.getItem('auth') || '{}');
+        if (auth.token) {
+          document.getElementById('token').value = auth.token;
+          log('✅ Token auto-loaded from localStorage', 'success');
+        }
+      } catch (e) {
+        log('❌ No token in localStorage', 'error');
+      }
+    };
+
+    function getToken() {
+      return document.getElementById('token').value.trim();
+    }
+
+    function log(message, type = 'success') {
+      const output = document.getElementById('output');
+      const color = type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'success';
+      output.innerHTML += `<div class="${color}">${message}</div>`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function logJSON(data) {
+      const output = document.getElementById('output');
+      output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function testFacultyAnalysis() {
+      log('\n🔍 Testing Faculty Analysis Endpoint...', 'warning');
+      const token = getToken();
+      if (!token) return log('❌ No token provided', 'error');
+
+      try {
+        const res = await fetch(`${API_BASE}/reports/faculty/analysis`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log(`✅ Success! Status: ${res.status}`, 'success');
+          log(`📊 Reports found: ${data.reports?.length || 0}`, 'success');
+          log(`📈 Summary: ${JSON.stringify(data.summary || {})}`, 'success');
+          logJSON(data);
+        } else {
+          log(`❌ Error! Status: ${res.status}`, 'error');
+          logJSON(data);
+        }
+      } catch (err) {
+        log(`❌ Network Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function testFacultyReports() {
+      log('\n🔍 Testing Faculty Reports Endpoint...', 'warning');
+      const token = getToken();
+      if (!token) return log('❌ No token provided', 'error');
+
+      try {
+        const res = await fetch(`${API_BASE}/reports/faculty/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log(`✅ Success! Found ${data.length} reports`, 'success');
+          logJSON(data);
+        } else {
+          log(`❌ Error! Status: ${res.status}`, 'error');
+          logJSON(data);
+        }
+      } catch (err) {
+        log(`❌ Network Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function testFacultyAdvanced() {
+      log('\n🔍 Testing Advanced Analytics Endpoint...', 'warning');
+      const token = getToken();
+      if (!token) return log('❌ No token provided', 'error');
+
+      try {
+        const res = await fetch(`${API_BASE}/reports/faculty/advanced-analytics`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log(`✅ Success!`, 'success');
+          logJSON(data);
+        } else {
+          log(`❌ Error! Status: ${res.status}`, 'error');
+          logJSON(data);
+        }
+      } catch (err) {
+        log(`❌ Network Error: ${err.message}`, 'error');
+      }
+    }
+
+    async function checkUserInfo() {
+      log('\n🔍 Checking User Info from Token...', 'warning');
+      const token = getToken();
+      if (!token) return log('❌ No token provided', 'error');
+
+      try {
+        // Decode JWT (simple base64 decode of middle part)
+        const parts = token.split('.');
+        if (parts.length !== 3) return log('❌ Invalid JWT format', 'error');
+        
+        const payload = JSON.parse(atob(parts[1]));
+        log('✅ Token decoded successfully!', 'success');
+        logJSON(payload);
+      } catch (err) {
+        log(`❌ Failed to decode token: ${err.message}`, 'error');
+      }
+    }
+
+    async function checkAllReports() {
+      log('\n🔍 Checking All Reports in Database (Admin only)...', 'warning');
+      const token = getToken();
+      if (!token) return log('❌ No token provided', 'error');
+
+      try {
+        const res = await fetch(`${API_BASE}/reports/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          log(`✅ Found ${data.length} total reports`, 'success');
+          
+          // Check facultyUserId presence
+          const withUserId = data.filter(r => r.facultyUserId);
+          const withoutUserId = data.filter(r => !r.facultyUserId);
+          
+          log(`📊 Reports WITH facultyUserId: ${withUserId.length}`, withUserId.length > 0 ? 'success' : 'warning');
+          log(`⚠️  Reports WITHOUT facultyUserId: ${withoutUserId.length}`, withoutUserId.length > 0 ? 'error' : 'success');
+          
+          if (withoutUserId.length > 0) {
+            log('\n❌ These reports are missing facultyUserId:', 'error');
+            withoutUserId.slice(0, 5).forEach(r => {
+              log(`   - ${r.facultyName} | ${r.subjectCode} | Status: ${r.status}`, 'warning');
+            });
+          }
+          
+          logJSON({ totalReports: data.length, withUserId: withUserId.length, withoutUserId: withoutUserId.length });
+        } else {
+          log(`❌ Error! Status: ${res.status}`, 'error');
+          logJSON(data);
+        }
+      } catch (err) {
+        log(`❌ Network Error: ${err.message}`, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

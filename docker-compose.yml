@@ -1,99 +1,33 @@
 version: "3.9"
 
+# ── Single container — Frontend + Backend + AI Model ─────────────────────────
+# Build:  docker compose build
+# Run:    docker compose up
+# Access: http://localhost        → Frontend
+#         http://localhost:5000   → Backend API
+#         http://localhost:7860   → AI Model
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
 
-  # ── MongoDB Database ───────────────────────────────────────────────────────
-  database:
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    container_name: feedback-db
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=secret
-      - MONGO_INITDB_DATABASE=faculty_feedback
-    volumes:
-      - feedback_db_data:/data/db   # persist data across restarts
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
-
-  # ── AI Model (DeBERTa FastAPI) ─────────────────────────────────────────────
-  ai-model:
-    build:
-      context: ./backend/huggingface_space
-      dockerfile: Dockerfile
-    container_name: feedback-ai
-    restart: unless-stopped
-    ports:
-      - "7860:7860"
-    environment:
-      - TOKENIZERS_PARALLELISM=false
-    # Model weights are cached inside the image at build time.
-    # Mount a volume here if you want to share the cache across rebuilds:
-    # volumes:
-    #   - ai_model_cache:/app/model_cache
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"]
-      interval: 30s
-      timeout: 15s
-      start_period: 120s
-      retries: 3
-
-  # ── Backend (Node.js / Express) ────────────────────────────────────────────
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: feedback-backend
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    env_file:
-      - ./backend/.env          # never commit this file — contains secrets
-    environment:
-      - NODE_ENV=production
-      - PORT=5000
-      - FASTAPI_CLASSIFIER_URL=http://ai-model:7860   # internal Docker network
-    volumes:
-      - backend_uploads:/app/uploads  # persist uploaded & generated PDFs
-    depends_on:
-      ai-model:
-        condition: service_healthy
-      database:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health', r => process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
-      interval: 30s
-      timeout: 10s
-      start_period: 30s
-      retries: 3
-
-  # ── Frontend (Vite/React → Nginx) ─────────────────────────────────────────
-  frontend:
+  app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.all
       args:
         VITE_API_URL: "https://ajayfeedback-backend-5jk8.onrender.com"
         VITE_API_BASE: "https://ajayfeedback-backend-5jk8.onrender.com"
         VITE_GOOGLE_CLIENT_ID: "32902780570-ltgii8ds5cf6pp8elj3uapsao7a78u88.apps.googleusercontent.com"
-    container_name: feedback-frontend
+    container_name: feedback-app
     restart: unless-stopped
     ports:
       - "80:80"
-    depends_on:
-      backend:
-        condition: service_healthy
+      - "5000:5000"
+      - "7860:7860"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - uploads:/app/uploads
 
-# ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
-  feedback_db_data:  # persists MongoDB data across container restarts
-  backend_uploads:   # persists uploaded PDFs and generated reports across restarts
-  # ai_model_cache:  # uncomment to persist HuggingFace model weights across rebuilds
+  uploads:
