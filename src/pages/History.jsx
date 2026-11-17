@@ -430,11 +430,20 @@ export default function History() {
   async function fetchHistory() {
     setLoading(true);
     try {
-      const url = user?.role === "vc" || user?.role === "provc"
+      // Check roles array first (multi-role support), then fall back to legacy role field
+      const userRoles = new Set([
+        ...(user?.roles || []),
+        ...(user?.role ? [user.role] : []),
+      ]);
+
+      const url = (userRoles.has("vc") || userRoles.has("provc"))
         ? "/api/submissions/all"
-        : user?.role === "faculty"
+        : userRoles.has("hod")
+        ? "/api/submissions/my"        // HOD always uses /my even if also faculty
+        : userRoles.has("faculty")
         ? "/api/submissions/faculty"
-        : "/api/submissions/my";
+        : "/api/submissions/my";       // fallback
+
       const { data } = await api.get(url);
       setSubmissions((data || []).filter(s => s.status === "approved"));
     } catch { toast.error("Failed to load history"); }
