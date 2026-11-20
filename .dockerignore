@@ -1,23 +1,52 @@
-node_modules
-.env
-*.log
+﻿# Git history
 .git
-.gitignore
+**/.git
+**/.git/**
+
+# Node dependencies
+node_modules
+**/node_modules
+**/node_modules/**
+
+# Python virtual environments
+.venv
+**/.venv
+**/.venv/**
+venv
+**/venv
+**/venv/**
+
+# Python cache
+**/__pycache__
+**/__pycache__/**
+**/*.pyc
+**/*.pyo
+
+# Environment secrets
+.env
+**/.env
+
+# Logs and temporary files
+*.log
+**/*.log
+**/.cache
+**/.cache/**
+**/tmp
+**/tmp/**
+
+# Build output
 dist
 dist-vc
 dist-hod
 dist-faculty
 dist-admin
 
-# Backend has its own image (ignored for separate builds, included for Dockerfile.all)
-# backend/
+# Unused local Node classifier model copy
+backend/ai/deberta-zeroshot/
 
-# Misc
+# Miscellaneous
 *.zip
 *.png
 *.pdf
 debug-*.html
 fix-*.html
-__pycache__/
-*.pyc
-.venv
