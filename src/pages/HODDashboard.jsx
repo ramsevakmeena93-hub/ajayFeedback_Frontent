@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
@@ -71,12 +71,14 @@ export default function HODDashboard() {
   const [exportFilters, setExportFilters] = useState({
     semester: 'all',
     academicYear: 'all',
-    session: 'all'
+    session: 'all',
+    feedbackFormNo: 'all'
   });
   const [availableFilters, setAvailableFilters] = useState({
     semesters: [],
     academicYears: [],
     sessions: [],
+    feedbackFormNos: ['I', 'II'],
     totalReports: 0
   });
 
@@ -279,16 +281,23 @@ export default function HODDashboard() {
 
   // Export PDF with filters
   async function handleExportPDFWithFilters() {
-    if (reports.length === 0) return toast.error("No reports to export");
+    if (visibleReports.length === 0) return toast.error("No active reports to export");
     
-    const filters = {};
+    const filters = {
+      // Always send currently visible report IDs so we never export old submitted reports
+      reportIds: visibleReports.map(r => r._id),
+    };
     if (exportFilters.semester !== 'all') filters.semester = exportFilters.semester;
     if (exportFilters.academicYear !== 'all') filters.academicYear = exportFilters.academicYear;
     if (exportFilters.session !== 'all') filters.session = exportFilters.session;
+    if (exportFilters.feedbackFormNo !== 'all') filters.feedbackFormNo = exportFilters.feedbackFormNo;
     
-    const filterDesc = Object.keys(filters).length > 0 
-      ? `Applying filters: ${JSON.stringify(filters)}` 
-      : 'Exporting all reports';
+    const filterParts = [];
+    if (exportFilters.feedbackFormNo !== 'all') filterParts.push(`Feedback ${exportFilters.feedbackFormNo === 'I' ? '1' : '2'}`);
+    if (exportFilters.semester !== 'all') filterParts.push(`Semester ${exportFilters.semester}`);
+    if (exportFilters.academicYear !== 'all') filterParts.push(exportFilters.academicYear);
+    if (exportFilters.session !== 'all') filterParts.push(exportFilters.session === 'jan-may' ? 'Jan-May' : 'Jul-Dec');
+    const filterDesc = filterParts.length > 0 ? `Exporting: ${filterParts.join(', ')}` : `Exporting all ${visibleReports.length} active reports`;
     
     setExportingPDF(true);
     toast.loading(`${filterDesc}...`, { id: "pdf-export" });
@@ -1046,7 +1055,7 @@ export default function HODDashboard() {
                   Export PDF with Filters
                 </h2>
                 <p className="text-xs text-violet-600 dark:text-violet-400 mt-0.5">
-                  Filter reports by semester, academic year, or session
+                  Filter reports by feedback type, semester, academic year, or session
                 </p>
               </div>
               <button 
@@ -1062,13 +1071,32 @@ export default function HODDashboard() {
               {/* Available reports info */}
               <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
                 <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100 mb-1">
-                  📊 Available Reports: {availableFilters.totalReports}
+                  📊 Active Reports in Dashboard: {availableFilters.totalReports || visibleReports.length}
                 </p>
                 {availableFilters.semesters.length > 0 && (
                   <p className="text-xs text-indigo-700 dark:text-indigo-300">
                     Semesters: {availableFilters.semesters.join(', ')}
                   </p>
                 )}
+                <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-1">
+                  ℹ️ Only current dashboard reports are exported (previously submitted reports excluded)
+                </p>
+              </div>
+
+              {/* Feedback Form Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Filter by Feedback
+                </label>
+                <select
+                  value={exportFilters.feedbackFormNo}
+                  onChange={(e) => setExportFilters({...exportFilters, feedbackFormNo: e.target.value})}
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="all">All Feedbacks (Feedback 1 &amp; 2)</option>
+                  <option value="I">📋 Feedback 1 (Form I)</option>
+                  <option value="II">📋 Feedback 2 (Form II)</option>
+                </select>
               </div>
 
               {/* Semester Filter */}
@@ -1130,6 +1158,11 @@ export default function HODDashboard() {
                   Current Selection:
                 </p>
                 <div className="flex flex-wrap gap-2">
+                  {exportFilters.feedbackFormNo !== 'all' && (
+                    <span className="px-3 py-1 bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-100 text-xs font-medium rounded-full">
+                      Feedback {exportFilters.feedbackFormNo === 'I' ? '1 (Form I)' : '2 (Form II)'}
+                    </span>
+                  )}
                   {exportFilters.semester !== 'all' && (
                     <span className="px-3 py-1 bg-violet-200 dark:bg-violet-900 text-violet-900 dark:text-violet-100 text-xs font-medium rounded-full">
                       Semester {exportFilters.semester}
@@ -1145,9 +1178,9 @@ export default function HODDashboard() {
                       {exportFilters.session === 'jan-may' ? 'Jan-May' : 'Jul-Dec'}
                     </span>
                   )}
-                  {exportFilters.semester === 'all' && exportFilters.academicYear === 'all' && exportFilters.session === 'all' && (
+                  {exportFilters.feedbackFormNo === 'all' && exportFilters.semester === 'all' && exportFilters.academicYear === 'all' && exportFilters.session === 'all' && (
                     <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
-                      All Reports
+                      All Active Reports ({visibleReports.length})
                     </span>
                   )}
                 </div>
