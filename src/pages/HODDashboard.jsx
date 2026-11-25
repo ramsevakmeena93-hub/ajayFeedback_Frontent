@@ -20,7 +20,7 @@ const YEARS = Array.from({ length: 11 }, (_, i) => {
 
 export default function HODDashboard() {
   // --------------------------------------------------------------
-  // Helper: normalize faculty names for display
+  // Helper: normalize Pro‑VC names for display
   // --------------------------------------------------------------
   const normalizeName = (name) => {
     if (!name) return "";
@@ -108,6 +108,9 @@ export default function HODDashboard() {
     try {
       const encoded = encodeURIComponent(user.department);
       const { data } = await api.get(`/api/provc-reports/department/${encoded}`);
+        // Normalize names in Pro‑VC reports as well
+        const normalizedData = data.map(r => ({ ...r, facultyName: normalizeName(r.facultyName) }));
+        setHodProvcReports(normalizedData);
       setHodProvcReports(data);
     } catch {}
     finally { setHodProvcReportsLoading(false); }
