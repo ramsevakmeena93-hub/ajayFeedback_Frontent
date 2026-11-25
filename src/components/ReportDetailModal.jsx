@@ -104,7 +104,17 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
   const ffiBg    = ffi == null ? "bg-slate-50"    : ffi >= 4 ? "bg-emerald-50"    : ffi >= 3 ? "bg-amber-50"    : "bg-red-50";
 
   const pcts = report.commentPercentages || {};
-  const pctEntries = Object.entries(pcts).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+  const counts = pcts.counts || {};
+  const totalResponses = pcts.totalResponses || counts.total || report.responseCount || null;
+  const positiveResponses = pcts.positiveResponses || ((counts.good || 0) + (counts.veryGood || 0) + (counts.excellent || 0)) || null;
+  const positivePercent = pcts.positivePercent || pcts['Total Positive'] || (totalResponses && positiveResponses ? Number(((positiveResponses / totalResponses) * 100).toFixed(2)) : null);
+
+  const ratingCategories = [
+    { label: "Good", count: counts.good, pct: pcts['Good'], color: "bg-blue-500", text: "text-blue-700 dark:text-blue-300" },
+    { label: "Excellent", count: counts.excellent, pct: pcts['Excellent'], color: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-300" },
+    { label: "Very Good", count: counts.veryGood, pct: pcts['Very Good'], color: "bg-indigo-500", text: "text-indigo-700 dark:text-indigo-300" },
+  ];
+  const hasRatingBreakdown = ratingCategories.some(r => r.pct != null || r.count != null);
   const attComments = report.commentsNeedingAttention || [];
   const appComments = report.appreciation || [];
 
@@ -232,21 +242,80 @@ export default function ReportDetailModal({ report: initialReport, onClose, onAp
             </div>
           </div>
 
-          {/* Comment Percentages */}
-          {pctEntries.length > 0 && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800 rounded-2xl p-5 mb-6">
-              <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-widest mb-3">?? Response Breakdown</p>
-              <div className="space-y-2.5">
-                {pctEntries.map(([label, pct]) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-blue-800 dark:text-blue-300 w-24 shrink-0">{label}</span>
-                    <div className="flex-1 bg-blue-100 dark:bg-blue-900/40 rounded-full h-2.5">
-                      <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }}></div>
-                    </div>
-                    <span className="text-xs font-bold text-blue-700 dark:text-blue-300 w-12 text-right">{pct}%</span>
-                  </div>
-                ))}
+          {/* Response Breakdown & Percentage Statistics */}
+          {hasRatingBreakdown && (
+            <div className="bg-gradient-to-br from-indigo-50/70 via-blue-50/40 to-slate-50 dark:from-slate-900 dark:via-indigo-950/20 dark:to-slate-900 border border-indigo-100 dark:border-indigo-900/50 rounded-2xl p-5 mb-6 shadow-sm">
+              <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
+                  📊 Rating Breakdown & Positive Feedback
+                </p>
+                {totalResponses != null && (
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                    Total Responses: <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{totalResponses}</strong>
+                  </span>
+                )}
               </div>
+
+              {/* Breakdown Table */}
+              <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800/90 mb-4">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="px-4 py-2.5">Rating</th>
+                      <th className="px-4 py-2.5 text-center">Responses</th>
+                      <th className="px-4 py-2.5 text-right">Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 font-medium">
+                    {ratingCategories.map(({ label, count, pct, color }) => (
+                      <tr key={label} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/60">
+                        <td className="px-4 py-2.5 flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${color}`}></span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">{label}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                          {count != null ? count : '—'}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-bold text-slate-800 dark:text-slate-100">
+                          {pct != null ? `${Number(pct).toFixed(2)}%` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Total Positive Row */}
+                    <tr className="bg-indigo-50/60 dark:bg-indigo-950/40 font-bold border-t-2 border-indigo-200 dark:border-indigo-800">
+                      <td className="px-4 py-2.5 text-indigo-900 dark:text-indigo-200">
+                        Total (Good + Very Good + Excellent)
+                      </td>
+                      <td className="px-4 py-2.5 text-center text-indigo-900 dark:text-indigo-200">
+                        {positiveResponses != null ? positiveResponses : '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-indigo-600 dark:text-indigo-400 text-sm">
+                        {positivePercent != null ? `${Number(positivePercent).toFixed(2)}%` : '—'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Final Result Card */}
+              {positivePercent != null && (
+                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl p-4 shadow-sm flex items-center justify-between flex-wrap gap-3">
+                  <div>
+                    <div className="text-2xl font-black tracking-tight flex items-baseline gap-2">
+                      <span>{Number(positivePercent).toFixed(2)}%</span>
+                      <span className="text-xs font-semibold text-emerald-100 tracking-normal uppercase">Positive Feedback</span>
+                    </div>
+                    <p className="text-xs text-emerald-50 mt-0.5">
+                      Good + Very Good + Excellent{totalResponses ? ` • Out of ${totalResponses} total responses` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-mono bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/30 text-white">
+                      Formula: (Responses / {totalResponses || '840'}) × 100
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
