@@ -111,7 +111,6 @@ export default function HODDashboard() {
         // Normalize names in Pro‑VC reports as well
         const normalizedData = data.map(r => ({ ...r, facultyName: normalizeName(r.facultyName) }));
         setHodProvcReports(normalizedData);
-      setHodProvcReports(data);
     } catch {}
     finally { setHodProvcReportsLoading(false); }
   }
@@ -335,7 +334,17 @@ export default function HODDashboard() {
       toast.success(`PDF downloaded: ${filename}`, { id: "pdf-export" });
       setShowFilterModal(false);
     } catch (err) {
-      toast.error("Failed to generate PDF", { id: "pdf-export" });
+      let msg = "Failed to generate PDF";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.error) msg = json.error;
+        } catch {}
+      } else if (err.response?.data?.error) {
+        msg = err.response.data.error;
+      }
+      toast.error(msg, { id: "pdf-export" });
     } finally { setExportingPDF(false); }
   }
 
