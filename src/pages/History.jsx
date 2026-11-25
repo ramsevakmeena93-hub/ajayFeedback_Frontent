@@ -156,10 +156,16 @@ function OverallProVCReportButton({ sub, token }) {
 }
 
 // ── Submission card with semester-wise download ───────────────
-function SubmissionCard({ sub, token, onViewReport, filterFaculty }) {
+function SubmissionCard({ sub, token, onViewReport, filterFaculty, expandAllSignal }) {
   const { user } = useAuth();
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [downloading, setDownloading] = useState(null);
+
+  useEffect(() => {
+    if (expandAllSignal !== null && expandAllSignal !== undefined) {
+      setExpanded(expandAllSignal);
+    }
+  }, [expandAllSignal]);
 
   useEffect(() => {
     if (filterFaculty) setExpanded(true);
@@ -416,6 +422,7 @@ export default function History() {
   const [filterFaculty, setFilterFaculty] = useState("");
   const [yearInput, setYearInput]     = useState("");
   const [viewReport, setViewReport]   = useState(null);
+  const [expandAllSignal, setExpandAllSignal] = useState(null);
   const api = axios.create({ headers: { Authorization: `Bearer ${token}` } });
 
   // Role-based dashboard path
@@ -521,6 +528,16 @@ export default function History() {
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">All VC-approved submissions with semester-wise PDF download</p>
           </div>
           <div className="flex items-center gap-3">
+            {filtered.length > 0 && (
+              <button
+                onClick={() => setExpandAllSignal(prev => !prev)}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors"
+                title={expandAllSignal ? "Collapse all submission cards" : "Expand all submission cards"}
+              >
+                {expandAllSignal ? <ChevronUp size={13}/> : <ChevronDown size={13}/>}
+                {expandAllSignal ? "Collapse All" : "Expand All"}
+              </button>
+            )}
             <span className="text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5">
               {filtered.length} submission{filtered.length !== 1 ? "s" : ""}
             </span>
@@ -659,7 +676,7 @@ export default function History() {
                 </div>
                 <div className="space-y-3">
                   {subs.map(sub => (
-                    <SubmissionCard key={sub._id} sub={sub} token={token} onViewReport={setViewReport} filterFaculty={filterFaculty} />
+                    <SubmissionCard key={sub._id} sub={sub} token={token} onViewReport={setViewReport} filterFaculty={filterFaculty} expandAllSignal={expandAllSignal} />
                   ))}
                 </div>
               </div>
