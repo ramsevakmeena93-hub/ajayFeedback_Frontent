@@ -19,6 +19,18 @@ const YEARS = Array.from({ length: 11 }, (_, i) => {
 });
 
 export default function HODDashboard() {
+  // --------------------------------------------------------------
+  // Helper: normalize faculty names for display
+  // --------------------------------------------------------------
+  const normalizeName = (name) => {
+    if (!name) return "";
+    let n = String(name).toLowerCase().trim();
+    // fix common misspellings
+    n = n.replace(/\bmithoon\b/g, "mithun");
+    n = n.replace(/\bdr\.?\s*manjuree\s*pandit\b/gi, "dr. manjaree pandit");
+    // capitalize each word for UI friendliness
+    return n.replace(/\b\w/g, (c) => c.toUpperCase());
+  };
   const { token, user, logout, updateUser, isMultiRole, activeWorkspace } = useAuth();
   const sigRef = useRef();
 
@@ -180,7 +192,8 @@ export default function HODDashboard() {
     setLoading(true);
     try {
       const { data } = await api.get("/api/reports/my");
-      setReports(data);
+      const normalized = data.map(r => ({...r, facultyName: normalizeName(r.facultyName)}));
+      setReports(normalized);
       const autoSelect = [];
       setSelected(autoSelect);
     }
